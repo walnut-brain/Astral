@@ -10,7 +10,7 @@ namespace Astral
 {
     public interface IEventSource<TService> : IHasLogger
     {
-        IConfigOptions GetConfig<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector);
+        IServiceProvider GetConfig<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector);
         
         Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null);

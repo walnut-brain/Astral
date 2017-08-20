@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 using Astral.Configuration;
 using Astral.Core;
 using Astral.Data;
+using LanguageExt;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
 using WalnutBrain.Data;
@@ -15,7 +17,7 @@ namespace Astral
             Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null)
         {
-            var policy = source.GetConfig(selector).Get<EventPublishPolicy>()
+            var policy = source.GetConfig(selector).GetOption<EventPublishPolicy>()
                 .Map(p => p.Value)
                 .IfNone(Astral.DefaultEventPublishPolicy);
 
@@ -32,6 +34,26 @@ namespace Astral
 
         }
 
+        public static Action EnqueueManual<TService, TUoW, TEvent>(this IEventSource<TService> source,
+            IDeliveryDataService<TUoW> dataService, Expression<Func<TService, IEvent<TEvent>>> selector,
+            TEvent @event,
+            EventPublishOptions options = null)
+            where TUoW : IUnitOfWork
+        {
+            var serviceName = source.GetConfig(selector).GetRequiredService<ServiceName>().Value;
+            var endpointName = source.GetConfig(selector).GetRequiredService<EndpointName>().Value;
+            var serializer = source.GetConfig(selector).GetRequiredService<DeliverySerialize>().Value;
+            var strSerialized = serializer.Serialize()
+            var policy = source.GetConfig(selector).GetOption<DeliveryPolicy>()
+                .Map(p => p.Value)
+                .IfNone(Astral.DefaultDeliveryPolicy);
+            var deliveryId = Guid.NewGuid();
+            dataService.Create(new DeliveryRecord(deliveryId, serviceName, endpointName, )
+            {
+                
+            });        
+        }
+        
         
         public static void EnqueueSend<TService, TUoW, TEvent>(this IEventSource<TService> source,
             IDeliveryDataService<TUoW> dataService, Expression<Func<TService, IEvent<TEvent>>> selector,
@@ -41,6 +63,11 @@ namespace Astral
         {
             var action = source.Enqueue(dataService, selector, @event, options);
             dataService.UnitOfWork.RegisterAfterCommit(action);
+        }
+
+        public static Option<T> GetOption<T>(this IServiceProvider provider)
+        {
+            return Prelude.Optional(provider.GetService<T>());
         }
     }
 }
