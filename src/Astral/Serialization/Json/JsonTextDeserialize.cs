@@ -1,8 +1,7 @@
 ﻿using LanguageExt;
 using Newtonsoft.Json;
-using static LanguageExt.Prelude;
 
-namespace WalnutBrain.Bus.Serialization.Json
+namespace Astral.Serialization.Json
 {
     public class JsonTextDeserialize : IDeserialize<string>
     {
@@ -15,7 +14,7 @@ namespace WalnutBrain.Bus.Serialization.Json
 
         public Result<T> Deserialize<T>(Serialized<string> data)
         {
-            return Try(() => JsonConvert.DeserializeObject<T>(data.Data, _settings))();
+            return Prelude.Try(() => JsonConvert.DeserializeObject<T>(data.Data, _settings))();
         }
     }
 }

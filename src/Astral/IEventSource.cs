@@ -8,7 +8,7 @@ using Astral.Data;
 
 namespace Astral
 {
-    public interface IEventSource<TService> : IHasLogger
+    public interface IEventSource<TService> //: IHasLogger
     {
         IServiceProvider GetConfig<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector);
         

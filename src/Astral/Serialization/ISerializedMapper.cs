@@ -1,4 +1,4 @@
-﻿namespace WalnutBrain.Bus.Serialization
+﻿namespace Astral.Serialization
 {
     public interface ISerializedMapper<TF1, TF2>
     {

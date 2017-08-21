@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Net.Mime;
+using Newtonsoft.Json;
 
-namespace WalnutBrain.Bus.Serialization.Json
+namespace Astral.Serialization.Json
 {
     public class JsonTextSerialize : ISerialize<string>
     {
@@ -14,7 +15,7 @@ namespace WalnutBrain.Bus.Serialization.Json
         public Serialized<string> Serialize(string typeCode, object obj)
         {
             var json = JsonConvert.SerializeObject(obj, _settings);
-            return new Serialized<string>(typeCode, "text/json", json);
+            return new Serialized<string>(typeCode, new ContentType("text/json"), json);
         }
     }
 }

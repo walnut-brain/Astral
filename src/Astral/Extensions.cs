@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using Astral.Configuration;
+using Astral.Configuration.Settings;
 using Astral.Core;
 using Astral.Data;
 using LanguageExt;
@@ -13,6 +14,7 @@ namespace Astral
 {
     public static class Extensions
     {
+        /*
         public static void Publish<TService, TEvent>(this IEventSource<TService> source,
             Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null)
@@ -69,5 +71,7 @@ namespace Astral
         {
             return Prelude.Optional(provider.GetService<T>());
         }
+
+    */
     }
 }

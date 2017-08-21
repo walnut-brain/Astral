@@ -1,6 +1,6 @@
 ﻿using LanguageExt;
 
-namespace WalnutBrain.Bus.Serialization
+namespace Astral.Serialization
 {
     public interface IDeserialize<TFormat>
     {

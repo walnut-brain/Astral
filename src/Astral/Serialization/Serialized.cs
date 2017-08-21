@@ -1,6 +1,6 @@
 ﻿using System.Net.Mime;
 
-namespace WalnutBrain.Bus.Serialization
+namespace Astral.Serialization
 {
     public class Serialized<TFormat>
     {

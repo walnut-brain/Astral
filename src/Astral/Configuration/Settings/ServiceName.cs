@@ -1,6 +1,6 @@
 ﻿using LanguageExt;
 
-namespace Astral.Configuration
+namespace Astral.Configuration.Settings
 {
     public class ServiceName : NewType<ServiceName, string>
     {

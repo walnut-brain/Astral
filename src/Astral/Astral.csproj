@@ -6,6 +6,7 @@
     <PackageReference Include="LanguageExt.Core" Version="2.1.18" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="Polly" Version="5.3.1" />
   </ItemGroup>
   <ItemGroup>
@@ -13,5 +14,21 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyInjection\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Lavium\Laws.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Laws.generated.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Lavium\Laws.generated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Laws.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

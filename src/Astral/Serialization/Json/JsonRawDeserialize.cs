@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using LanguageExt;
 using Newtonsoft.Json;
-using static LanguageExt.Prelude;
 
-namespace WalnutBrain.Bus.Serialization.Json
+namespace Astral.Serialization.Json
 {
     public class JsonRawDeserialize : IDeserialize<byte[]>
     {
@@ -16,8 +15,19 @@ namespace WalnutBrain.Bus.Serialization.Json
 
         public Result<T> Deserialize<T>(Serialized<byte[]> data)
         {
-            return Try(() => Encoding.UTF8.GetString(data.Data))
-                .Bind(p => Try(() => JsonConvert.DeserializeObject<T>(p, _settings)))();
+            var encoding = Encoding.UTF8;
+            if(data.ContentType.CharSet != null)
+                try
+                {
+                    encoding = Encoding.GetEncoding(data.ContentType.CharSet);
+                }
+                catch 
+                {
+                    
+                }
+
+            return Prelude.Try(() => encoding.GetString(data.Data))
+                .Bind(p => Prelude.Try(() => JsonConvert.DeserializeObject<T>(p, _settings)))();
         }
     }
 }

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace WalnutBrain.Bus.Serialization.Json
+namespace Astral.Serialization.Json
 {
     public class Utf8BackMapper : ISerializedMapper<byte[], string>
     {

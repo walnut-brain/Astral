@@ -1,7 +1,8 @@
-﻿using System.Text;
+﻿using System.Net.Mime;
+using System.Text;
 using Newtonsoft.Json;
 
-namespace WalnutBrain.Bus.Serialization.Json
+namespace Astral.Serialization.Json
 {
     public class JsonRawSerialize : ISerialize<byte[]>
     {
@@ -16,7 +17,10 @@ namespace WalnutBrain.Bus.Serialization.Json
         {
             var text = JsonConvert.SerializeObject(obj, _settings);
             var bytes = Encoding.UTF8.GetBytes(text);
-            return new Serialized<byte[]>(typeCode, "text/json;encoding=utf8", bytes);
+            return new Serialized<byte[]>(typeCode, new ContentType("text/json")
+            {
+                CharSet = Encoding.UTF8.WebName
+            }, bytes);
         }
     }
 }
