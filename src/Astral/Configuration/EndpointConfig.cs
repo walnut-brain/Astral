@@ -13,12 +13,5 @@ namespace Astral.Configuration
             _logger = GetLogger<EndpointConfig>();
         }
 
-
-        public MessageConfig Message<T>(T message, bool permanent = false)
-        {
-            var book = Config.GetOrAddBook(message, permanent);
-            book.RegisterAxiom(new OriginalMessage(message));
-            return new MessageConfig(book);
-        }
     }
 }
