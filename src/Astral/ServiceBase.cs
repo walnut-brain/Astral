@@ -85,19 +85,21 @@ namespace Astral
                     break;
                 case UseSerializeMapper.Always:
                 case UseSerializeMapper.Allow when mapperOpt.IsSome:
-                    var mapper = mapperOpt.Unwrap();
+                    var mapper = mapperOpt.Unwrap("Serialization mapper not detected");
                     var textDeserialize = endpointConfig.Get<IDeserialize<string>>();
+
                     deserialize = (t, data) =>
                         Prelude
                             .Try(() => mapper.Map(data))
                             .Bind(p => textDeserialize.Deserialize(t, p));
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Unknown ${nameof(UseSerializeMapper)} value {useMapper}");
             }
 
-            var ignoreContractName = options?.IgnoreContractName ?? endpointConfig.TryGet<IgnoreContractName>()
-                                         .Map(p => (bool?) p.Value).IfNoneUnsafe(() => null);
+            var ignoreContractName = 
+                Prelude.Optional(options)
+                    .Map(p => p.IgnoreContractName) || endpointConfig.TryGet<IgnoreContractName>().Map(p =>  p.Value);
 
             return Subscribe(endpointConfig, Handler, options);
 
@@ -107,7 +109,7 @@ namespace Astral
                 {
                     var contractTypeResult = resolver.TryMap(msg.TypeCode, typeof(TEvent));
                     
-                    if (!contractTypeResult.IsFaulted || ignoreContractName == true)
+                    if (!contractTypeResult.IsFaulted || ignoreContractName.IfNone(false))
                     {
                         var type = contractTypeResult.IfFail(typeof(TEvent));
                         var obj = deserialize(type, msg).Try().Unwrap();
