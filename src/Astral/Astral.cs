@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Polly;
 
 namespace Astral
@@ -52,6 +54,23 @@ namespace Astral
                         .Handle<Exception>()
                         .WaitAndRetryAsync(5, p => TimeSpan.FromSeconds(Math.Pow(2, p)));
                 _defaultDeliveryPolicy = value; }
+        }
+
+        public static IEventHandler<TEvent> CreateEventHandler<TEvent>(
+            Func<TEvent, EventContext, CancellationToken, Task> handler)
+            => new DelegateEventHandler<TEvent>(handler);
+
+        private class DelegateEventHandler<TEvent> : IEventHandler<TEvent>
+        {
+            private readonly Func<TEvent, EventContext, CancellationToken, Task> _action;
+
+            public DelegateEventHandler(Func<TEvent, EventContext, CancellationToken, Task> action)
+            {
+                _action = action ?? throw new ArgumentNullException(nameof(action));
+            }
+
+            public Task Handle(TEvent @event, EventContext context, CancellationToken token)
+                => _action(@event, context, token);
         }
     }
 }

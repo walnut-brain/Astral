@@ -4,6 +4,11 @@ namespace Astral
 {
     public class EventPublishOptions
     {
-        public TimeSpan EventTtl { get;  }
+        public EventPublishOptions(TimeSpan? eventTtl)
+        {
+            EventTtl = eventTtl;
+        }
+
+        public TimeSpan? EventTtl { get;  }
     }
 }

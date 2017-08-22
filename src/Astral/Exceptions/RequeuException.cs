@@ -7,5 +7,9 @@ namespace Astral.Exceptions
         public RequeuException()
         {
         }
+
+        public RequeuException(string message) : base(message)
+        {
+        }
     }
 }

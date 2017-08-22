@@ -1,4 +1,6 @@
-﻿using LanguageExt;
+﻿using System;
+using Astral.Exceptions;
+using LanguageExt;
 using Newtonsoft.Json;
 
 namespace Astral.Serialization.Json
@@ -6,15 +8,19 @@ namespace Astral.Serialization.Json
     public class JsonTextDeserialize : IDeserialize<string>
     {
         private readonly JsonSerializerSettings _settings;
+        private readonly bool _checkContextType;
 
-        public JsonTextDeserialize(JsonSerializerSettings settings)
+        public JsonTextDeserialize(JsonSerializerSettings settings, bool checkContextType = false)
         {
             _settings = settings;
+            _checkContextType = checkContextType;
         }
 
-        public Result<T> Deserialize<T>(Serialized<string> data)
+        public Try<object> Deserialize(Type type, Serialized<string> data)
         {
-            return Prelude.Try(() => JsonConvert.DeserializeObject<T>(data.Data, _settings))();
+            if(!_checkContextType || data.ContentType?.IsJson() == true)
+                return Prelude.Try(() => JsonConvert.DeserializeObject(data.Data, type, _settings));
+            return Prelude.Try<object>(new UnknownContentTypeException($"Unknown content type {data.ContentType}"));
         }
     }
 }

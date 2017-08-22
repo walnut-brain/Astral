@@ -17,6 +17,9 @@ namespace Astral
         public static T Unwrap<T>(this Option<T> option)
             => Unwrap(option, p => $"Unwrap None of type {typeof(T)}");
 
+        public static T Unwrap<T>(this Result<T> result)
+            => result.Match(p => p, ex => throw ex);
+
         public static Option<T> UnboxUnsafe<T>(this Option<object> option)
             => option.Map(p => (T) p);
 

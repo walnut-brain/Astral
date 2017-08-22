@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
-using Astral.Configuration;
 using Astral.Core;
 using Astral.Data;
 
@@ -10,8 +8,6 @@ namespace Astral
 {
     public interface IEventSource<TService> //: IHasLogger
     {
-        IServiceProvider GetConfig<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector);
-        
         Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null);
 

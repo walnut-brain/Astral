@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using LanguageExt.TypeClasses;
 
 namespace Astral.Predicates
@@ -6,6 +7,6 @@ namespace Astral.Predicates
     public struct PositiveTimeSpan : Pred<TimeSpan>
     {
         public bool True(TimeSpan value)
-            => value > TimeSpan.Zero;
+            => value > TimeSpan.Zero || value == Timeout.InfiniteTimeSpan;
     }
 }

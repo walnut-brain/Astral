@@ -33,7 +33,14 @@ namespace Astral.Configuration
             config.SetOption(CheckPredicate(config, new DeliveryReserveTime(reserve)));
             return config;
         }
-        
+
+        public static TConfig MemberNameConverter<TConfig>(this TConfig config, Func<string, bool, string> converter)
+            where TConfig : ConfigBase
+        {
+            config.SetOption(CheckPredicate(config, new MemberNameToAstralName(converter)));
+            return config;
+        }
+
         public static EndpointConfig EndpointName(this EndpointConfig config, string name)
         {             
             config.SetOption(CheckPredicate(config, new EndpointName(name)));
@@ -53,10 +60,6 @@ namespace Astral.Configuration
             return config;
         }
         
-        
-        
-        
-
         private static T CheckPredicate<T>(ConfigBase config, T value, [CallerMemberName] string memberName = "")
         {
             var predicate = config.GetPredicate<T>();
