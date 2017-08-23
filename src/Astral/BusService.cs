@@ -199,7 +199,8 @@ namespace Astral
             {
                 try
                 {
-                    var contractTypeResult = resolver.TryMap(msg.TypeCode, typeof(TEvent));
+                    var contractTypeResult = resolver.TryMap(msg.TypeCode, typeof(TEvent)).Try();
+
                     
                     if (!contractTypeResult.IsFaulted || ignoreContractName.IfNone(false))
                     {

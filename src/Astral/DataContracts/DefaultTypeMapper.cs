@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using Astral.Core;
 using Astral.Exceptions;
 using LanguageExt;
+using static LanguageExt.Prelude;
 
 namespace Astral.DataContracts
 {
@@ -54,14 +55,14 @@ namespace Astral.DataContracts
             throw new UnknownContractException($"Cannot determine contract name for type {type}");
         }
 
-        public Result<Type> TryMap(string contractName, Type awaitedType)
+        public Try<Type> TryMap(string contractName, Type awaitedType)
         {
             if(string.IsNullOrWhiteSpace(contractName))
-                return new Result<Type>(new UnknownContractException($"No contract specified"));
+                return Try<Type>(new UnknownContractException($"No contract specified"));
             if (contractName == WellKnownTypes.UnitTypeCode)
-                return WellKnownTypes.UnitTypes[0];
+                return Try(WellKnownTypes.UnitTypes[0]);
             if(WellKnownTypes.TypeByCode.TryGetValue(contractName, out var type))
-                return type;
+                return Try(type);
             if (contractName.EndsWith("[]") )
             {
                 var elementType = TryGetElementType(awaitedType);
@@ -70,11 +71,11 @@ namespace Astral.DataContracts
                 return TryMap(elementName, elementType).Map(p => p.MakeArrayType());
             }
             if(awaitedType == null)
-                return new Result<Type>(new UnknownContractException($"Can determine type for contract name {contractName}"));
-            if(CheckSubtype(awaitedType)) return awaitedType;
+                return Try<Type>(new UnknownContractException($"Can determine type for contract name {contractName}"));
+            if(CheckSubtype(awaitedType)) return Try(awaitedType);
             var attr = awaitedType.GetCustomAttribute<ContractAttribute>();
             if (attr?.Name == contractName)
-                return awaitedType;
+                return Try(awaitedType);
             var attrs = awaitedType.GetCustomAttributes<KnownTypeAttribute>();
             foreach (var known in attrs)
             {
@@ -83,12 +84,12 @@ namespace Astral.DataContracts
                     var method = awaitedType.GetMethod(known.MethodName);
                     var subTypes = (IEnumerable<Type>)method.Invoke(null, new object[0]);
                     var found = subTypes.FirstOrDefault(CheckSubtype);
-                    if (found != null) return found;
+                    if (found != null) return Try(found);
                 }
-                else if (CheckSubtype(known.Type)) return known.Type;
+                else if (CheckSubtype(known.Type)) return Try(known.Type);
             }
 
-            return new Result<Type>(new UnknownContractException($"Can determine type for contract name {contractName}"));
+            return Try<Type>(new UnknownContractException($"Can determine type for contract name {contractName}"));
 
             bool CheckSubtype(Type t)
             {
