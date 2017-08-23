@@ -2,7 +2,7 @@
 
 namespace Astral.Exceptions
 {
-    public class UnknownContentTypeException : Exception
+    public class UnknownContentTypeException : PermanentException
     {
         public UnknownContentTypeException()
         {

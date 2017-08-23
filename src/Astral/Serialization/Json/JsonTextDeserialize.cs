@@ -18,8 +18,11 @@ namespace Astral.Serialization.Json
 
         public Try<object> Deserialize(Type type, Serialized<string> data)
         {
-            if(!_checkContextType || data.ContentType?.IsJson() == true)
-                return Prelude.Try(() => JsonConvert.DeserializeObject(data.Data, type, _settings));
+            if (!_checkContextType || data.ContentType?.IsJson() == true)
+                return Prelude.Try(() => JsonConvert.DeserializeObject(data.Data, type, _settings))
+                    .BiBind(Prelude.Try,
+                        ex => Prelude.Try<object>(new DeserializationException(data.ContentType.ToString(),
+                            data.TypeCode, type, ex)));
             return Prelude.Try<object>(new UnknownContentTypeException($"Unknown content type {data.ContentType}"));
         }
     }

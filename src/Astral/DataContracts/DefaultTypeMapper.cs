@@ -52,13 +52,13 @@ namespace Astral.DataContracts
                 return attr.Name;
             if (_typeNameConverter != null)
                 return _typeNameConverter(type.Name);
-            throw new UnknownContractException($"Cannot determine contract name for type {type}");
+            throw new TypeResolutionException(type);
         }
 
         public Try<Type> TryMap(string contractName, Type awaitedType)
         {
             if(string.IsNullOrWhiteSpace(contractName))
-                return Try<Type>(new UnknownContractException($"No contract specified"));
+                return Try<Type>(new DataContractResolutionException(null));
             if (contractName == WellKnownTypes.UnitTypeCode)
                 return Try(WellKnownTypes.UnitTypes[0]);
             if(WellKnownTypes.TypeByCode.TryGetValue(contractName, out var type))
@@ -71,7 +71,7 @@ namespace Astral.DataContracts
                 return TryMap(elementName, elementType).Map(p => p.MakeArrayType());
             }
             if(awaitedType == null)
-                return Try<Type>(new UnknownContractException($"Can determine type for contract name {contractName}"));
+                return Try<Type>(new DataContractResolutionException(contractName));
             if(CheckSubtype(awaitedType)) return Try(awaitedType);
             var attr = awaitedType.GetCustomAttribute<ContractAttribute>();
             if (attr?.Name == contractName)
@@ -89,7 +89,7 @@ namespace Astral.DataContracts
                 else if (CheckSubtype(known.Type)) return Try(known.Type);
             }
 
-            return Try<Type>(new UnknownContractException($"Can determine type for contract name {contractName}"));
+            return Try<Type>(new DataContractResolutionException(contractName));
 
             bool CheckSubtype(Type t)
             {

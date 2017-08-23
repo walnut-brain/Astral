@@ -6,7 +6,7 @@ using Astral.Data;
 
 namespace Astral
 {
-    public interface IEventSource<TService> //: IHasLogger
+    public interface IEventSource<TService> 
     {
         Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null);
