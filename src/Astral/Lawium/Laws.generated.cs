@@ -5,13 +5,13 @@ using LanguageExt;
 using Microsoft.Extensions.Logging;
 using static LanguageExt.Prelude;
 
-namespace Astral.Lavium
+namespace Astral.Lawium
 {
-	public static partial class Prelude
+	public partial class Law
     {
-		public static Law Law<TI1, TO1>(string name, Func<TI1, TO1> execute)
+		public static Law Create<TI1, TO1>(string name, Func<TI1, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0]);
                 
@@ -24,9 +24,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TO1, TO2>(string name, Func<TI1, (TO1, TO2)> execute)
+		public static Law Create<TI1, TO1, TO2>(string name, Func<TI1, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0]);
                 
@@ -39,9 +39,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TO1, TO2, TO3>(string name, Func<TI1, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TO1, TO2, TO3>(string name, Func<TI1, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0]);
                 
@@ -54,9 +54,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TO1, TO2, TO3, TO4>(string name, Func<TI1, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TO1, TO2, TO3, TO4>(string name, Func<TI1, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0]);
                 
@@ -69,9 +69,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0]);
                 
@@ -84,9 +84,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0]);
                 
@@ -99,9 +99,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0]);
                 
@@ -114,9 +114,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1>(string name, Func<TI1, TI2, TO1> execute)
+		public static Law Create<TI1, TI2, TO1>(string name, Func<TI1, TI2, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -129,9 +129,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1, TO2>(string name, Func<TI1, TI2, (TO1, TO2)> execute)
+		public static Law Create<TI1, TI2, TO1, TO2>(string name, Func<TI1, TI2, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -144,9 +144,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1, TO2, TO3>(string name, Func<TI1, TI2, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TI2, TO1, TO2, TO3>(string name, Func<TI1, TI2, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -159,9 +159,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -174,9 +174,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -189,9 +189,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -204,9 +204,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0], (TI2) args[1]);
                 
@@ -219,9 +219,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1>(string name, Func<TI1, TI2, TI3, TO1> execute)
+		public static Law Create<TI1, TI2, TI3, TO1>(string name, Func<TI1, TI2, TI3, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -234,9 +234,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1, TO2>(string name, Func<TI1, TI2, TI3, (TO1, TO2)> execute)
+		public static Law Create<TI1, TI2, TI3, TO1, TO2>(string name, Func<TI1, TI2, TI3, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -249,9 +249,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -264,9 +264,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -279,9 +279,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -294,9 +294,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -309,9 +309,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2]);
                 
@@ -324,9 +324,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1>(string name, Func<TI1, TI2, TI3, TI4, TO1> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1>(string name, Func<TI1, TI2, TI3, TI4, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -339,9 +339,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -354,9 +354,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -369,9 +369,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -384,9 +384,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -399,9 +399,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -414,9 +414,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3]);
                 
@@ -429,9 +429,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TO1> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -444,9 +444,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -459,9 +459,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -474,9 +474,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -489,9 +489,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -504,9 +504,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -519,9 +519,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4]);
                 
@@ -534,9 +534,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TO1> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -549,9 +549,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -564,9 +564,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -579,9 +579,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -594,9 +594,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -609,9 +609,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -624,9 +624,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5]);
                 
@@ -639,9 +639,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 object r1 = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 
@@ -654,9 +654,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 
@@ -669,9 +669,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 
@@ -684,9 +684,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 
@@ -699,9 +699,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 
@@ -714,9 +714,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 
@@ -729,9 +729,9 @@ namespace Astral.Lavium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
-		public static Law Law<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 var (r1, r2, r3, r4, r5, r6, r7) = execute((TI1) args[0], (TI2) args[1], (TI3) args[2], (TI4) args[3], (TI5) args[4], (TI6) args[5], (TI7) args[6]);
                 

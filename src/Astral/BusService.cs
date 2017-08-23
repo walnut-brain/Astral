@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Astral;
 using Astral.Configuration;
+using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Core;
 using Astral.Data;
@@ -11,29 +12,35 @@ using Astral.DataContracts;
 using Astral.DependencyInjection;
 using Astral.Exceptions;
 using Astral.Serialization;
+using Astral.Transport;
 using LanguageExt;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Astral
 {
-    public abstract class ServiceBase<TService> : IEventSource<TService>, IEventSubscriber<TService>
+    public class BusService<TService> : IEventSource<TService>, IEventSubscriber<TService>
     {
         private readonly ServiceConfig<TService> _serviceConfig;
-        private readonly IServiceProvider _serviceProvider;
 
-        protected ServiceBase(ServiceConfig<TService> serviceConfig, IServiceProvider serviceProvider)
+
+        internal BusService(ServiceConfig<TService> serviceConfig)
         {
             _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        protected abstract Func<Task> PreparePublish<T>(EndpointConfig config, T message,
-            Serialized<byte[]> serialized, PublishOptions options);
+        private IMqTransport GetMqTransport(EndpointConfig config)
+        {
+            throw new NotImplementedException();
+        }
+
+        private readonly ILogger _logger;
+        
 
         public Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event, EventPublishOptions options = null)
         {
             var endpointConfig = _serviceConfig.Endpoint(selector);
+            var transport = GetMqTransport(endpointConfig);
             var typeToContract = endpointConfig.Get<ITypeToContractName>();
             var contractName = typeToContract.Map(typeof(TEvent), @event);
             var useMapper = endpointConfig.TryGet<UseSerializeMapper>().IfNone(() => UseSerializeMapper.Allow);
@@ -59,7 +66,7 @@ namespace Astral
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            var prepared = PreparePublish(endpointConfig, @event, serialized, poptions);
+            var prepared = transport.PreparePublish(endpointConfig, @event, serialized, poptions);
             return prepared();
         }
 
@@ -112,8 +119,7 @@ namespace Astral
         {
             var useMapper = config.TryGet<UseSerializeMapper>().IfNone(() => UseSerializeMapper.Allow);
             var mapperOpt = config.TryGet<ISerializedMapper<string, byte[]>>();
-            var logger = config.GetLogger<ServiceBase<TService>>();
-            using (var scope = logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
+            using (var scope = _logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
                 record.EndpointName,
                 record.IsAnswer))
             {
@@ -147,9 +153,7 @@ namespace Astral
         }
 
 
-        protected abstract IDisposable Subscribe(EndpointConfig config, 
-            Func<Serialized<byte[]> , EventContext, CancellationToken, Task<Acknowledge>> handler,  
-            EventSubscribeOptions options);
+        
         
 
         public IDisposable Subscribe<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, 
@@ -157,8 +161,9 @@ namespace Astral
             EventSubscribeOptions options = null)
         {
             var endpointConfig = _serviceConfig.Endpoint(selector);
+            var transport = GetMqTransport(endpointConfig);
             var exceptionPolicy = endpointConfig.TryGet<IReciveExceptionPolicy>().IfNone(new DefaultExceptionPolicy());
-            var logger = endpointConfig.GetLogger<ServiceBase<TService>>();
+            
             var resolver = endpointConfig.Get<IContractNameToType>();
 
             var useMapper = endpointConfig.TryGet<UseSerializeMapper>().IfNone(() => UseSerializeMapper.Allow);
@@ -188,7 +193,7 @@ namespace Astral
                 Prelude.Optional(options)
                     .Map(p => p.IgnoreContractName) || endpointConfig.TryGet<IgnoreContractName>().Map(p =>  p.Value);
 
-            return Subscribe(endpointConfig, Handler, options);
+            return transport.Subscribe(endpointConfig, Handler, options);
 
             async Task<Acknowledge> Handler(Serialized<byte[]> msg, EventContext ctx, CancellationToken token)
             {
@@ -216,7 +221,7 @@ namespace Astral
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(0, ex, "On recive {selector} {service}", selector, typeof(TService));
+                    _logger.LogError(0, ex, "On recive {selector} {service}", selector, typeof(TService));
                     return exceptionPolicy.WhenException(ex);
                 }
             }
@@ -224,15 +229,5 @@ namespace Astral
         }
 
         
-    }
-
-    public class PublishOptions
-    {
-        public PublishOptions(TimeSpan messageTtl)
-        {
-            MessageTtl = messageTtl;
-        }
-
-        public TimeSpan MessageTtl { get; }
     }
 }

@@ -5,19 +5,18 @@ using System;
 using System.Linq;
 using LanguageExt;
 using Microsoft.Extensions.Logging;
-using WalnutBrain.Lavium.Internals;
 using static LanguageExt.Prelude;
 
-namespace Astral.Lavium
+namespace Astral.Lawium
 {
-	public static partial class Prelude
+	public partial class Law
     {
 <# 
 	for(var i = 1; i < 8; i++)
 		for (var j = 1; j < 8; j++)
 		{
 #>
-		public static Law Law<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><# for(var i1 = 1; i1 <= j; i1++) {#>TO<#=i1 < j ? $"{i1}, " : $"{i1}" #><#}#>>(string name, Func<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><#
+		public static Law Create<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><# for(var i1 = 1; i1 <= j; i1++) {#>TO<#=i1 < j ? $"{i1}, " : $"{i1}" #><#}#>>(string name, Func<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><#
 		    if (j == 1)
 		    {
 		        #>TO1<#
@@ -30,7 +29,7 @@ namespace Astral.Lavium
 		
 		#>> execute)
 		{
-			Arr<object> Calc(ILogger logger, Func<Type, object> externalParams, Arr<object> args)
+			Arr<object> Calc(ILogger logger, Arr<object> args)
             {
                 <#
 
