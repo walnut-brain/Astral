@@ -2,13 +2,13 @@
 
 namespace Astral.Exceptions
 {
-    public class NackException : Exception
+    public class NackException : AcknowledgeException
     {
-        public NackException()
+        public NackException() : base(Acknowledge.Nack)
         {
         }
 
-        public NackException(string message) : base(message)
+        public NackException(string message) : base(Acknowledge.Nack, message)
         {
         }
     }

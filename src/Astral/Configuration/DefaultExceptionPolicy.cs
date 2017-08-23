@@ -9,8 +9,9 @@ namespace Astral.Configuration
     {
         public Acknowledge WhenException(Exception exception)
         {
-            if(exception is RequeuException) return Acknowledge.Requeue;
+            if(exception is AcknowledgeException acke) return acke.Acknowledge;
             if(exception is TaskCanceledException) return Acknowledge.Requeue;
+            
             if(exception is AggregateException ae && ae.Flatten().InnerExceptions.Any(p => p is TaskCanceledException))
                 return Acknowledge.Requeue;
             return Acknowledge.Nack;

@@ -2,13 +2,13 @@
 
 namespace Astral.Exceptions
 {
-    public class RequeuException : Exception
+    public class RequeuException : AcknowledgeException
     {
-        public RequeuException()
+        public RequeuException() : base(Acknowledge.Requeue)
         {
         }
 
-        public RequeuException(string message) : base(message)
+        public RequeuException(string message) : base(Acknowledge.Requeue, message)
         {
         }
     }
