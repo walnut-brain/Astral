@@ -17,6 +17,6 @@ namespace Astral.Configuration.Configs
             Logger = LoggerFactory.CreateLogger(GetType());
         }
 
-        public Option<T> TryGet<T>() => LawBook.TryGet<T>();
+        public Option<T> GetOption<T>() => LawBook.TryGet<T>();
     }
 }

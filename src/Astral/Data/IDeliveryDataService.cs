@@ -11,7 +11,19 @@ namespace Astral.Data
 
         void Create(DeliveryRecord delivery);
 
+        
+        /// <summary>
+        /// Update conrete lease
+        /// UPDATE DeliveryRecords SET Leased = @leasedTo, Sponsor = @sponsor WHERE DeliveryId = @deliveryId AND (Sponsor = @sponsor OR (Sponsor is null)) 
+        /// must update single record  - then true
+        /// </summary>
+        /// <param name="sponsor">sponsor</param>
+        /// <param name="deliveryId">id</param>
+        /// <param name="leasedTo">leased to</param>
+        /// <returns>success</returns>
         bool UpdateLease(string sponsor, Guid deliveryId, DateTimeOffset leasedTo);
+        
+        
         void SetDelivered(Guid deliveryId, DateTimeOffset archiveTo);
         void Delete(Guid deliveryId);
 
@@ -19,5 +31,20 @@ namespace Astral.Data
             DateTimeOffset leaseTo, uint? maxCount);
 
         void CleanLateDeliveries();
+        
+        /// <summary>
+        /// Remove all leases by sponsor:
+        /// UPDATE DeliveryRecords SET Leased = DateTime.Now, Sponsor = NULL WHERE Sponsor = @sponsor  
+        /// </summary>
+        /// <param name="sponsor">sponsor</param>
+        void RemoveLeases(string sponsor);
+
+        /// <summary>
+        /// Remove concrete lease
+        /// UPDATE DeliveryRecords SET Leased = DateTime.Now, Sponsor = NULL WHERE Sponsor = @sponsor AND DeliveryId = @deliveryId
+        /// </summary>
+        /// <param name="deliveryId"></param>
+        /// <param name="sponsorId"></param>
+        void RemoveLease(Guid deliveryId, string sponsorId);
     }
 }

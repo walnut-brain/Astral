@@ -1,9 +1,10 @@
 ﻿using System;
+using LanguageExt;
 
 namespace Astral.DataContracts
 {
     public interface ITypeToContractName
     {
-        string Map(Type type, object data);
+        Try<string> Map(Type type, object data);
     }
 }

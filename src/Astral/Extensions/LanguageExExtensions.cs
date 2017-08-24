@@ -28,5 +28,11 @@ namespace Astral
 
         public static Option<object> Box<T>(this Option<T> option)
             => option.Map(p => (object) p);
+
+        public static Try<T> ToTry<T>(this Option<T> option, Exception ex)
+            => option.Match(Prelude.Try, () => Prelude.Try<T>(ex));
+
+        public static Try<T> BindFail<T>(this Try<T> @try, Func<Try<T>> fnc)
+            => @try.BiBind(Prelude.Try, _ => fnc());
     }
 }

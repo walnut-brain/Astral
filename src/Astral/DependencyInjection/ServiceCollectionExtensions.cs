@@ -10,8 +10,8 @@ namespace Astral.DependencyInjection
         public static IServiceCollection AddAstral(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<DedicatedScopeProvider>();
-            serviceCollection.AddTransient(p =>
-                p.GetRequiredService<DedicatedScopeProvider>().GetDedicatedScope());
+            serviceCollection.AddTransient<Func<IDedicatedScope>>(p =>
+                () => p.GetRequiredService<DedicatedScopeProvider>().GetDedicatedScope());
             return serviceCollection;
         }
 
