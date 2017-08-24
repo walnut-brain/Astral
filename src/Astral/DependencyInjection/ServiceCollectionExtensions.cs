@@ -2,6 +2,7 @@
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
 using Astral.Delivery;
+using LanguageExt;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.DependencyInjection

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration.Settings;
@@ -21,7 +22,7 @@ namespace Astral.Delivery
         private readonly string _sponsor;
         private readonly Task _renewLoop;
         private readonly CancellationDisposable _dispose;
-        private readonly ConcurrentDictionary<Guid, CancellationDisposable> _leases = new ConcurrentDictionary<Guid, CancellationDisposable>(); 
+        private readonly ConcurrentDictionary<Guid, DeliveryLease> _leases = new ConcurrentDictionary<Guid, DeliveryLease>(); 
         
 
         public DeliveryManager(Func<IDedicatedScope> scopeProvider, TimeSpan leaseInterval)
@@ -42,26 +43,26 @@ namespace Astral.Delivery
                 var token = cancellation.Token;
                 cancellation.Cancel();
                 cancellation.Dispose();
-                return new DeliveryLease(token, a => { });
+                return new DeliveryLease(token, Disposable.Empty,  a => { });
             }
             {
-                var cancellation = _leases.GetOrAdd(deliveryId, _ =>
+                return _leases.GetOrAdd(deliveryId, _ =>
                 {
                     var direct = new CancellationDisposable();
                     var combined = CancellationTokenSource.CreateLinkedTokenSource(direct.Token, _dispose.Token);
                     var dsp = new CancellationDisposable(combined);
-                    return dsp;
-                });
-                return new DeliveryLease(cancellation.Token, act =>
-                {
-                    DoInScope(async srv =>
+                    return new DeliveryLease(dsp.Token,  dsp,  act =>
                     {
-                        act(srv);
-                        await srv.RemoveLease(deliveryId, _sponsor);
-                    });
-                    if(_leases.TryRemove(deliveryId, out var r)) 
-                        r.Dispose();
+                        DoInScope(async srv =>
+                        {
+                            act(srv);
+                            await srv.RemoveLease(deliveryId, _sponsor);
+                        });
+                        if(_leases.TryRemove(deliveryId, out var r)) 
+                            r.Kill();
+                    });;
                 });
+                
             }
         }
         
@@ -76,7 +77,7 @@ namespace Astral.Delivery
                 foreach (var guid in toRemove)
                 {
                     if(_leases.TryRemove(guid, out var p))
-                        p.Dispose();
+                        p.Kill();
                 }
                 await Task.Delay(_leaseInterval, token);
             }
@@ -134,24 +135,26 @@ namespace Astral.Delivery
         
         private class DeliveryLease : IDeliveryLease<TUoW>
         {
+            private readonly IDisposable _toDispose;
             private readonly Action<Action<IDeliveryDataService<TUoW>>> _action;
             
-            public DeliveryLease(CancellationToken token, Action<Action<IDeliveryDataService<TUoW>>> action)
+            public DeliveryLease(CancellationToken token,
+                IDisposable toDispose,
+                Action<Action<IDeliveryDataService<TUoW>>> action)
             {
                 Token = token;
+                _toDispose = toDispose;
                 _action = action;
             }
 
             public CancellationToken Token { get; }
-            public void Release(Action<IDeliveryDataService<TUoW>> action) => _action(action);
+            public void Release(Action<IDeliveryDataService<TUoW>> action)
+            {
+                _toDispose.Dispose();
+                _action(action);
+            }
 
+            public void Kill() => _toDispose.Dispose();
         }
-    }
-
-    public interface IDeliveryLease<TUoW>
-        where TUoW : IUnitOfWork
-    {
-        CancellationToken Token { get; }
-        void Release(Action<IDeliveryDataService<TUoW>> action);
     }
 }

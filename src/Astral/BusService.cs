@@ -9,6 +9,7 @@ using Astral.Configuration.Settings;
 using Astral.Core;
 using Astral.Data;
 using Astral.DataContracts;
+using Astral.Delivery;
 using Astral.DependencyInjection;
 using Astral.Exceptions;
 using Astral.Serialization;
@@ -16,6 +17,7 @@ using Astral.Transport;
 using LanguageExt;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Astral
 {
@@ -93,7 +95,9 @@ namespace Astral
             Serialized<string> serialized,
             T message,
             IMqTransport transport,
-            PublishOptions options)
+            PublishOptions options,
+            DeliveryManager<TUoW> manager)
+            where TUoW : IUnitOfWork
             => () =>
             {
                 using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
@@ -103,16 +107,31 @@ namespace Astral
                     try
                     {
                         var rawSerialized = config.RawSerialize(message, serialized).IfFailThrow();
-                            
+                        var lease = manager.AddDelivery(record.DeliveryId).Result;
+                        //TODO: Configure?
+                        Policy
+                            .Handle<Exception>()
+                            //TODO: Configure
+                            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(3))
+                            .ExecuteAsync(token => transport.PreparePublish(config, message, rawSerialized, options)(), lease.Token)
+                            .ContinueWith(tsk =>
+                            {
+                                if (tsk.IsCompleted)
+                                {
+                                    //TODO: Toconfig
+                                    lease.Release(p => p.Delete(record.DeliveryId));
+                                    logger.LogTrace("Delivered {id}", record.DeliveryId);
+                                }
+                                else if (tsk.IsFaulted)
+                                    logger.LogError(0, tsk.Exception, "On delivery {id}", record.DeliveryId);
+                            });
 
                     }
                     catch (Exception ex)
                     {
-
+                        logger.LogError(0, ex, "When deliver start");
                     }
                 }
-
-                throw new NotImplementedException();
             };
 
 
