@@ -110,9 +110,9 @@ namespace Astral
                         var lease = manager.AddDelivery(record.DeliveryId).Result;
                         //TODO: Configure?
                         Policy
-                            .Handle<Exception>()
+                            .Handle<TemporaryException>()
                             //TODO: Configure
-                            .WaitAndRetryAsync(5, _ => TimeSpan.FromSeconds(3))
+                            .WaitAndRetryAsync(5, (_, ctx) => ctx., (exception, span, ctx) => {})
                             .ExecuteAsync(token => transport.PreparePublish(config, message, rawSerialized, options)(), lease.Token)
                             .ContinueWith(tsk =>
                             {
@@ -122,8 +122,12 @@ namespace Astral
                                     lease.Release(p => p.Delete(record.DeliveryId));
                                     logger.LogTrace("Delivered {id}", record.DeliveryId);
                                 }
-                                else if (tsk.IsFaulted)
+                                else {
+                                    if (!tsk.IsFaulted) return;
                                     logger.LogError(0, tsk.Exception, "On delivery {id}", record.DeliveryId);
+                                    // TODO: Log error to record
+                                    lease.Release(p => { });
+                                }
                             });
 
                     }
