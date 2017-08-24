@@ -1,10 +1,11 @@
 ﻿using System.Data;
+using System.Threading.Tasks;
 
 namespace Astral.Data
 {
-    public interface IUnitOfWorkProvider<out T>
+    public interface IUnitOfWorkProvider<T>
         where T : IUnitOfWork
     {
-        T BeginWork(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
+        Task<T> BeginWork(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
     }
 }

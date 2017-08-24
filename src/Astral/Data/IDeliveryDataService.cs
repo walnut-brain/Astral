@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Astral.Data
 {
@@ -21,12 +22,13 @@ namespace Astral.Data
         /// <param name="deliveryId">id</param>
         /// <param name="leasedTo">leased to</param>
         /// <returns>success</returns>
-        bool UpdateLease(string sponsor, Guid deliveryId, DateTimeOffset leasedTo);
+        Task<bool> UpdateLease(string sponsor, Guid deliveryId, DateTimeOffset leasedTo);
         
         
         void SetDelivered(Guid deliveryId, DateTimeOffset archiveTo);
         void Delete(Guid deliveryId);
 
+        
         IEnumerable<DeliveryRecord> GetAwaitedDelivery(string serviceName, string endpointName, string sponsorName,
             DateTimeOffset leaseTo, uint? maxCount);
 
@@ -37,7 +39,7 @@ namespace Astral.Data
         /// UPDATE DeliveryRecords SET Leased = DateTime.Now, Sponsor = NULL WHERE Sponsor = @sponsor  
         /// </summary>
         /// <param name="sponsor">sponsor</param>
-        void RemoveLeases(string sponsor);
+        Task RemoveLeases(string sponsor);
 
         /// <summary>
         /// Remove concrete lease
@@ -45,6 +47,16 @@ namespace Astral.Data
         /// </summary>
         /// <param name="deliveryId"></param>
         /// <param name="sponsorId"></param>
-        void RemoveLease(Guid deliveryId, string sponsorId);
+        Task RemoveLease(Guid deliveryId, string sponsorId);
+        
+        /// <summary>
+        /// Renew all sponsor leases
+        /// UPDATE DeliveryRecords SET Leased = DateTime.Now + @leasePeriod WHERE Sponsor = @sponsor
+        /// SELECT DeliveryId FROM DeliveryRecords WHERE Sponsor = @sponsor
+        /// </summary>
+        /// <param name="sponsor">sponsor</param>
+        /// <param name="leasePeriod">leasePeriod</param>
+        /// <returns>leased deliveries</returns>
+        Task<IEnumerable<Guid>> RenewLeases(string sponsor, TimeSpan leasePeriod);
     }
 }

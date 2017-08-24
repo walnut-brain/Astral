@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using LanguageExt;
 using WalnutBrain.Data;
 
@@ -13,6 +14,6 @@ namespace Astral.Data
         /// <summary>
         ///     Commit changes. When not called, Dispose must rollback
         /// </summary>
-        void Commit();
+        Task Commit();
     }
 }

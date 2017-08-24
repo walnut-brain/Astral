@@ -1,6 +1,7 @@
 ﻿using System;
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
+using Astral.Delivery;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.DependencyInjection
@@ -12,6 +13,7 @@ namespace Astral.DependencyInjection
             serviceCollection.AddSingleton<DedicatedScopeProvider>();
             serviceCollection.AddTransient<Func<IDedicatedScope>>(p =>
                 () => p.GetRequiredService<DedicatedScopeProvider>().GetDedicatedScope());
+            serviceCollection.AddSingleton(typeof(DeliveryManager<>));
             return serviceCollection;
         }
 
