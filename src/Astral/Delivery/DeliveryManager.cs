@@ -51,7 +51,7 @@ namespace Astral.Delivery
                 var token = cancellation.Token;
                 cancellation.Cancel();
                 cancellation.Dispose();
-                return new DeliveryLease(token, Disposable.Empty, a => { });
+                return new DeliveryLease(token, Disposable.Empty, a => { }, deliveryId, _sponsor);
             }
             {
                 return _leases.GetOrAdd(deliveryId, _ =>
@@ -68,7 +68,7 @@ namespace Astral.Delivery
                         }).Wait(CancellationToken.None);
                         if (_leases.TryRemove(deliveryId, out var r))
                             r.Kill();
-                    });
+                    }, deliveryId, _sponsor);
                     ;
                 });
             }
@@ -132,27 +132,50 @@ namespace Astral.Delivery
             }
         }
 
+        private class DeliveryCloseOperations : IDeliveryCloseOperations
+        {
+            private readonly IDeliveryDataService<TStore> _service;
+            private readonly Guid _deliveryId;
+            private readonly string _sponsor;
+
+            public DeliveryCloseOperations(IDeliveryDataService<TStore> service, Guid deliveryId, string sponsor)
+            {
+                _service = service;
+                _deliveryId = deliveryId;
+                _sponsor = sponsor;
+            }
+
+            public void Delete() => _service.Delete(_deliveryId);
+            public void SetException(Exception exception) => _service.SetException(_deliveryId, exception);
+
+            public void Archive(TimeSpan archiveTime) =>
+                _service.Archive(_deliveryId, DateTimeOffset.Now + archiveTime);
+        }
 
         private class DeliveryLease : IDeliveryLease<TStore>
         {
             private readonly Action<Action<IDeliveryDataService<TStore>>> _releaseAction;
             private readonly IDisposable _toDispose;
+            private readonly Guid _deliveryId;
+            private readonly string _sponsor;
 
             public DeliveryLease(CancellationToken token,
                 IDisposable toDispose,
-                Action<Action<IDeliveryDataService<TStore>>> releaseAction)
+                Action<Action<IDeliveryDataService<TStore>>> releaseAction, Guid deliveryId, string sponsor)
             {
                 Token = token;
                 _toDispose = toDispose;
                 _releaseAction = releaseAction;
+                _deliveryId = deliveryId;
+                _sponsor = sponsor;
             }
 
             public CancellationToken Token { get; }
 
-            public void Release(Action<IDeliveryDataService<TStore>> action)
+            public void Release(Action<IDeliveryCloseOperations> action)
             {
                 _toDispose.Dispose();
-                _releaseAction(action);
+                _releaseAction(p => action(new DeliveryCloseOperations(p, _deliveryId, _sponsor)));
             }
 
             public void Kill()

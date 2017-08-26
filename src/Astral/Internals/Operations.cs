@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
+using Astral.Core;
+using Astral.Data;
 using Astral.DataContracts;
+using Astral.Delivery;
 using Astral.Exceptions;
 using Astral.Serialization;
 using Astral.Transport;
 using LanguageExt;
 using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Astral.Internals
 {
@@ -88,5 +93,105 @@ namespace Astral.Internals
                     .CorrectError(exceptionPolicy.WhenException);
             }
         }
+
+        public static Action EnqueueManual<TStore, TEvent>(ILogger logger, IDeliveryDataService<TStore> dataService,
+            EndpointConfig config, IEventTransport transport, TEvent @event, DeliveryManager<TStore> manager,
+            EventPublishOptions options = null)
+            where TStore : IStore<TStore>
+        {
+            
+            var serialized = config.TextSerialize(@event).IfFailThrow();
+            var reserveTime = config.AsTry<DeliveryReserveTime>().Map(p => p.Value).IfFail(TimeSpan.FromSeconds(3));
+            var deliveryId = Guid.NewGuid();
+            var key = config.TryGet<IMessageKeyExtractor<TEvent>>().Map(p => p.ExtractKey(@event)) ||
+                      Prelude.Optional(@event as IKeyProvider).Map(p => p.Key);
+            var serviceName = config.ServiceName;
+            var endpointName = config.EndpointName;
+            
+            var messageTtl = options?.EventTtl ??
+                             config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(Timeout.InfiniteTimeSpan);
+
+            key.Filter(_ => config.AsTry<CleanSameKeyDelivery>().Map(p => p.Value).IfFail(true))
+                .IfSome(k => dataService.DeleteAll(serviceName, endpointName, k));
+
+            var deliveryRecord = new DeliveryRecord(deliveryId,
+                serviceName,
+                endpointName,
+                serialized.TypeCode,
+                serialized.ContentType.ToString(),
+                serialized.Data,
+                key.IfNoneUnsafe((string)null),
+                DateTimeOffset.Now + reserveTime,
+                null,
+                false,
+                false,
+                messageTtl < TimeSpan.Zero ? (DateTimeOffset?)null : DateTimeOffset.Now + messageTtl,
+                null,
+                null,
+                0,
+                null);
+            dataService.Create(deliveryRecord);
+
+            return Deliver(logger, config, deliveryRecord, serialized, @event, transport,
+                new PublishOptions(messageTtl), manager);
+        }
+
+        private static Action Deliver<T, TStore>(ILogger logger, EndpointConfig config,
+            DeliveryRecord record,
+            Serialized<string> serialized,
+            T message,
+            IEventTransport transport,
+            PublishOptions options,
+            DeliveryManager<TStore> manager)
+            where TStore : IStore<TStore>
+            => () =>
+            {
+                var retryCount = config.TryGet<DeliveryRetryCount>().Map(p => p.Value).IfNone(5);
+                var retryPause = config.TryGet<DeliveryRetryPause>().Map(p => p.Value)
+                    .IfNone(_ => TimeSpan.FromSeconds(3));
+                var retryPolicy =
+                    Policy
+                        .Handle<TemporaryException>()
+                        .WaitAndRetryAsync(retryCount, p => retryPause((ushort) p));
+                var policy = config.TryGet<DeliveryExceptionPolicy>().Map(p => p.Value).IfNone(retryPolicy);
+
+                using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
+                    record.EndpointName,
+                    record.IsAnswer))
+                {
+                    try
+                    {
+                        var rawSerialized = config.RawSerialize(message, serialized).IfFailThrow();
+                        var lease = manager.AddDelivery(record.DeliveryId).Result;
+                        policy
+                            .ExecuteAsync(token => transport.PreparePublish(config, message, rawSerialized, options)(),
+                                lease.Token)
+                            .ContinueWith(tsk =>
+                            {
+                                if (tsk.IsCompleted)
+                                {
+                                    //TODO: Toconfig
+                                    lease.Release(p => p.Delete());
+                                    logger.LogTrace("Delivered {id}", record.DeliveryId);
+                                }
+                                else
+                                {
+                                    if (tsk.IsFaulted)
+                                    {
+                                        logger.LogError(0, tsk.Exception, "On delivery {id}", record.DeliveryId);
+                                        lease.Release(p => p.SetException(tsk.Exception));
+                                    }
+                                    else
+                                        lease.Release(p => { });
+                                }
+                            });
+
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(0, ex, "When deliver start");
+                    }
+                }
+            };
     }
 }

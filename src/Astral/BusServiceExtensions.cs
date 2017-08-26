@@ -1,9 +1,18 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Astral.Configuration.Configs;
 using Astral.Core;
+using Astral.Data;
+using Astral.Delivery;
+using Astral.Exceptions;
 using Astral.Internals;
+using Astral.Serialization;
 using Astral.Transport;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Astral
 {
@@ -54,6 +63,19 @@ namespace Astral
             return Operations.ListenEvent(service.Logger, service.Config.Endpoint(selector), service.Transport,
                 eventListener,
                 options);
+        }
+
+        public static Action EnqueueManual<TService, TTransport, TStore, TEvent>(
+            this BusService<TTransport, TService> service, IDeliveryDataService<TStore> dataService,
+            Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
+            EventPublishOptions options = null)
+            where TStore : IStore<TStore>
+            where TTransport : class, IEventTransport
+            where TService : class
+        {
+            return Operations.EnqueueManual(service.Logger, dataService, service.Config.Endpoint(selector),
+                service.Transport, @event,
+                service.Provider.GetRequiredService<DeliveryManager<TStore>>());
         }
     }
 }

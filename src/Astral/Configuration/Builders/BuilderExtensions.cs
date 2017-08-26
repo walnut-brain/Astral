@@ -4,26 +4,30 @@ using System.Reflection;
 using Astral.Configuration.Settings;
 using Astral.Core;
 using Astral.DataContracts;
+using Astral.Delivery;
 using Astral.Serialization;
 using Astral.Serialization.Json;
 using Lawium;
 using Newtonsoft.Json;
+using Polly;
 
 namespace Astral.Configuration.Builders
 {
     public static class BuilderExtensions
     {
-        public static TBuilder AfterDeliveryTtl<TBuilder>(this TBuilder builder, TimeSpan timeSpan)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law.Axiom(new AfterDeliveryTtl(timeSpan)));
-            return builder;
-        }
-
         public static TBuilder CleanSameKeyDelivery<TBuilder>(this TBuilder builder, bool clean)
             where TBuilder : BuilderBase
         {
             builder.AddLaw(Law.Axiom(new CleanSameKeyDelivery(clean)));
+            return builder;
+        }
+
+        
+
+        public static TBuilder DeliveryExceptionPolicy<TBuilder>(this TBuilder builder, Policy policy)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law.Axiom<DeliveryExceptionPolicy>(new DeliveryExceptionPolicy(policy)));
             return builder;
         }
 
@@ -41,6 +45,59 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
+        public static TBuilder DeliveryRetryCount<TBuilder>(this TBuilder builder, ushort count)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law.Axiom(new DeliveryRetryCount(count)));
+            return builder;
+        }
+
+        public static TBuilder DeliveryRetryPause<TBuilder>(this TBuilder builder, Func<ushort, TimeSpan> calcTimeSpan)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law.Axiom(new DeliveryRetryPause(calcTimeSpan)));
+            return builder;
+        }
+
+        public static TBuilder AfterDeliveryDelete<TBuilder>(this TBuilder builder)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law.Axiom<IAfterDeliveryPolicy>(new AfterDeliveryPolicy(p => p.Delete())));
+            return builder;
+        }
+
+        public static TBuilder AfterDeliveryArchive<TBuilder>(this TBuilder builder, TimeSpan archivePeriod)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law.Axiom<IAfterDeliveryPolicy>(new AfterDeliveryPolicy(p => p.Archive(archivePeriod))));
+            return builder;
+        }
+
+        public static TBuilder IgnoreContractName<TBuilder>(this TBuilder builder, bool ignore = false)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law.Axiom(new IgnoreContractName(ignore)));
+            return builder;
+        }
+
+        public static BusBuilder MessageKeyExtractor<TEvent>(this BusBuilder builder, Func<TEvent, string> extractKey)
+        {
+            builder.AddLaw(Law.Axiom(new MessageKeyExtract<TEvent>(extractKey)));
+            return builder;
+        }
+
+        public static ServiceBuilder MessageKeyExtractor<TEvent>(this ServiceBuilder builder, Func<TEvent, string> extractKey)
+        {
+            builder.AddLaw(Law.Axiom(new MessageKeyExtract<TEvent>(extractKey)));
+            return builder;
+        }
+
+        public static EventEndpointBuilder<TEvent> MessageKeyExtractor<TEvent>(this EventEndpointBuilder<TEvent> builder, Func<TEvent, string> extractKey)
+        {
+            builder.AddLaw(Law.Axiom(new MessageKeyExtract<TEvent>(extractKey)));
+            return builder;
+        }
+
         public static TBuilder MemberNameConverter<TBuilder>(this TBuilder builder,
             Func<string, bool, string> converter)
             where TBuilder : BuilderBase
@@ -55,6 +112,39 @@ namespace Astral.Configuration.Builders
             builder.AddLaw(Law.Axiom(new MessageTtl(ttl)));
             return builder;
         }
+
+
+
+        private class MessageKeyExtract<T> : IMessageKeyExtractor<T>
+        {
+            private readonly Func<T, string> _extractor;
+
+            public MessageKeyExtract(Func<T, string> extractor)
+            {
+                _extractor = extractor;
+            }
+
+            public string ExtractKey(T message) => _extractor(message);
+
+        }
+
+
+        private class AfterDeliveryPolicy : IAfterDeliveryPolicy
+        {
+            private readonly Action<IDeliveryCloseOperations> _action;
+
+            public AfterDeliveryPolicy(Action<IDeliveryCloseOperations> action)
+            {
+                _action = action;
+            }
+
+            public void Execute(IDeliveryCloseOperations onClose) => _action(onClose);
+
+        }
+
+        
+
+        
 
         public static TBuilder UseDefaultTypeMapper<TBuilder>(this TBuilder builder, bool convertNames = false)
             where TBuilder : BuilderBase

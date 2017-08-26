@@ -59,5 +59,21 @@ namespace Astral.Data
         /// <param name="leasePeriod">leasePeriod</param>
         /// <returns>leased deliveries</returns>
         Task<IEnumerable<Guid>> RenewLeases(string sponsor, TimeSpan leasePeriod);
+
+        /// <summary>
+        /// Set delivery exception
+        /// UPDATE DeliveryRecords SET LastError = @exception WHERE DeliveryId = @deliveryId
+        /// </summary>
+        /// <param name="recordDeliveryId"></param>
+        /// <param name="objException"></param>
+        void SetException(Guid recordDeliveryId, Exception objException);
+
+        /// <summary>
+        /// Mark delivery as delivered and TTL to archiveTo
+        /// UPDATE DeliveryRecords SET Delivered = true, Ttl = archiveTo WHERE DeliveryId = @deliveryId
+        /// </summary>
+        /// <param name="deliveryId"></param>
+        /// <param name="archiveTo"></param>
+        void Archive(Guid deliveryId, DateTimeOffset archiveTo);
     }
 }

@@ -47,7 +47,7 @@ namespace Astral
             if (_disposable.IsDisposed)
                 throw new ObjectDisposedException(GetType().Name);
             return new BusService<TTransport, TService>(_config.Service<TService>(), Transport,
-                _serviceProvider.GetService<ILogger<BusService<TTransport, TService>>>());
+                _serviceProvider.GetService<ILogger<BusService<TTransport, TService>>>(), _serviceProvider);
         }
     }
 }

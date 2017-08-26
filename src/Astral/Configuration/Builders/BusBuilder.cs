@@ -36,6 +36,7 @@ namespace Astral.Configuration.Builders
             where TBus : Bus<TTransport>
             where TTransport : class, ITransport
         {
+            BookBuilder.RegisterLaw(Law.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
             return busFactory(serviceProvider, new BusConfig(BookBuilder.Build()));
         }
     }
