@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using Astral.Configuration.Settings;
 using Astral.Core;
-using Astral.Lawium;
+using Lawium;
 using Microsoft.Extensions.Logging;
 
 namespace Astral.Configuration.Builders
@@ -31,7 +31,6 @@ namespace Astral.Configuration.Builders
                     b.RegisterLaw(Law.Axiom(new MessageType(typeof(TEvent))));
                 });
             return new EventEndpointBuilder<TEvent>(LoggerFactory, builder);
-
         }
     }
 }

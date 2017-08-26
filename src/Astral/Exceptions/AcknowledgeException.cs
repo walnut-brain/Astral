@@ -4,8 +4,6 @@ namespace Astral.Exceptions
 {
     public class AcknowledgeException : Exception
     {
-        public Acknowledge Acknowledge { get; }
-
         public AcknowledgeException(Acknowledge acknowledge)
         {
             Acknowledge = acknowledge;
@@ -15,5 +13,7 @@ namespace Astral.Exceptions
         {
             Acknowledge = acknowledge;
         }
+
+        public Acknowledge Acknowledge { get; }
     }
 }

@@ -10,6 +10,4 @@ namespace Astral.Configuration.Settings
         {
         }
     }
-    
-    
 }

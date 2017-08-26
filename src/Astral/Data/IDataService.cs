@@ -1,8 +1,8 @@
 ﻿namespace Astral.Data
 {
-    public interface IDataService<out T>
-        where T : IUnitOfWork
+    public interface IDataService<T>
+        where T : IStore<T>
     {
-        T UnitOfWork { get; }
+        T Store { get; }
     }
 }

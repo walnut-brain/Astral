@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using LanguageExt;
 using Microsoft.Extensions.Logging;
 
-namespace Astral.Lawium
+namespace Lawium
 {
     public class LawBook
     {
         private readonly string _path;
-        private readonly IReadOnlyCollection<Law> _laws;
+        private readonly IReadOnlyCollection<global::Lawium.Law> _laws;
         private readonly IReadOnlyDictionary<Type, object> _facts;
         private readonly Dictionary<object, Task<LawBook>> _subBooks = new Dictionary<object, Task<LawBook>>();
         private readonly ReaderWriterLockSlim _locker = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
@@ -19,7 +18,7 @@ namespace Astral.Lawium
         internal LawBook(
             ILoggerFactory loggerFactory,
             string path, 
-            IReadOnlyCollection<Law> laws, 
+            IReadOnlyCollection<global::Lawium.Law> laws, 
             IReadOnlyDictionary<Type, object> facts,
             IReadOnlyDictionary<object, LawBook> subBooks)
         {
@@ -39,8 +38,9 @@ namespace Astral.Lawium
         public Option<object> TryGet(Type type)
             => _facts.TryGetValue(type);
 
-        public Task<LawBook> GetOrAddSubBook(object key, Action<LawBookBuilder> onBuild)
+        public Task<LawBook> GetOrAddSubBook(object key, Action<LawBookBuilder> onBuild = null)
         {
+            onBuild = onBuild ?? (_ => {});
             
             _locker.EnterReadLock();
             try

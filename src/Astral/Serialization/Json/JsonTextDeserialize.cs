@@ -7,8 +7,8 @@ namespace Astral.Serialization.Json
 {
     public class JsonTextDeserialize : IDeserialize<string>
     {
-        private readonly JsonSerializerSettings _settings;
         private readonly bool _checkContextType;
+        private readonly JsonSerializerSettings _settings;
 
         public JsonTextDeserialize(JsonSerializerSettings settings, bool checkContextType = false)
         {

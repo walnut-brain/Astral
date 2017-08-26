@@ -1,6 +1,6 @@
 ﻿namespace Astral
 {
-    public class EventSubscribeOptions
+    public class EventListenOptions
     {
         public bool IgnoreContractName { get; }
     }

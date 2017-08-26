@@ -11,16 +11,14 @@ namespace Astral.Serialization.Json
             var encode = Encoding.UTF8;
             Exception exEnc = null;
             if (serialized.ContentType?.CharSet != null)
-            {
                 try
                 {
                     encode = Encoding.GetEncoding(serialized.ContentType?.CharSet);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     exEnc = ex;
                 }
-            }
             try
             {
                 return new Serialized<string>(serialized.TypeCode, serialized.ContentType,
@@ -28,7 +26,7 @@ namespace Astral.Serialization.Json
             }
             catch (Exception ex)
             {
-                if(exEnc != null)
+                if (exEnc != null)
                     ex = new AggregateException(exEnc, ex);
                 throw new EncodingErrorException(serialized.ContentType?.CharSet, ex);
             }

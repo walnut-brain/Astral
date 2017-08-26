@@ -2,9 +2,9 @@
 {
     public class ContractNameResolutionException : DataContractResolutionException
     {
-        public ContractNameResolutionException(string contractName) 
+        public ContractNameResolutionException(string contractName)
             : base($"Cannot determine type for contract {contractName}")
-            
+
         {
         }
     }

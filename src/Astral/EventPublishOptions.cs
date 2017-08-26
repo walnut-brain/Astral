@@ -9,6 +9,6 @@ namespace Astral
             EventTtl = eventTtl;
         }
 
-        public TimeSpan? EventTtl { get;  }
+        public TimeSpan? EventTtl { get; }
     }
 }

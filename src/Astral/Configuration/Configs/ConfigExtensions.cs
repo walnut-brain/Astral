@@ -10,21 +10,41 @@ namespace Astral.Configuration.Configs
 {
     public static class ConfigExtensions
     {
-        public static Try<T> TryGet<T>(this ConfigBase config)
-            => config.GetOption<T>()
+        public static Try<T> AsTry<T>(this ConfigBase config)
+        {
+            return config.TryGet<T>()
                 .ToTry(new InvalidConfigurationException($"Cannot find config setting {typeof(T)}"));
-        
+        }
+
+        public static bool TryGet<T>(this ConfigBase config, out T result)
+        {
+            var data = default(T);
+            var res = config.TryGet<T>().Match(p =>
+            {
+                data = p;
+                return true;
+            }, () => false);
+            result = data;
+            return res;
+        }
+
         public static T Get<T>(this ConfigBase config)
-            => config.TryGet<T>().IfFailThrow();
+        {
+            return config.AsTry<T>().IfFailThrow();
+        }
 
         public static Try<string> ContractName<TContract>(this EndpointConfig config, TContract value)
-            => config
-                .TryGet<ITypeToContractName>()
+        {
+            return config
+                .AsTry<ITypeToContractName>()
                 .Bind(p => p.Map(typeof(TContract), value));
+        }
 
 
         public static UseSerializeMapper SerializeMapperUse(this EndpointConfig config)
-            => config.TryGet<UseSerializeMapper>().IfFail(UseSerializeMapper.Allow);
+        {
+            return config.AsTry<UseSerializeMapper>().IfFail(UseSerializeMapper.Allow);
+        }
 
         public static Try<Serialized<byte[]>> RawSerialize<TContract>(this EndpointConfig config, TContract contract)
         {
@@ -32,9 +52,9 @@ namespace Astral.Configuration.Configs
                 .ContractName(contract)
                 .Bind(p =>
                 {
-                    var rawSerializer = config.TryGet<ISerialize<byte[]>>();
-                    var textSerializer = config.TryGet<ISerialize<string>>();
-                    var mapper = config.TryGet<ISerializedMapper<string, byte[]>>();
+                    var rawSerializer = config.AsTry<ISerialize<byte[]>>();
+                    var textSerializer = config.AsTry<ISerialize<string>>();
+                    var mapper = config.AsTry<ISerializedMapper<string, byte[]>>();
 
                     Try<Serialized<byte[]>> SerializeThenMap()
                     {
@@ -45,9 +65,11 @@ namespace Astral.Configuration.Configs
                                     .Map(m => m.Map(s)));
                     }
 
-                    Try<Serialized<byte[]>> SerilizeRaw() =>
-                        rawSerializer
+                    Try<Serialized<byte[]>> SerilizeRaw()
+                    {
+                        return rawSerializer
                             .Map(s => s.Serialize(p, contract));
+                    }
 
                     switch (config.SerializeMapperUse())
                     {
@@ -71,19 +93,19 @@ namespace Astral.Configuration.Configs
                 .ContractName(contract)
                 .Bind(p =>
                     config
-                        .TryGet<ISerialize<string>>()
+                        .AsTry<ISerialize<string>>()
                         .Map(s => s.Serialize(p, contract)));
-
         }
 
         public static Try<Serialized<byte[]>> RawSerialize<TContract>(this EndpointConfig config, TContract contract,
             Serialized<string> textSerialized)
         {
-            
-            var mapper = config.TryGet<ISerializedMapper<string, byte[]>>();
+            var mapper = config.AsTry<ISerializedMapper<string, byte[]>>();
 
-            Try<Serialized<byte[]>> SerilizeRaw() =>
-                config.TryGet<ISerialize<byte[]>>().Map(s => s.Serialize(textSerialized.TypeCode, contract));
+            Try<Serialized<byte[]>> SerilizeRaw()
+            {
+                return config.AsTry<ISerialize<byte[]>>().Map(s => s.Serialize(textSerialized.TypeCode, contract));
+            }
 
             switch (config.SerializeMapperUse())
             {
@@ -103,35 +125,38 @@ namespace Astral.Configuration.Configs
         }
 
         public static Func<Type, Serialized<byte[]>, Try<object>> DeserializeRaw(this EndpointConfig config)
-         => (type, serialized) =>
         {
-            
-            
-            Try<object> RawDeserialize()
-                => config
-                    .TryGet<IDeserialize<byte[]>>()
-                    .Bind( p => p.Deserialize(type, serialized));
-
-            Try<object> MapThenDeserialize()
-                =>
-                    config.TryGet<ISerializedMapper<byte[], string>>()
-                        .Map(p => p.Map(serialized))
-                        .Bind(p => config.TryGet<IDeserialize<string>>()
-                            .Bind(s => s.Deserialize(type, p)));
-            
-            switch (config.SerializeMapperUse())
+            return (type, serialized) =>
             {
-                case UseSerializeMapper.Never:
-                    return RawDeserialize();
-                        
-                case UseSerializeMapper.Allow:
-                    return RawDeserialize().BindFail(MapThenDeserialize);
-                case UseSerializeMapper.Always:
-                    return MapThenDeserialize();
-                default:
-                    return Try<object>(new ArgumentOutOfRangeException($"Unknown ${nameof(UseSerializeMapper)} value"));
-            }
-        };
+                Try<object> RawDeserialize()
+                {
+                    return config
+                        .AsTry<IDeserialize<byte[]>>()
+                        .Bind(p => p.Deserialize(type, serialized));
+                }
 
-}
+                Try<object> MapThenDeserialize()
+                {
+                    return config.AsTry<ISerializedMapper<byte[], string>>()
+                        .Map(p => p.Map(serialized))
+                        .Bind(p => config.AsTry<IDeserialize<string>>()
+                            .Bind(s => s.Deserialize(type, p)));
+                }
+
+                switch (config.SerializeMapperUse())
+                {
+                    case UseSerializeMapper.Never:
+                        return RawDeserialize();
+
+                    case UseSerializeMapper.Allow:
+                        return RawDeserialize().BindFail(MapThenDeserialize);
+                    case UseSerializeMapper.Always:
+                        return MapThenDeserialize();
+                    default:
+                        return Try<object>(
+                            new ArgumentOutOfRangeException($"Unknown ${nameof(UseSerializeMapper)} value"));
+                }
+            };
+        }
+    }
 }

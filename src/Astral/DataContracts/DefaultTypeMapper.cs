@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 using Astral.Core;
 using Astral.Exceptions;
 using LanguageExt;
-using LanguageExt.UnsafeValueAccess;
 using static LanguageExt.Prelude;
 
 namespace Astral.DataContracts
@@ -20,21 +19,52 @@ namespace Astral.DataContracts
             _typeNameConverter = typeNameConverter;
         }
 
-        private static Option<Type> TryGetElementType(Type arrayLikeType)
+        public Try<Type> TryMap(string contractName, Seq<Type> awaited)
         {
-            if (arrayLikeType.IsArray)
+            if (string.IsNullOrWhiteSpace(contractName))
+                return Try<Type>(new DataContractResolutionException(null));
+            if (contractName == WellKnownTypes.UnitTypeCode)
+                return Try(() => WellKnownTypes.UnitTypes[0]);
+            if (WellKnownTypes.TypeByCode.TryGetValue(contractName, out var type))
+                return Try(type);
+            if (contractName.EndsWith("[]"))
             {
-                var elementType = arrayLikeType.GetElementType();
-                return elementType;
+                var elementName = contractName.Remove(contractName.Length - 2);
+
+                var elementTypes = awaited.Bind(p => TryGetElementType(p).Match(t => t.Cons(), Seq<Type>));
+
+                return TryMap(elementName, elementTypes).Map(p => p.MakeArrayType());
             }
-            var enumIntf = arrayLikeType.GetInterfaces()
-                .FirstOrDefault(p => p.IsGenericType && p.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-            if (enumIntf != null)
+
+            return awaited.Bind(
+                at =>
+                {
+                    if (CheckSubtype(at)) return at.Cons();
+                    var attrs = at.GetCustomAttributes<KnownTypeAttribute>();
+                    foreach (var known in attrs)
+                        if (known.MethodName != null)
+                        {
+                            var method = at.GetMethod(known.MethodName);
+                            var subTypes = (IEnumerable<Type>) method.Invoke(null, new object[0]);
+                            var found = subTypes.FirstOrDefault(CheckSubtype);
+                            if (found != null) found.Cons();
+                        }
+                        else if (CheckSubtype(known.Type))
+                        {
+                            return known.Type.Cons();
+                        }
+                    return Seq<Type>();
+                }).HeadOrNone().ToTry(new DataContractResolutionException(contractName));
+
+            bool CheckSubtype(Type t)
             {
-                var elementType = enumIntf.GetGenericArguments()[0];
-                return elementType;
+                var a1 = t.GetCustomAttribute<ContractAttribute>();
+                if (a1 != null)
+                    return a1.Name == contractName;
+                if (_typeNameConverter != null)
+                    return _typeNameConverter(t.Name) == contractName;
+                return false;
             }
-            return None;
         }
 
         public Try<string> Map(Type type, object data)
@@ -58,57 +88,24 @@ namespace Astral.DataContracts
                             return _typeNameConverter(type.Name);
                         throw new TypeResolutionException(type);
                     })
-                );
+            );
         }
 
-        public Try<Type> TryMap(string contractName, Option<Type> awaitedType)
+        private static Option<Type> TryGetElementType(Type arrayLikeType)
         {
-            if(string.IsNullOrWhiteSpace(contractName))
-                return Try<Type>(new DataContractResolutionException(null));
-            if (contractName == WellKnownTypes.UnitTypeCode)
-                return Try(WellKnownTypes.UnitTypes[0]);
-            if(WellKnownTypes.TypeByCode.TryGetValue(contractName, out var type))
-                return Try(type);
-            if (contractName.EndsWith("[]") )
+            if (arrayLikeType.IsArray)
             {
-                var elementType = awaitedType.Bind(TryGetElementType);
-
-                var elementName = contractName.Remove(contractName.Length - 2);
-                return TryMap(elementName, elementType).Map(p => p.MakeArrayType());
+                var elementType = arrayLikeType.GetElementType();
+                return elementType;
             }
-            
-            return awaitedType.Match(
-                at =>
-                {
-                    if (CheckSubtype(at)) return Try(at);
-                    var attrs = at.GetCustomAttributes<KnownTypeAttribute>();
-                    foreach (var known in attrs)
-                    {
-                        if (known.MethodName != null)
-                        {
-                            var method = at.GetMethod(known.MethodName);
-                            var subTypes = (IEnumerable<Type>) method.Invoke(null, new object[0]);
-                            var found = subTypes.FirstOrDefault(CheckSubtype);
-                            if (found != null) return Try(found);
-                        }
-                        else if (CheckSubtype(known.Type)) return Try(known.Type);
-                    }
-                    return Try<Type>(new DataContractResolutionException(contractName));
-                },
-                () => Try<Type>(new DataContractResolutionException(contractName))
-            );
-            
-
-            bool CheckSubtype(Type t)
+            var enumIntf = arrayLikeType.GetInterfaces()
+                .FirstOrDefault(p => p.IsGenericType && p.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            if (enumIntf != null)
             {
-                var a1 = t.GetCustomAttribute<ContractAttribute>();
-                if (a1 != null)
-                    return a1.Name == contractName;
-                if (_typeNameConverter != null)
-                    return _typeNameConverter(t.Name) == contractName;
-                return false;
+                var elementType = enumIntf.GetGenericArguments()[0];
+                return elementType;
             }
-
+            return None;
         }
     }
 }

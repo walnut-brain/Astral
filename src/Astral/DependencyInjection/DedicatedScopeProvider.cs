@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.DependencyInjection
 {
-    internal class DedicatedScopeProvider 
+    internal class DedicatedScopeProvider
     {
         private readonly IServiceContainer _container;
 
@@ -11,9 +11,10 @@ namespace Astral.DependencyInjection
         {
             _container = container;
         }
-        
+
         public IDedicatedScope GetDedicatedScope()
-            => new DedicatedScope(_container.CreateScope());
-        
+        {
+            return new DedicatedScope(_container.CreateScope());
+        }
     }
 }

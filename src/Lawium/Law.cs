@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Threading;
 using LanguageExt;
 using Microsoft.Extensions.Logging;
 
-
-namespace Astral.Lawium
+namespace Lawium
 {
     public partial class Law
     {

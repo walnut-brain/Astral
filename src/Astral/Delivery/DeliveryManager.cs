@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using Astral.Configuration.Settings;
 using Astral.Data;
 using Astral.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.Delivery
 {
-    public class DeliveryManager<TUoW> : IDisposable
-        where TUoW : IUnitOfWork
+    public class DeliveryManager<TStore> : IDisposable
+        where TStore : IStore<TStore>
     {
-        private readonly Func<IDedicatedScope> _scopeProvider;
-        private readonly TimeSpan _leaseInterval;
-        private readonly string _sponsor;
-        private readonly Task _renewLoop;
         private readonly CancellationDisposable _dispose;
-        private readonly ConcurrentDictionary<Guid, DeliveryLease> _leases = new ConcurrentDictionary<Guid, DeliveryLease>(); 
-        
+        private readonly TimeSpan _leaseInterval;
+
+        private readonly ConcurrentDictionary<Guid, DeliveryLease> _leases =
+            new ConcurrentDictionary<Guid, DeliveryLease>();
+
+        private readonly Task _renewLoop;
+        private readonly Func<IDedicatedScope> _scopeProvider;
+        private readonly string _sponsor;
+
 
         public DeliveryManager(Func<IDedicatedScope> scopeProvider, TimeSpan leaseInterval)
         {
@@ -34,55 +33,6 @@ namespace Astral.Delivery
             _renewLoop = Loop(_dispose.Token);
         }
 
-        public async Task<IDeliveryLease<TUoW>> AddDelivery(Guid deliveryId)
-        {
-            if(_dispose.IsDisposed) throw new ObjectDisposedException("DeliveryManager");
-            if (!await PickupLease(deliveryId))
-            {
-                var cancellation = new CancellationTokenSource();
-                var token = cancellation.Token;
-                cancellation.Cancel();
-                cancellation.Dispose();
-                return new DeliveryLease(token, Disposable.Empty,  a => { });
-            }
-            {
-                return _leases.GetOrAdd(deliveryId, _ =>
-                {
-                    var direct = new CancellationDisposable();
-                    var combined = CancellationTokenSource.CreateLinkedTokenSource(direct.Token, _dispose.Token);
-                    var dsp = new CancellationDisposable(combined);
-                    return new DeliveryLease(dsp.Token,  dsp,  act =>
-                    {
-                        DoInScope(async srv =>
-                        {
-                            act(srv);
-                            await srv.RemoveLease(deliveryId, _sponsor);
-                        });
-                        if(_leases.TryRemove(deliveryId, out var r)) 
-                            r.Kill();
-                    });;
-                });
-                
-            }
-        }
-        
-        
-        private async Task Loop(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                var current = _leases.Keys.ToList();
-                var renewed = await DoInScope(async p => await p.RenewLeases(_sponsor, _leaseInterval + _leaseInterval));
-                var toRemove = current.Where(p => renewed.All(t => t != p));
-                foreach (var guid in toRemove)
-                {
-                    if(_leases.TryRemove(guid, out var p))
-                        p.Kill();
-                }
-                await Task.Delay(_leaseInterval, token);
-            }
-        }
-    
 
         public void Dispose()
         {
@@ -92,69 +42,123 @@ namespace Astral.Delivery
             CleanLeases().Wait();
         }
 
+        public async Task<IDeliveryLease<TStore>> AddDelivery(Guid deliveryId)
+        {
+            if (_dispose.IsDisposed) throw new ObjectDisposedException("DeliveryManager");
+            if (!await PickupLease(deliveryId))
+            {
+                var cancellation = new CancellationTokenSource();
+                var token = cancellation.Token;
+                cancellation.Cancel();
+                cancellation.Dispose();
+                return new DeliveryLease(token, Disposable.Empty, a => { });
+            }
+            {
+                return _leases.GetOrAdd(deliveryId, _ =>
+                {
+                    var direct = new CancellationDisposable();
+                    var combined = CancellationTokenSource.CreateLinkedTokenSource(direct.Token, _dispose.Token);
+                    var dsp = new CancellationDisposable(combined);
+                    return new DeliveryLease(dsp.Token, dsp, act =>
+                    {
+                        DoInScope(async srv =>
+                        {
+                            act(srv);
+                            await srv.RemoveLease(deliveryId, _sponsor);
+                        }).Wait(CancellationToken.None);
+                        if (_leases.TryRemove(deliveryId, out var r))
+                            r.Kill();
+                    });
+                    ;
+                });
+            }
+        }
+
+
+        private async Task Loop(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                var current = _leases.Keys.ToList();
+                var renewed =
+                    await DoInScope(async p => await p.RenewLeases(_sponsor, _leaseInterval + _leaseInterval));
+                var toRemove = current.Where(p => renewed.All(t => t != p));
+                foreach (var guid in toRemove)
+                    if (_leases.TryRemove(guid, out var p))
+                        p.Kill();
+                await Task.Delay(_leaseInterval, token);
+            }
+        }
 
 
         private Task<bool> PickupLease(Guid deliveryId)
-            => DoInScope(async srv => await srv.UpdateLease(_sponsor, deliveryId, DateTimeOffset.Now + _leaseInterval + _leaseInterval));
+        {
+            return DoInScope(async srv =>
+                await srv.UpdateLease(_sponsor, deliveryId, DateTimeOffset.Now + _leaseInterval + _leaseInterval));
+        }
 
-        private Task CleanLeases() => DoInScope(async srv => await srv.RemoveLeases(_sponsor));
-            
-        
-        
-        
-        
-        private async Task<T> DoInScope<T>(Func<IDeliveryDataService<TUoW>, Task<T>> func)
+        private Task CleanLeases()
+        {
+            return DoInScope(async srv => await srv.RemoveLeases(_sponsor));
+        }
+
+
+        private async Task<T> DoInScope<T>(Func<IDeliveryDataService<TStore>, Task<T>> func)
         {
             using (var scope = _scopeProvider())
             {
-                var provider = scope.ServiceProvider.GetRequiredService<IUnitOfWorkProvider<TUoW>>();
+                var provider = scope.ServiceProvider.GetRequiredService<TStore>();
                 using (var uow = await provider.BeginWork())
                 {
-                    var dataService = scope.ServiceProvider.GetRequiredService<IDeliveryDataService<TUoW>>();
+                    var dataService = scope.ServiceProvider.GetRequiredService<IDeliveryDataService<TStore>>();
                     var result = await func(dataService);
                     await uow.Commit();
                     return result;
                 }
             }
         }
-        
-        private async Task DoInScope(Func<IDeliveryDataService<TUoW>, Task> action)
+
+        private async Task DoInScope(Func<IDeliveryDataService<TStore>, Task> action)
         {
             using (var scope = _scopeProvider())
             {
-                var provider = scope.ServiceProvider.GetRequiredService<IUnitOfWorkProvider<TUoW>>();
+                var provider = scope.ServiceProvider.GetRequiredService<IStore<TStore>>();
                 using (var uow = await provider.BeginWork())
                 {
-                    var dataService = scope.ServiceProvider.GetRequiredService<IDeliveryDataService<TUoW>>();
+                    var dataService = scope.ServiceProvider.GetRequiredService<IDeliveryDataService<TStore>>();
                     await action(dataService);
                     await uow.Commit();
                 }
             }
         }
 
-        
-        private class DeliveryLease : IDeliveryLease<TUoW>
+
+        private class DeliveryLease : IDeliveryLease<TStore>
         {
+            private readonly Action<Action<IDeliveryDataService<TStore>>> _releaseAction;
             private readonly IDisposable _toDispose;
-            private readonly Action<Action<IDeliveryDataService<TUoW>>> _action;
-            
+
             public DeliveryLease(CancellationToken token,
                 IDisposable toDispose,
-                Action<Action<IDeliveryDataService<TUoW>>> action)
+                Action<Action<IDeliveryDataService<TStore>>> releaseAction)
             {
                 Token = token;
                 _toDispose = toDispose;
-                _action = action;
+                _releaseAction = releaseAction;
             }
 
             public CancellationToken Token { get; }
-            public void Release(Action<IDeliveryDataService<TUoW>> action)
+
+            public void Release(Action<IDeliveryDataService<TStore>> action)
             {
                 _toDispose.Dispose();
-                _action(action);
+                _releaseAction(action);
             }
 
-            public void Kill() => _toDispose.Dispose();
+            public void Kill()
+            {
+                _toDispose.Dispose();
+            }
         }
     }
 }

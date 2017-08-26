@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Astral
 {
-    public interface IEventHandler<in T>
+    public interface IEventListener<in T>
     {
         Task Handle(T @event, EventContext context, CancellationToken token);
     }

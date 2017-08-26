@@ -4,10 +4,10 @@ using Astral.Data;
 
 namespace Astral.Delivery
 {
-    public interface IDeliveryLease<TUoW>
-        where TUoW : IUnitOfWork
+    public interface IDeliveryLease<TStore>
+        where TStore : IStore<TStore>
     {
         CancellationToken Token { get; }
-        void Release(Action<IDeliveryDataService<TUoW>> action);
+        void Release(Action<IDeliveryDataService<TStore>> action);
     }
 }

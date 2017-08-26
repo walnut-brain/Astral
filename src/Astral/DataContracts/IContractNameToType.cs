@@ -5,6 +5,6 @@ namespace Astral.DataContracts
 {
     public interface IContractNameToType
     {
-        Try<Type> TryMap(string contractName, Option<Type> awaited);
+        Try<Type> TryMap(string contractName, Seq<Type> awaited);
     }
 }

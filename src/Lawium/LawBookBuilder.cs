@@ -2,44 +2,42 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Astral.Fakes;
-using Microsoft.Extensions.Logging;
 using LanguageExt;
-using static LanguageExt.Prelude;
+using Microsoft.Extensions.Logging;
 
-namespace Astral.Lawium
+namespace Lawium
 {
     public class LawBookBuilder
     {
         public static volatile ushort MaxRecursion = 100;
 
-        private readonly Func<IEnumerable<Law>> _parentLaws;
+        private readonly Func<IEnumerable<global::Lawium.Law>> _parentLaws;
         private readonly string _path = "";
         private readonly Dictionary<object, LawBookBuilder> _subBuilders = new Dictionary<object, LawBookBuilder>();
 
         public LawBookBuilder(ILoggerFactory loggerFactory = null)
         {
             LoggerFactory = loggerFactory ?? new FakeLoggerFactory();
-            _parentLaws = Enumerable.Empty<Law>;
+            _parentLaws = Enumerable.Empty<global::Lawium.Law>;
         }
 
-        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<Law>> parentLaws, string path)
+        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<global::Lawium.Law>> parentLaws, string path)
         {
             LoggerFactory = loggerFactory;
             _parentLaws = parentLaws;
             _path = path;
         }
 
-        private readonly List<Law> _laws = new List<Law>();
+        private readonly List<global::Lawium.Law> _laws = new List<global::Lawium.Law>();
 
-        private IEnumerable<Law> GetLaws() => _parentLaws().Union(_laws);
+        private IEnumerable<global::Lawium.Law> GetLaws() => _parentLaws().Union(_laws);
 
 
         public ILoggerFactory LoggerFactory { get; }
 
         
 
-        public void RegisterLaw(Law law)
+        public void RegisterLaw(global::Lawium.Law law)
         {
             _laws.Add(law);
         }
@@ -75,7 +73,7 @@ namespace Astral.Lawium
                             try
                             {
                                 logger.LogTrace("Processing");
-                                var result = law.Law.Executor(logger, Array<object>());
+                                var result = law.Law.Executor(logger, Prelude.Array<object>());
                                 for (var i = 0; i < law.Law.Findings.Count; i++)
                                     if (result[i] != null)
                                     {
@@ -126,7 +124,7 @@ namespace Astral.Lawium
                             try
                             {
                                 logger.LogTrace("Processing");
-                                var result = law.Law.Executor(logger, Array<object>());
+                                var result = law.Law.Executor(logger, Prelude.Array<object>());
                                 law.Processed = true;
                                 for (var i = 0; i < law.Law.Findings.Count; i++)
                                     if (result[i] != null)
@@ -208,7 +206,7 @@ namespace Astral.Lawium
 
         private class LawRec
         {
-            public LawRec(int Index, bool processed, Law law)
+            public LawRec(int Index, bool processed, global::Lawium.Law law)
             {
                 this.Index = Index;
                 Processed = processed;
@@ -217,7 +215,7 @@ namespace Astral.Lawium
 
             public int Index { get; }
             public bool Processed { get; set; }
-            public Law Law { get; }
+            public global::Lawium.Law Law { get; }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Astral
                 action();
                 logger.LogTrace("Success - " + message, args);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(0, ex, "Error - " + message, args);
                 throw;
@@ -29,7 +29,7 @@ namespace Astral
                 logger.LogTrace("Success - " + message, args);
                 return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(0, ex, "Error - " + message, args);
                 throw;

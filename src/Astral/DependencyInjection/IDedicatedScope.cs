@@ -4,6 +4,5 @@ namespace Astral.DependencyInjection
 {
     public interface IDedicatedScope : IServiceScope
     {
-        
     }
 }

@@ -7,7 +7,5 @@ namespace Astral.Exceptions
         public TypeResolutionException(Type type) : base($"Cannot determine contract name of {type}")
         {
         }
-
-        
     }
 }

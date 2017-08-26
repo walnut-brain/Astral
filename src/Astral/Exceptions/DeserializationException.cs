@@ -4,7 +4,7 @@ namespace Astral.Exceptions
 {
     public class DeserializationException : PermanentException
     {
-        public DeserializationException(string contentType, string typeCode, Type toType) 
+        public DeserializationException(string contentType, string typeCode, Type toType)
             : base($"Cannot deserialize {contentType} {typeCode} to {toType}")
         {
         }

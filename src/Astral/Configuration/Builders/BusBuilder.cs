@@ -1,8 +1,8 @@
 ﻿using System;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
-using Astral.Lawium;
-using Microsoft.Extensions.DependencyInjection;
+using Astral.Transport;
+using Lawium;
 using Microsoft.Extensions.Logging;
 
 namespace Astral.Configuration.Builders
@@ -25,16 +25,18 @@ namespace Astral.Configuration.Builders
             return new ServiceBuilder<TService>(LoggerFactory, builder);
         }
 
-        public Bus Build(IServiceProvider serviceProvider)
-            => Build(serviceProvider, (sp, cfg) => new Bus(sp, cfg));
+        public Bus<TTransport> Build<TTransport>(IServiceProvider serviceProvider)
+            where TTransport : class, ITransport
+        {
+            return Build<Bus<TTransport>, TTransport>(serviceProvider, (sp, cfg) => new Bus<TTransport>(sp, cfg));
+        }
 
-        public TBus Build<TBus>(IServiceProvider serviceProvider, Func<IServiceProvider, BusConfig, TBus> busFactory)
-            where TBus : Bus
-            => busFactory(serviceProvider, new BusConfig(BookBuilder.Build()));
-
-        
-
-
-
+        public TBus Build<TBus, TTransport>(IServiceProvider serviceProvider,
+            Func<IServiceProvider, BusConfig, TBus> busFactory)
+            where TBus : Bus<TTransport>
+            where TTransport : class, ITransport
+        {
+            return busFactory(serviceProvider, new BusConfig(BookBuilder.Build()));
+        }
     }
 }

@@ -11,9 +11,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Astral.Core\Astral.Core.csproj" />
+    <ProjectReference Include="..\Lawium\Lawium.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyInjection\" />
+    <Folder Include="Lawium" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Lawium\Laws.tt">

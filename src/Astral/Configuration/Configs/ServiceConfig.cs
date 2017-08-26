@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using Astral.Configuration.Settings;
 using Astral.Core;
-using Astral.Lawium;
+using Lawium;
 
 namespace Astral.Configuration.Configs
 {
@@ -16,11 +16,10 @@ namespace Astral.Configuration.Configs
         public string ServiceName => this.Get<ServiceName>().Value;
 
 
-
         public EndpointConfig Endpoint(string name)
         {
             var propertyInfo = ServiceType.GetProperty(name);
-            if(propertyInfo == null)
+            if (propertyInfo == null)
                 throw new ArgumentException($"{name} is not valid endpoint property name");
             var propType = propertyInfo.PropertyType;
             if (propType.IsConstructedGenericType && propType.GetGenericTypeDefinition() == typeof(IEvent<>))
@@ -36,7 +35,6 @@ namespace Astral.Configuration.Configs
             }
 
             throw new ArgumentException($"{name} is not valid endpoint");
-
         }
     }
 

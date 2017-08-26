@@ -8,27 +8,26 @@ namespace Astral
 {
     public static class WellKnownTypes
     {
-
         private static readonly IReadOnlyDictionary<Type, (string code, string cstype)> Types =
-            new ReadOnlyDictionary<Type, (string, string)>(new Dictionary<Type, (string, string)>()
+            new ReadOnlyDictionary<Type, (string, string)>(new Dictionary<Type, (string, string)>
             {
-                {typeof(bool) , ("bool", "bool") },
-                {typeof(byte), ("u8", "byte") },
-                {typeof(sbyte) , ("i8", "sbyte)") },
-                {typeof(ushort),  ("u16", "ushort") },
-                {typeof(short), ("i16", "short") },
-                {typeof(int), ("i32", "int")  },
-                {typeof(uint), ("u32", "uint") },
-                {typeof(long), ("i64", "long")  },
-                {typeof(ulong), ("u64", "ulong") },
-                {typeof(double), ("double", "double") },
-                {typeof(float), ("float", "float")  },
-                {typeof(string), ("string", "string") },
-                {typeof(byte[]), ("bytes", "byte[]")  },
-                {typeof(JToken), ("json", typeof(JToken).FullName) },
-                {typeof(JObject),  ("jobject", typeof(JObject).FullName) },
-                {typeof(JArray), ("jarray", typeof(JArray).FullName) },
-                {typeof(JValue), ("jvalue", typeof(JValue).FullName) },
+                {typeof(bool), ("bool", "bool")},
+                {typeof(byte), ("u8", "byte")},
+                {typeof(sbyte), ("i8", "sbyte)")},
+                {typeof(ushort), ("u16", "ushort")},
+                {typeof(short), ("i16", "short")},
+                {typeof(int), ("i32", "int")},
+                {typeof(uint), ("u32", "uint")},
+                {typeof(long), ("i64", "long")},
+                {typeof(ulong), ("u64", "ulong")},
+                {typeof(double), ("double", "double")},
+                {typeof(float), ("float", "float")},
+                {typeof(string), ("string", "string")},
+                {typeof(byte[]), ("bytes", "byte[]")},
+                {typeof(JToken), ("json", typeof(JToken).FullName)},
+                {typeof(JObject), ("jobject", typeof(JObject).FullName)},
+                {typeof(JArray), ("jarray", typeof(JArray).FullName)},
+                {typeof(JValue), ("jvalue", typeof(JValue).FullName)}
             });
 
 
@@ -41,7 +40,7 @@ namespace Astral
         public static string UnitTypeCode { get; } = "unit";
         public static string FailTypeCode { get; } = "error";
 
-        public static Type[] UnitTypes { get; set; } = { typeof(ValueTuple) };
+        public static Type[] UnitTypes { get; set; } = {typeof(ValueTuple)};
 
         public static string GetCSharpTypeByCode(string code)
         {

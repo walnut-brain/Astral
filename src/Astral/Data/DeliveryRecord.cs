@@ -29,7 +29,7 @@ namespace Astral.Data
         public Guid DeliveryId { get; }
         public string ServiceName { get; }
         public string EndpointName { get; }
-        public Guid? CorrelationId  { get; }
+        public Guid? CorrelationId { get; }
         public string ReplayTo { get; }
         public string ContractCode { get; }
         public string Encoding { get; }

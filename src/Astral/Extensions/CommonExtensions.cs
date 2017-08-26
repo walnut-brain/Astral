@@ -9,7 +9,9 @@ namespace Astral
     public static class CommonExtensions
     {
         public static PropertyInfo GetProperty<TOwner, TValue>(this Expression<Func<TOwner, TValue>> selector)
-            => TryGetProperty(selector) ?? throw new ArgumentException($"Invalid property selector {selector}");
+        {
+            return TryGetProperty(selector) ?? throw new ArgumentException($"Invalid property selector {selector}");
+        }
 
         private static PropertyInfo TryGetProperty<TOwner, TValue>(Expression<Func<TOwner, TValue>> selector)
         {
@@ -21,7 +23,7 @@ namespace Astral
 
         public static bool IsJson(this ContentType contentType)
         {
-            var types = new[] { "text/json", "application/json" };
+            var types = new[] {"text/json", "application/json"};
 
             return types.Any(p =>
                 string.Compare(contentType.MediaType, p, StringComparison.InvariantCultureIgnoreCase) == 0);

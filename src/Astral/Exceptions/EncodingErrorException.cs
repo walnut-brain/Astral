@@ -8,7 +8,8 @@ namespace Astral.Exceptions
         {
         }
 
-        public EncodingErrorException(string encoding, Exception innerException) : base($"Can encode from {encoding}", innerException)
+        public EncodingErrorException(string encoding, Exception innerException) : base($"Can encode from {encoding}",
+            innerException)
         {
         }
     }

@@ -5,7 +5,7 @@ using LanguageExt;
 using Microsoft.Extensions.Logging;
 using static LanguageExt.Prelude;
 
-namespace Astral.Lawium
+namespace Lawium
 {
 	public partial class Law
     {

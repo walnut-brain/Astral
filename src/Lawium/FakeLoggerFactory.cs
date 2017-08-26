@@ -1,9 +1,8 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace Astral.Fakes
+namespace Lawium
 {
-    public class FakeLoggerFactory : ILoggerFactory
+    internal class FakeLoggerFactory : ILoggerFactory
     {
         public void Dispose()
         {
@@ -16,7 +15,7 @@ namespace Astral.Fakes
 
         public void AddProvider(ILoggerProvider provider)
         {
-            throw new NotSupportedException();
+            throw new System.NotSupportedException();
         }
     }
 }

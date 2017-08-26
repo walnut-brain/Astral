@@ -1,6 +1,6 @@
 using System;
 using Astral.Configuration.Settings;
-using Astral.Lawium;
+using Lawium;
 
 namespace Astral.Configuration.Configs
 {
@@ -13,12 +13,9 @@ namespace Astral.Configuration.Configs
         public ServiceConfig<TService> Service<TService>()
         {
             var type = typeof(TService);
-            if(!type.IsInterface)
+            if (!type.IsInterface)
                 throw new ArgumentException($"{type} must be interface");
-            var book = LawBook.GetOrAddSubBook(type, b =>
-            {
-                b.RegisterLaw(Law.Axiom(new ServiceType(type)));
-            }).Result;
+            var book = LawBook.GetOrAddSubBook(type, b => { b.RegisterLaw(Law.Axiom(new ServiceType(type))); }).Result;
             return new ServiceConfig<TService>(book);
         }
 
@@ -26,14 +23,10 @@ namespace Astral.Configuration.Configs
         {
             if (!serviceType.IsInterface)
                 throw new ArgumentException($"{serviceType} must be interface");
-            var book = LawBook.GetOrAddSubBook(serviceType, b =>
-            {
-                b.RegisterLaw(Law.Axiom(new ServiceType(serviceType)));
-            }).Result;
+            var book = LawBook
+                .GetOrAddSubBook(serviceType, b => { b.RegisterLaw(Law.Axiom(new ServiceType(serviceType))); }).Result;
             var cfgType = typeof(ServiceConfig<>).MakeGenericType(serviceType);
             return (ServiceConfig) Activator.CreateInstance(cfgType, book);
-
         }
-
     }
 }

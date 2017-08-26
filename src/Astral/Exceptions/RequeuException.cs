@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Astral.Exceptions
+﻿namespace Astral.Exceptions
 {
     public class RequeuException : AcknowledgeException
     {

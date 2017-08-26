@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Astral.Exceptions;
 
 namespace Astral.Configuration
@@ -9,12 +7,15 @@ namespace Astral.Configuration
     {
         public Acknowledge WhenException(Exception exception)
         {
-            if(exception is AcknowledgeException acke) return acke.Acknowledge;
-            if(exception is TaskCanceledException) return Acknowledge.Requeue;
-            
-            if(exception is AggregateException ae && ae.Flatten().InnerExceptions.Any(p => p is TaskCanceledException))
-                return Acknowledge.Requeue;
-            return Acknowledge.Nack;
+            switch (exception)
+            {
+                case AcknowledgeException acke:
+                    return acke.Acknowledge;
+                default:
+                    if (exception.IsCancellation())
+                        return Acknowledge.Requeue;
+                    return Acknowledge.Nack;
+            }
         }
     }
 }

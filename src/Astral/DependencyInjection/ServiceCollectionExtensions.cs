@@ -2,7 +2,7 @@
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
 using Astral.Delivery;
-using LanguageExt;
+using Astral.Transport;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.DependencyInjection
@@ -18,14 +18,20 @@ namespace Astral.DependencyInjection
             return serviceCollection;
         }
 
-        public static IServiceCollection AddBus<TBus, TInterface>(this IServiceCollection serviceCollection,
+        public static IServiceCollection AddBus<TBus, TTransport, TInterface>(this IServiceCollection serviceCollection,
             BusBuilder builder, Func<IServiceProvider, BusConfig, TBus> factory)
             where TInterface : class
-            where TBus : Bus, TInterface
-            => serviceCollection.AddSingleton<TInterface, TBus>(sp =>
-                builder.Build(sp, factory));
+            where TBus : Bus<TTransport>, TInterface
+            where TTransport : class, ITransport
+        {
+            return serviceCollection.AddSingleton<TInterface, TBus>(sp =>
+                builder.Build<TBus, TTransport>(sp, factory));
+        }
 
-        public static IServiceCollection AddBus(this IServiceCollection serviceCollection, BusBuilder builder)
-            => serviceCollection.AddSingleton(builder.Build);
+        public static IServiceCollection AddBus<TTransport>(this IServiceCollection serviceCollection,
+            BusBuilder builder) where TTransport : class, ITransport
+        {
+            return serviceCollection.AddSingleton(builder.Build<TTransport>);
+        }
     }
 }

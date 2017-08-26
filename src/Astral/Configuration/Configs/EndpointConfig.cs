@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Astral.Configuration.Settings;
-using Astral.Lawium;
+using Lawium;
 
 namespace Astral.Configuration.Configs
 {

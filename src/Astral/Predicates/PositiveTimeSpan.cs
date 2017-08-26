@@ -7,6 +7,8 @@ namespace Astral.Predicates
     public struct PositiveTimeSpan : Pred<TimeSpan>
     {
         public bool True(TimeSpan value)
-            => value > TimeSpan.Zero || value == Timeout.InfiniteTimeSpan;
+        {
+            return value > TimeSpan.Zero || value == Timeout.InfiniteTimeSpan;
+        }
     }
 }

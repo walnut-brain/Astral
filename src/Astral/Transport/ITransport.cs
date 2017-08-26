@@ -1,7 +1,6 @@
 ﻿namespace Astral.Transport
 {
-    public interface ITransport 
+    public interface ITransport
     {
-        
     }
 }
