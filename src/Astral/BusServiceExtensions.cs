@@ -13,6 +13,7 @@ using Astral.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
+using WalnutBrain.Data;
 
 namespace Astral
 {
@@ -76,6 +77,17 @@ namespace Astral
             return Operations.EnqueueManual(service.Logger, dataService, service.Config.Endpoint(selector),
                 service.Transport, @event,
                 service.Provider.GetRequiredService<DeliveryManager<TStore>>());
+        }
+
+        public static void Deliver<TService, TTransport, TStore, TEvent>(
+            this BusService<TTransport, TService> service, IDeliveryDataService<TStore> dataService, 
+            Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
+            EventPublishOptions options = null)
+            where TStore : IStore<TStore>, IRegisterAfterCommit
+            where TTransport : class, IEventTransport
+            where TService : class
+        {
+            service.Provider.GetRequiredService<TStore>().RegisterAfterCommit(service.EnqueueManual(dataService, selector, @event, options));
         }
     }
 }
