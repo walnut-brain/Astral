@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Lawium
 {
+    /// <summary>
+    /// Result of law inference
+    /// </summary>
     public class LawBook
     {
         private readonly string _path;
@@ -33,11 +36,25 @@ namespace Lawium
             
         }
 
+        /// <summary>
+        /// logger factory
+        /// </summary>
         public ILoggerFactory LoggerFactory { get; }
 
+        /// <summary>
+        /// Untyped read value
+        /// </summary>
+        /// <param name="type">key type</param>
+        /// <returns>Some value or none</returns>
         public Option<object> TryGet(Type type)
             => _facts.TryGetValue(type);
 
+        /// <summary>
+        /// Dynamic add chield law book
+        /// </summary>
+        /// <param name="key">chield book key</param>
+        /// <param name="onBuild">on build parameters</param>
+        /// <returns>awaitable result of build law book</returns>
         public Task<LawBook> GetOrAddSubBook(object key, Action<LawBookBuilder> onBuild = null)
         {
             onBuild = onBuild ?? (_ => {});

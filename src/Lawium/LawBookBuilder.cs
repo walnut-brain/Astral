@@ -7,14 +7,24 @@ using Microsoft.Extensions.Logging;
 
 namespace Lawium
 {
+    /// <summary>
+    /// Law book builder
+    /// </summary>
     public class LawBookBuilder
     {
+        /// <summary>
+        /// Maximum level of inference recursion
+        /// </summary>
         public static volatile ushort MaxRecursion = 100;
 
         private readonly Func<IEnumerable<global::Lawium.Law>> _parentLaws;
         private readonly string _path = "";
         private readonly Dictionary<object, LawBookBuilder> _subBuilders = new Dictionary<object, LawBookBuilder>();
 
+        /// <summary>
+        /// Create law book builder
+        /// </summary>
+        /// <param name="loggerFactory">logger factory for logging inference process</param>
         public LawBookBuilder(ILoggerFactory loggerFactory = null)
         {
             LoggerFactory = loggerFactory ?? new FakeLoggerFactory();
@@ -32,18 +42,28 @@ namespace Lawium
 
         private IEnumerable<global::Lawium.Law> GetLaws() => _parentLaws().Union(_laws);
 
-
+        /// <summary>
+        /// Logger factory
+        /// </summary>
         public ILoggerFactory LoggerFactory { get; }
 
         
-
-        public void RegisterLaw(global::Lawium.Law law)
+        /// <summary>
+        /// Register law in builder
+        /// </summary>
+        /// <param name="law">law</param>
+        public void RegisterLaw(Law law)
         {
             _laws.Add(law);
         }
 
 
-
+        /// <summary>
+        /// Get sub book builder
+        /// </summary>
+        /// <param name="key">sub book key</param>
+        /// <param name="onCreate">on create law registration</param>
+        /// <returns>sub book builder</returns>
         public LawBookBuilder GetSubBookBuilder(object key, Action<LawBookBuilder> onCreate = null)
         {
             if (_subBuilders.TryGetValue(key, out var sub))
@@ -54,6 +74,10 @@ namespace Lawium
             return sub;
         }
 
+        /// <summary>
+        /// build law book 
+        /// </summary>
+        /// <returns>law book</returns>
         public LawBook Build()
         {
             var logger = LoggerFactory.CreateLogger<LawBookBuilder>();

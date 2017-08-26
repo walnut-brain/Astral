@@ -9,6 +9,9 @@ namespace Lawium
 {
 	public partial class Law
     {
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1>(string name, Func<TI1, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -24,6 +27,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1, TO2>(string name, Func<TI1, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -39,6 +45,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1, TO2, TO3>(string name, Func<TI1, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -54,6 +63,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1, TO2, TO3, TO4>(string name, Func<TI1, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -69,6 +81,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -84,6 +99,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -99,6 +117,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -114,6 +135,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1>(string name, Func<TI1, TI2, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -129,6 +153,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1, TO2>(string name, Func<TI1, TI2, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -144,6 +171,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1, TO2, TO3>(string name, Func<TI1, TI2, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -159,6 +189,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -174,6 +207,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -189,6 +225,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -204,6 +243,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -219,6 +261,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1>(string name, Func<TI1, TI2, TI3, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -234,6 +279,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1, TO2>(string name, Func<TI1, TI2, TI3, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -249,6 +297,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -264,6 +315,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -279,6 +333,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -294,6 +351,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -309,6 +369,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -324,6 +387,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1>(string name, Func<TI1, TI2, TI3, TI4, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -339,6 +405,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -354,6 +423,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -369,6 +441,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -384,6 +459,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -399,6 +477,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -414,6 +495,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -429,6 +513,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -444,6 +531,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -459,6 +549,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -474,6 +567,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -489,6 +585,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -504,6 +603,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -519,6 +621,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -534,6 +639,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -549,6 +657,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -564,6 +675,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -579,6 +693,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -594,6 +711,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -609,6 +729,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -624,6 +747,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -639,6 +765,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -654,6 +783,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -669,6 +801,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -684,6 +819,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -699,6 +837,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -714,6 +855,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)
@@ -729,6 +873,9 @@ namespace Lawium
 			return new Law(name, inArr, outArr, Calc);
 		}
 
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
 		{
 			Arr<object> Calc(ILogger logger, Arr<object> args)

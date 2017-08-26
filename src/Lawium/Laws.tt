@@ -16,6 +16,9 @@ namespace Lawium
 		for (var j = 1; j < 8; j++)
 		{
 #>
+		/// <summary>
+		/// Create law from function
+		/// </summary>
 		public static Law Create<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><# for(var i1 = 1; i1 <= j; i1++) {#>TO<#=i1 < j ? $"{i1}, " : $"{i1}" #><#}#>>(string name, Func<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><#
 		    if (j == 1)
 		    {

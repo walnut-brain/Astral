@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Lawium
 {
+    /// <summary>
+    /// Inference law
+    /// </summary>
     public partial class Law
     {
 
@@ -17,16 +20,30 @@ namespace Lawium
             Executor = executor;
         }
 
-        
+        /// <summary>
+        /// Name of law
+        /// </summary>
         public string Name { get; }
-        public Arr<Type> Arguments { get; }
-        public Arr<Type> Findings { get; }
-        public Func<ILogger, Arr<object>, Arr<object>> Executor { get; }
-        
-        
-        public Law Map(Func<Law, Func<ILogger, Arr<object>, Arr<object>>> mapper)
-            => new Law(Name, Arguments, Findings, mapper(this));
 
+        /// <summary>
+        /// In arguments types
+        /// </summary>
+        public Arr<Type> Arguments { get; }
+
+        /// <summary>
+        /// Result of inference types
+        /// </summary>
+        public Arr<Type> Findings { get; }
+
+
+        internal Func<ILogger, Arr<object>, Arr<object>> Executor { get; }
+        
+        /// <summary>
+        /// Create axiom law
+        /// </summary>
+        /// <typeparam name="T">type of result</typeparam>
+        /// <param name="value">value</param>
+        /// <returns>law inference axiom value for type</returns>
         public static Law Axiom<T>(T value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
