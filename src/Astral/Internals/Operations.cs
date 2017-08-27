@@ -145,10 +145,13 @@ namespace Astral.Internals
                 var defPolicy = Policy.NoOpAsync();
                     
                 var policy = config.TryGet<DeliveryExceptionPolicy>().Map(p => p.Value).IfNone(defPolicy);
-                var afterDelivery = config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete);
+                var afterDelivery = 
+                    record.IsAnswer ?
+                        config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete)
+                        : config.TryGet<AfterAnswerDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete);
 
-                using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
-                    record.EndpointName,
+                using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", config.ServiceType,
+                    config.PropertyInfo.Name,
                     record.IsAnswer))
                 {
                     try
