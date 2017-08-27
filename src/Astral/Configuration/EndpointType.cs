@@ -2,6 +2,7 @@
 {
     public enum EndpointType
     {
-        Event
+        Event,
+        Call
     }
 }
