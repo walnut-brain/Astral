@@ -31,31 +31,10 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-        public static TBuilder DeliveryLeaseTime<TBuilder>(this TBuilder builder, TimeSpan lease)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law.Axiom(new DeliveryLeaseTime(lease)));
-            return builder;
-        }
-
         public static TBuilder DeliveryReserveTime<TBuilder>(this TBuilder builder, TimeSpan reserve)
             where TBuilder : BuilderBase
         {
             builder.AddLaw(Law.Axiom(new DeliveryReserveTime(reserve)));
-            return builder;
-        }
-
-        public static TBuilder DeliveryRetryCount<TBuilder>(this TBuilder builder, ushort count)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law.Axiom(new DeliveryRetryCount(count)));
-            return builder;
-        }
-
-        public static TBuilder DeliveryRetryPause<TBuilder>(this TBuilder builder, Func<ushort, TimeSpan> calcTimeSpan)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law.Axiom(new DeliveryRetryPause(calcTimeSpan)));
             return builder;
         }
 

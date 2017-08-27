@@ -141,14 +141,10 @@ namespace Astral.Internals
             where TStore : IStore<TStore>
             => () =>
             {
-                var retryCount = config.TryGet<DeliveryRetryCount>().Map(p => p.Value).IfNone(5);
-                var retryPause = config.TryGet<DeliveryRetryPause>().Map(p => p.Value)
-                    .IfNone(_ => TimeSpan.FromSeconds(3));
-                var retryPolicy =
-                    Policy
-                        .Handle<TemporaryException>()
-                        .WaitAndRetryAsync(retryCount, p => retryPause((ushort) p));
-                var policy = config.TryGet<DeliveryExceptionPolicy>().Map(p => p.Value).IfNone(retryPolicy);
+
+                var defPolicy = Policy.NoOpAsync();
+                    
+                var policy = config.TryGet<DeliveryExceptionPolicy>().Map(p => p.Value).IfNone(defPolicy);
                 var afterDelivery = config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete);
 
                 using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
