@@ -1,13 +1,15 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Astral.Data;
 
 namespace Astral.Delivery
 {
-    public interface IDeliveryLease<TStore>
+    public interface ILease<TStore> : IDisposable
         where TStore : IStore<TStore>
     {
+        LeaseState State { get; }
         CancellationToken Token { get; }
-        void Release(Action<IDeliveryCloseOperations> action);
+        Task Release(ReleaseAction action);
     }
 }

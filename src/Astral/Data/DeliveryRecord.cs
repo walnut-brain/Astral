@@ -1,47 +1,33 @@
 ﻿using System;
+using Astral.Serialization;
 
 namespace Astral.Data
 {
     public class DeliveryRecord
     {
-        public DeliveryRecord(Guid deliveryId, string serviceName, string endpointName, string contractCode,
-            string encoding, string body, string key, DateTimeOffset leasedTo, string sponsor, bool delivered,
-            bool needAnswer, DateTimeOffset? ttl, Guid? correlationId, string replayTo, int attempt, string lastError)
+        public DeliveryRecord(Guid deliveryId, string serviceName, string endpointName, Serialized<string> serialized, DateTimeOffset leasedTo)
         {
             DeliveryId = deliveryId;
             ServiceName = serviceName;
             EndpointName = endpointName;
-            ContractCode = contractCode;
-            Encoding = encoding;
-            Body = body;
-            Key = key;
             LeasedTo = leasedTo;
-            Sponsor = sponsor;
-            Delivered = delivered;
-            NeedAnswer = needAnswer;
-            Ttl = ttl;
-            CorrelationId = correlationId;
-            ReplayTo = replayTo;
-            Attempt = attempt;
-            LastError = lastError;
+            Serialized = serialized;
         }
 
         public Guid DeliveryId { get; }
         public string ServiceName { get; }
         public string EndpointName { get; }
-        public Guid? CorrelationId { get; }
-        public string ReplayTo { get; }
-        public string ContractCode { get; }
-        public string Encoding { get; }
-        public string Body { get; }
-        public string Key { get; }
+        public Guid? CorrelationId { get; set; }
+        public string ReplayTo { get; set; }
+        public Serialized<string> Serialized { get; }
+        public string Key { get; set; }
         public DateTimeOffset LeasedTo { get; }
-        public string Sponsor { get; }
-        public bool Delivered { get; }
-        public bool NeedAnswer { get; }
-        public DateTimeOffset? Ttl { get; }
-        public int Attempt { get; }
-        public string LastError { get; }
+        public string Sponsor { get; set; }
+        public bool Delivered { get; set; } = false;
+        public bool NeedAnswer { get; set; } = false;
+        public DateTimeOffset? Ttl { get; set; }
+        public int Attempt { get; set; } = 0;
+        public string LastError { get; set; }
 
         public bool IsAnswer => CorrelationId.HasValue && !string.IsNullOrWhiteSpace(ReplayTo);
     }

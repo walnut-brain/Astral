@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
+using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Core;
@@ -112,25 +113,19 @@ namespace Astral.Internals
                              config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(Timeout.InfiniteTimeSpan);
 
             key.Filter(_ => config.AsTry<CleanSameKeyDelivery>().Map(p => p.Value).IfFail(true))
-                .IfSome(k => dataService.DeleteAll(serviceName, endpointName, k));
+                .IfSome(k => dataService.Where(p => p.ServiceName == serviceName && p.EndpointName == endpointName && p.Key == k).Delete().Wait());
 
             var deliveryRecord = new DeliveryRecord(deliveryId,
                 serviceName,
                 endpointName,
-                serialized.TypeCode,
-                serialized.ContentType.ToString(),
-                serialized.Data,
-                key.IfNoneUnsafe((string)null),
-                DateTimeOffset.Now + reserveTime,
-                null,
-                false,
-                false,
-                messageTtl < TimeSpan.Zero ? (DateTimeOffset?)null : DateTimeOffset.Now + messageTtl,
-                null,
-                null,
-                0,
-                null);
-            dataService.Create(deliveryRecord);
+                serialized,
+                DateTimeOffset.Now + reserveTime)
+            {
+                Key = key.IfNoneUnsafe((string)null),
+                Ttl = messageTtl < TimeSpan.Zero ? (DateTimeOffset?)null : DateTimeOffset.Now + messageTtl
+            };
+              
+            dataService.Insert(deliveryRecord);
 
             return Deliver(logger, config, deliveryRecord, serialized, @event, transport,
                 new PublishOptions(messageTtl), manager);
@@ -154,6 +149,7 @@ namespace Astral.Internals
                         .Handle<TemporaryException>()
                         .WaitAndRetryAsync(retryCount, p => retryPause((ushort) p));
                 var policy = config.TryGet<DeliveryExceptionPolicy>().Map(p => p.Value).IfNone(retryPolicy);
+                var afterDelivery = config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete);
 
                 using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", record.ServiceName,
                     record.EndpointName,
@@ -166,12 +162,11 @@ namespace Astral.Internals
                         policy
                             .ExecuteAsync(token => transport.PreparePublish(config, message, rawSerialized, options)(),
                                 lease.Token)
-                            .ContinueWith(tsk =>
+                            .ContinueWith(async tsk =>
                             {
                                 if (tsk.IsCompleted)
                                 {
-                                    //TODO: Toconfig
-                                    lease.Release(p => p.Delete());
+                                    await lease.Release(afterDelivery);
                                     logger.LogTrace("Delivered {id}", record.DeliveryId);
                                 }
                                 else
@@ -179,10 +174,10 @@ namespace Astral.Internals
                                     if (tsk.IsFaulted)
                                     {
                                         logger.LogError(0, tsk.Exception, "On delivery {id}", record.DeliveryId);
-                                        lease.Release(p => p.SetException(tsk.Exception));
+                                        await lease.Release(ReleaseAction.Error(tsk.Exception));
                                     }
                                     else
-                                        lease.Release(p => { });
+                                        lease.Dispose();
                                 }
                             });
 

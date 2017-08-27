@@ -1,12 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using LanguageExt.ClassInstances;
 
 namespace Astral.Data
 {
-    public interface IDeliveryDataService<T> : IDataService<T>
+    public interface IWhereBuilder<T, TKey>
+    {
+        IWhereBuilder<T, TKey> Where(Expression<Func<T, bool>> predicate);
+        Task<int> Delete();
+        IUpdateBuilder<T, TKey> Set<TValue>(Expression<Func<T, TValue>> prop, TValue value);
+        IUpdateBuilder<T, TKey> Set<TValue>(Expression<Func<T, TValue>> prop, Expression<Func<T, TValue>> getter);
+
+    }
+
+    public interface IUpdateBuilder<T, TKey>
+    {
+        IUpdateBuilder<T, TKey> Where(Expression<Func<T, bool>> predicate);
+        IUpdateBuilder<T, TKey> Set<TValue>(Expression<Func<T, TValue>> prop, TValue value);
+        IUpdateBuilder<T, TKey> Set<TValue>(Expression<Func<T, TValue>> prop, Expression<Func<T, TValue>> getter);
+        Task<int> Update();
+        Task<IEnumerable<TKey>> UpdatedKeys();
+        Task<IEnumerable<T>> Updated();
+    }
+
+    public interface IDeliveryDataService<T> : IDataService<T>, IWhereBuilder<DeliveryRecord, Guid>
         where T : IStore<T>
     {
+        Task<DeliveryRecord> Insert(DeliveryRecord insert);
+
+        
+
+        /*
         void DeleteAll(string serviceName, string endpointName, string messageKey);
 
         void Create(DeliveryRecord delivery);
@@ -75,5 +101,6 @@ namespace Astral.Data
         /// <param name="deliveryId"></param>
         /// <param name="archiveTo"></param>
         void Archive(Guid deliveryId, DateTimeOffset archiveTo);
+        */
     }
 }

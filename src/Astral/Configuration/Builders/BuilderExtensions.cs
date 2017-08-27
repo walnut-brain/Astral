@@ -59,17 +59,10 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-        public static TBuilder AfterDeliveryDelete<TBuilder>(this TBuilder builder)
+        public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, ReleaseAction action)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom<IAfterDeliveryPolicy>(new AfterDeliveryPolicy(p => p.Delete())));
-            return builder;
-        }
-
-        public static TBuilder AfterDeliveryArchive<TBuilder>(this TBuilder builder, TimeSpan archivePeriod)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law.Axiom<IAfterDeliveryPolicy>(new AfterDeliveryPolicy(p => p.Archive(archivePeriod))));
+            builder.AddLaw(Law.Axiom(new AfterDelivery(action)));
             return builder;
         }
 
@@ -128,23 +121,6 @@ namespace Astral.Configuration.Builders
 
         }
 
-
-        private class AfterDeliveryPolicy : IAfterDeliveryPolicy
-        {
-            private readonly Action<IDeliveryCloseOperations> _action;
-
-            public AfterDeliveryPolicy(Action<IDeliveryCloseOperations> action)
-            {
-                _action = action;
-            }
-
-            public void Execute(IDeliveryCloseOperations onClose) => _action(onClose);
-
-        }
-
-        
-
-        
 
         public static TBuilder UseDefaultTypeMapper<TBuilder>(this TBuilder builder, bool convertNames = false)
             where TBuilder : BuilderBase
