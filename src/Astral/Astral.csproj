@@ -15,22 +15,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyInjection\" />
-    <Folder Include="Lawium" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Lawium\Laws.tt">
-      <LastGenOutput>Laws.generated.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Lawium\Laws.generated.cs">
-      <DependentUpon>Laws.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
   </ItemGroup>
 </Project>
