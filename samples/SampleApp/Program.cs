@@ -28,7 +28,7 @@ namespace SampleApp
             throw new NotImplementedException();
         }
 
-        public IDisposable Subscribe(EndpointConfig config, Func<Serialized<byte[]>, EventContext, CancellationToken, Task<Acknowledge>> handler, EventListenOptions options)
+        public IDisposable Subscribe(EndpointConfig config, RawMessageHandler handler, EventListenOptions options)
         {
             throw new NotImplementedException();
         }

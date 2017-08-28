@@ -3,9 +3,9 @@ using LanguageExt;
 
 namespace Astral.Configuration.Settings
 {
-    public class AfterAnswerDelivery : NewType<AfterAnswerDelivery, ReleaseAction>
+    public class AfterAnswerDelivery : NewType<AfterAnswerDelivery, OnDeliverySuccess>
     {
-        public AfterAnswerDelivery(ReleaseAction value) : base(value)
+        public AfterAnswerDelivery(OnDeliverySuccess value) : base(value)
         {
         }
     }

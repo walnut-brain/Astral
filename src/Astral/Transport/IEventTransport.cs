@@ -12,7 +12,7 @@ namespace Astral.Transport
             PublishOptions options);
 
         IDisposable Subscribe(EndpointConfig config,
-            Func<Serialized<byte[]>, EventContext, CancellationToken, Task<Acknowledge>> handler,
+            RawMessageHandler handler,
             EventListenOptions options);
     }
 }

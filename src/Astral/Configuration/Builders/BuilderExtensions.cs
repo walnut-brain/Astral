@@ -38,7 +38,7 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-        public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, ReleaseAction action)
+        public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, OnDeliverySuccess action)
             where TBuilder : BuilderBase
         {
             builder.AddLaw(Law.Axiom(new AfterDelivery(action)));

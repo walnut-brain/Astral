@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Astral.Data;
 using Astral.DependencyInjection;
+using Astral.Exceptions;
 using Astral.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,8 +18,8 @@ namespace Astral.Delivery
         private readonly CancellationDisposable _dispose;
         private readonly TimeSpan _leaseInterval;
 
-        private readonly ConcurrentDictionary<Guid, Lease> _leases =
-            new ConcurrentDictionary<Guid, Lease>();
+        private readonly ConcurrentDictionary<Guid, IDisposable> _leases =
+            new ConcurrentDictionary<Guid, IDisposable>();
 
         private readonly Task _renewLoop;
         private readonly Func<IDedicatedScope> _scopeProvider;
@@ -43,75 +44,67 @@ namespace Astral.Delivery
             CleanLeases().Wait();
         }
 
-        public async Task<ILease<TStore>> AddDelivery(Guid deliveryId)
+        public async Task AddDelivery(Guid deliveryId, Func<CancellationToken, Task> doInLease,
+            OnDeliverySuccess behavior)
         {
             if (_dispose.IsDisposed) throw new ObjectDisposedException("DeliveryManager");
             if (!await PickupLease(deliveryId))
+                throw new CannotTakeLeaseException($"Cannot take lease on delivery {deliveryId}");
+            var leaseCancellation = new CancellationDisposable();
+            if (!_leases.TryAdd(deliveryId, leaseCancellation))
             {
-                var cancellation = new CancellationTokenSource();
-                var token = cancellation.Token;
-                cancellation.Cancel();
-                cancellation.Dispose();
-                return new Lease((a, st) => Task.FromResult(LeaseState.NoLease), LeaseState.NoLease, token);
+                leaseCancellation.Dispose();
+                throw new CannotTakeLeaseException($"Already taked lease on delivery {deliveryId}");
             }
-            {
-                return _leases.GetOrAdd(deliveryId, _ =>
-                {
-                    var direct = new CancellationDisposable();
-                    var combined = CancellationTokenSource.CreateLinkedTokenSource(direct.Token, _dispose.Token);
-                    var dsp = new CompositeDisposable(direct, combined);
-                    return new Lease(async (todo, state) =>
-                    {
-                        _leases.TryRemove(deliveryId, out var _);
-                        switch (todo)
-                        {
-                            case ReleaseAction.CancelType ct:
-                                if (state == LeaseState.LeaseTaken)
-                                    await DoInScope(p => p
-                                        .Where(t => t.DeliveryId == deliveryId && t.Sponsor == _sponsor)
-                                        .Set(t => t.Sponsor, (string) null)
-                                        .Set(t => t.LeasedTo, DateTimeOffset.Now)
-                                        .Update());
-                                return LeaseState.LeaseDropped;
-                            case ReleaseAction.DeleteType d:
-                                await DoInScope(p => p
-                                    .Where(t => t.DeliveryId == deliveryId)
-                                    .Delete());
-                                return LeaseState.LeaseDropped;
-                            case ReleaseAction.ArchiveType a:
-                                await DoInScope(p => p
-                                    .Where(t => t.DeliveryId == deliveryId)
-                                    .Set(t => t.Delivered, true)
-                                    .Set(t => t.Ttl, a.DeleteAt)
-                                    .Set(t => t.Sponsor, (string) null)
-                                    .Update());
-                                return LeaseState.LeaseDropped;
-                            case ReleaseAction.ErrorType e:
-                                await DoInScope(p => p
-                                    .Where(t => t.DeliveryId == deliveryId && t.Sponsor == _sponsor)
-                                    .Set(t => t.LastError, e.Exception.Message)
-                                    .Set(t => t.Sponsor, (string) null)
-                                    .Set(t => t.LeasedTo, DateTimeOffset.Now)
-                                    .Update());
-                                return LeaseState.LeaseDropped;
-                            case ReleaseAction.RedeliveryType r:
-                                await DoInScope(p => p
-                                    .Where(t => t.DeliveryId == deliveryId)
-                                    .Set(t => t.Delivered, false)
-                                    .Set(t => t.Sponsor, (string) null)
-                                    .Set(t => t.LeasedTo, r.RedeliveryAt)
-                                    .Update());
-                                return LeaseState.LeaseDropped;
 
-                           default:
-                                throw new ArgumentOutOfRangeException($"Unknown ReleaseAction {todo?.GetType()}");
-                        }
-                    }, LeaseState.LeaseTaken, combined.Token);
-                    
-                });
+            var compositeCancellation =
+                CancellationTokenSource.CreateLinkedTokenSource(leaseCancellation.Token, _dispose.Token);
+
+
+            try
+            {
+                await ContinueDoInLease(doInLease(compositeCancellation.Token), deliveryId, behavior);
             }
+            finally
+            {
+                leaseCancellation.Dispose();
+                compositeCancellation.Dispose();
+            }
+            
+            
+            
         }
-
+        
+        
+        private async Task ContinueDoInLease(Task task, Guid deliveryId, OnDeliverySuccess behavior)
+        {
+            try
+            {
+                await task;
+                await DoInScope(p => behavior.Apply(p, deliveryId, _sponsor));
+            }
+            catch (Exception ex) when (ex.IsCancellation())
+            {
+                if(_dispose.IsDisposed)
+                    return;
+                await DoInScope(p => p
+                    .Where(t => t.Sponsor == _sponsor && t.DeliveryId == deliveryId)
+                    .Set(t => t.LeasedTo, DateTimeOffset.Now)
+                    .Set(t => t.Sponsor, (string) null)
+                    .Update());
+            }
+            catch (Exception ex)
+            {
+                await DoInScope(p => p
+                    .Where(t => t.Sponsor == _sponsor && t.DeliveryId == deliveryId)
+                    .Set(t => t.LeasedTo, DateTimeOffset.Now)
+                    .Set(t => t.Sponsor, (string) null)
+                    .Set(t => t.LastError, ex.Message)
+                    .Update());
+            }
+            
+        }
+        
 
         private async Task Loop(CancellationToken token)
         {
@@ -185,56 +178,5 @@ namespace Astral.Delivery
         }
 
         
-
-
-
-
-        private class Lease : ILease<TStore>
-        {
-            private readonly AsyncLock _locker = new AsyncLock();
-            private readonly Func<ReleaseAction, LeaseState, Task<LeaseState>> _releaser;
-            private LeaseState _state;
-
-            public Lease(Func<ReleaseAction, LeaseState, Task<LeaseState>> releaser, LeaseState state, CancellationToken token)
-            {
-                _releaser = releaser;
-                _state = state;
-                Token = token;
-                Token.Register(() => State = LeaseState.LeaseDropped);
-            }
-
-
-            public void Dispose()
-            {
-                Release(ReleaseAction.Cancel).Wait(CancellationToken.None);
-            }
-
-            public LeaseState State 
-            {
-                get
-                {
-                    using (_locker.Take().Result)
-                        return _state;
-                }
-                private set
-                {
-                    using (_locker.Take().Result)
-                        _state = value;
-                }
-            }
-
-            public CancellationToken Token { get; }
-
-            public async Task Release(ReleaseAction action)
-            {
-                // ReSharper disable once MethodSupportsCancellation
-                using (await _locker.Take())
-                {
-                    _state = await _releaser(action, _state);
-                }
-            }
-
-
-        }
     }
 }

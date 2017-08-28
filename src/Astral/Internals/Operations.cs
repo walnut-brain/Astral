@@ -21,7 +21,8 @@ namespace Astral.Internals
 {
     internal static class Operations
     {
-        internal static Task PublishEventAsync<TEvent>(ILogger logger, EndpointConfig config, IEventTransport transport,
+        internal static Task PublishEventAsync<TEvent>(ILogger logger, EndpointConfig config, 
+            PreparePublish<TEvent> preparePublish,
             TEvent @event, EventPublishOptions options = null)
         {
             Task Publish()
@@ -32,7 +33,7 @@ namespace Astral.Internals
                     options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value)
                         .IfFail(Timeout.InfiniteTimeSpan));
 
-                var prepared = transport.PreparePublish(config, @event, serialized, poptions);
+                var prepared = preparePublish(config, @event, serialized, poptions);
 
                 return prepared();
             }
@@ -42,7 +43,8 @@ namespace Astral.Internals
         }
 
         internal static IDisposable ListenEvent<TEvent>(ILogger logger, EndpointConfig config,
-            IEventTransport transport, IEventListener<TEvent> eventListener,
+            RawMessageSubscribe  subscribe, 
+            IEventListener<TEvent> eventListener,
             EventListenOptions options = null)
         {
             return logger.LogActivity(Listen, "listen {service} {endpoint}", config.ServiceType,
@@ -54,11 +56,11 @@ namespace Astral.Internals
                 var resolver = config.Get<IContractNameToType>();
                 var ignoreContractName =
                     Prelude.Optional(options)
-                        .Map(p => p.IgnoreContractName) || config.TryGet<IgnoreContractName>().Map(p => p.Value);
+                        .Bind(p => Prelude.Optional(p.IgnoreContractName)) || config.TryGet<IgnoreContractName>().Map(p => p.Value);
 
                 var deserialize = config.DeserializeRaw();
 
-                return transport.Subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, resolver,
+                return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, resolver,
                     ignoreContractName, deserialize, exceptionPolicy), options);
             }
 
@@ -96,7 +98,7 @@ namespace Astral.Internals
         }
 
         public static Action EnqueueManual<TStore, TEvent>(ILogger logger, IDeliveryDataService<TStore> dataService,
-            EndpointConfig config, IEventTransport transport, TEvent @event, DeliveryManager<TStore> manager,
+            EndpointConfig config, PreparePublish<TEvent> preparePublish, TEvent @event, DeliveryManager<TStore> manager,
             EventPublishOptions options = null)
             where TStore : IStore<TStore>
         {
@@ -127,7 +129,7 @@ namespace Astral.Internals
               
             dataService.Insert(deliveryRecord);
 
-            return Deliver(logger, config, deliveryRecord, serialized, @event, transport,
+            return Deliver(logger, config, deliveryRecord, serialized, @event, preparePublish,
                 new PublishOptions(messageTtl), manager);
         }
 
@@ -135,7 +137,7 @@ namespace Astral.Internals
             DeliveryRecord record,
             Serialized<string> serialized,
             T message,
-            IEventTransport transport,
+            PreparePublish<T> preparePublish,
             PublishOptions options,
             DeliveryManager<TStore> manager)
             where TStore : IStore<TStore>
@@ -147,8 +149,8 @@ namespace Astral.Internals
                 var policy = config.TryGet<DeliveryExceptionPolicy>().Map(p => p.Value).IfNone(defPolicy);
                 var afterDelivery = 
                     record.IsAnswer ?
-                        config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete)
-                        : config.TryGet<AfterAnswerDelivery>().Map(p => p.Value).IfNone(ReleaseAction.Delete);
+                        config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(OnDeliverySuccess.Delete)
+                        : config.TryGet<AfterAnswerDelivery>().Map(p => p.Value).IfNone(OnDeliverySuccess.Delete);
 
                 using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", config.ServiceType,
                     config.PropertyInfo.Name,
@@ -157,28 +159,15 @@ namespace Astral.Internals
                     try
                     {
                         var rawSerialized = config.RawSerialize(message, serialized).IfFailThrow();
-                        var lease = manager.AddDelivery(record.DeliveryId).Result;
-                        policy
-                            .ExecuteAsync(token => transport.PreparePublish(config, message, rawSerialized, options)(),
-                                lease.Token)
-                            .ContinueWith(async tsk =>
-                            {
-                                if (tsk.IsCompleted)
-                                {
-                                    await lease.Release(afterDelivery);
-                                    logger.LogTrace("Delivered {id}", record.DeliveryId);
-                                }
-                                else
-                                {
-                                    if (tsk.IsFaulted)
-                                    {
-                                        logger.LogError(0, tsk.Exception, "On delivery {id}", record.DeliveryId);
-                                        await lease.Release(ReleaseAction.Error(tsk.Exception));
-                                    }
-                                    else
-                                        lease.Dispose();
-                                }
-                            });
+
+                        
+#pragma warning disable 4014
+                        manager.AddDelivery(record.DeliveryId,
+                            ctk => policy.ExecuteAsync(
+                                ctk1 => preparePublish(config, message, rawSerialized, options)(), ctk),
+                            afterDelivery).LogResult(logger, "When delivery");
+#pragma warning restore 4014
+                                                    
 
                     }
                     catch (Exception ex)

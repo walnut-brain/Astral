@@ -38,7 +38,7 @@ namespace Astral
             EventPublishOptions options = null)
             where TTransport : class, IEventTransport where TService : class
         {
-            return Operations.PublishEventAsync(service.Logger, service.Config.Endpoint(selector), service.Transport,
+            return Operations.PublishEventAsync(service.Logger, service.Config.Endpoint(selector), service.Transport.PreparePublish,
                 @event,
                 options);
         }
@@ -61,7 +61,7 @@ namespace Astral
             EventListenOptions options = null)
             where TTransport : class, IEventTransport where TService : class
         {
-            return Operations.ListenEvent(service.Logger, service.Config.Endpoint(selector), service.Transport,
+            return Operations.ListenEvent(service.Logger, service.Config.Endpoint(selector), service.Transport.Subscribe,
                 eventListener,
                 options);
         }
@@ -75,7 +75,7 @@ namespace Astral
             where TService : class
         {
             return Operations.EnqueueManual(service.Logger, dataService, service.Config.Endpoint(selector),
-                service.Transport, @event,
+                service.Transport.PreparePublish, @event,
                 service.Provider.GetRequiredService<DeliveryManager<TStore>>());
         }
 

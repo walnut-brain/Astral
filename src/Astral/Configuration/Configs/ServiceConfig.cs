@@ -22,16 +22,43 @@ namespace Astral.Configuration.Configs
             if (propertyInfo == null)
                 throw new ArgumentException($"{name} is not valid endpoint property name");
             var propType = propertyInfo.PropertyType;
-            if (propType.IsConstructedGenericType && propType.GetGenericTypeDefinition() == typeof(IEvent<>))
+            if (propType.IsConstructedGenericType)
             {
-                var book = LawBook.GetOrAddSubBook(propertyInfo.Name,
-                    b =>
-                    {
-                        b.RegisterLaw(Law.Axiom(EndpointType.Event));
-                        b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
-                        b.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
-                    }).Result;
-                return new EndpointConfig(book);
+                if (propType.GetGenericTypeDefinition() == typeof(IEvent<>))
+                {
+                    var book = LawBook.GetOrAddSubBook(propertyInfo.Name,
+                        b =>
+                        {
+                            b.RegisterLaw(Law.Axiom(EndpointType.Event));
+                            b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
+                            b.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
+                        }).Result;
+                    return new EndpointConfig(book);
+                }
+                if (propType.GetGenericTypeDefinition() == typeof(ICall<>))
+                {
+                    var book = LawBook.GetOrAddSubBook(propertyInfo.Name,
+                        b =>
+                        {
+                            b.RegisterLaw(Law.Axiom(EndpointType.Call));
+                            b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
+                            b.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
+                            b.RegisterLaw(Law.Axiom(new ResponseType(typeof(ValueTuple))));
+                        }).Result;
+                    return new EndpointConfig(book);
+                }
+                if (propType.GetGenericTypeDefinition() == typeof(ICall<,>))
+                {
+                    var book = LawBook.GetOrAddSubBook(propertyInfo.Name,
+                        b =>
+                        {
+                            b.RegisterLaw(Law.Axiom(EndpointType.Call));
+                            b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
+                            b.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
+                            b.RegisterLaw(Law.Axiom(new ResponseType(propType.GenericTypeArguments[1])));
+                        }).Result;
+                    return new EndpointConfig(book);
+                }
             }
 
             throw new ArgumentException($"{name} is not valid endpoint");
@@ -53,6 +80,34 @@ namespace Astral.Configuration.Configs
                     b.RegisterLaw(Law.Axiom(EndpointType.Event));
                     b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
                     b.RegisterLaw(Law.Axiom(new MessageType(typeof(TEvent))));
+                }).Result;
+            return new EndpointConfig(book);
+        }
+        
+        public EndpointConfig Endpoint<TArgs>(Expression<Func<T, ICall<TArgs>>> selector)
+        {
+            var propertyInfo = selector.GetProperty();
+            var book = LawBook.GetOrAddSubBook(propertyInfo.Name,
+                b =>
+                {
+                    b.RegisterLaw(Law.Axiom(EndpointType.Call));
+                    b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
+                    b.RegisterLaw(Law.Axiom(new MessageType(typeof(TArgs))));
+                    b.RegisterLaw(Law.Axiom(new ResponseType(typeof(ValueTuple))));
+                }).Result;
+            return new EndpointConfig(book);
+        }
+        
+        public EndpointConfig Endpoint<TArgs, TResult>(Expression<Func<T, ICall<TArgs, TResult>>> selector)
+        {
+            var propertyInfo = selector.GetProperty();
+            var book = LawBook.GetOrAddSubBook(propertyInfo.Name,
+                b =>
+                {
+                    b.RegisterLaw(Law.Axiom(EndpointType.Call));
+                    b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
+                    b.RegisterLaw(Law.Axiom(new MessageType(typeof(TArgs))));
+                    b.RegisterLaw(Law.Axiom(new ResponseType(typeof(TResult))));
                 }).Result;
             return new EndpointConfig(book);
         }
