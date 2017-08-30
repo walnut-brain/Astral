@@ -1,9 +1,10 @@
 ﻿using System;
 using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class MemberNameToAstralName : NewType<MemberNameToAstralName, Func<string, bool, string>>
+    public sealed class MemberNameToAstralName : Fact<Func<string, bool, string>>
     {
         public MemberNameToAstralName(Func<string, bool, string> value) : base(value)
         {

@@ -1,9 +1,10 @@
 ﻿using Astral.Delivery;
-using LanguageExt;
+using Lawium;
+
 
 namespace Astral.Configuration.Settings
 {
-    public class AfterAnswerDelivery : NewType<AfterAnswerDelivery, OnDeliverySuccess>
+    public sealed class AfterAnswerDelivery : Fact<OnDeliverySuccess>
     {
         public AfterAnswerDelivery(OnDeliverySuccess value) : base(value)
         {

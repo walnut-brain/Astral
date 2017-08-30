@@ -1,8 +1,9 @@
 ﻿using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class CleanSameKeyDelivery : NewType<CleanSameKeyDelivery, bool>
+    public sealed class CleanSameKeyDelivery : Fact<bool>
     {
         public CleanSameKeyDelivery(bool value) : base(value)
         {

@@ -1,8 +1,9 @@
 ﻿using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class ServiceName : NewType<ServiceName, string>
+    public sealed class ServiceName : Fact<string>
     {
         public ServiceName(string value) : base(value)
         {

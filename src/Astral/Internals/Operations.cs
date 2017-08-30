@@ -30,8 +30,8 @@ namespace Astral.Internals
                 var serialized = config.RawSerialize(@event).IfFailThrow();
 
                 var poptions = new PublishOptions(
-                    options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value)
-                        .IfFail(Timeout.InfiniteTimeSpan));
+                    options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(Timeout.InfiniteTimeSpan),
+                    ResponseTo.None, null);
 
                 var prepared = preparePublish(config, @event, serialized, poptions);
 
@@ -130,7 +130,7 @@ namespace Astral.Internals
             dataService.Insert(deliveryRecord);
 
             return Deliver(logger, config, deliveryRecord, serialized, @event, preparePublish,
-                new PublishOptions(messageTtl), manager);
+                new PublishOptions(messageTtl, ResponseTo.None, null), manager);
         }
 
         private static Action Deliver<T, TStore>(ILogger logger, EndpointConfig config,

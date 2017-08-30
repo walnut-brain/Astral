@@ -1,8 +1,8 @@
-﻿using LanguageExt;
+﻿using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class InstanceCode : NewType<InstanceCode, string>
+    public sealed class InstanceCode : Fact<string>
     {
         public InstanceCode(string value) : base(value)
         {

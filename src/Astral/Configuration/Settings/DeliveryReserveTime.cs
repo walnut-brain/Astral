@@ -1,10 +1,10 @@
 ﻿using System;
 using Astral.Predicates;
-using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class DeliveryReserveTime : NewType<DeliveryReserveTime, TimeSpan, PositiveTimeSpan>
+    public sealed class DeliveryReserveTime : Fact<TimeSpan, PositiveTimeSpan>
     {
         public DeliveryReserveTime(TimeSpan value) : base(value)
         {

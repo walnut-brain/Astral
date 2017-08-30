@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
-using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class EndpointMember : NewType<EndpointMember, PropertyInfo>
+    public sealed class EndpointMember : Fact<PropertyInfo>
     {
         public EndpointMember(PropertyInfo value) : base(value)
         {

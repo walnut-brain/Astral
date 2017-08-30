@@ -1,9 +1,10 @@
 ﻿using LanguageExt;
+using Lawium;
 using Polly;
 
 namespace Astral.Configuration.Settings
 {
-    public class DeliveryExceptionPolicy : NewType<DeliveryExceptionPolicy, Policy>
+    public sealed class DeliveryExceptionPolicy : Fact<Policy>
     {
         public DeliveryExceptionPolicy(Policy value) : base(value)
         {

@@ -1,9 +1,10 @@
 ﻿using System;
 using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class ServiceVersion : NewType<ServiceVersion, Version>
+    public sealed class ServiceVersion : Fact<Version>
     {
         public ServiceVersion(Version value) : base(value)
         {

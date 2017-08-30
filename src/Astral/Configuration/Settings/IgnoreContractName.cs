@@ -1,8 +1,8 @@
-﻿using LanguageExt;
+﻿using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class IgnoreContractName : NewType<IgnoreContractName, bool>
+    public sealed class IgnoreContractName : Fact<bool>
     {
         public IgnoreContractName(bool value) : base(value)
         {

@@ -1,9 +1,9 @@
 ﻿using System;
-using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class ResponseType : NewType<ResponseType, Type>
+    public sealed class ResponseType : Fact<Type>
     {
         public ResponseType(Type value) : base(value)
         {

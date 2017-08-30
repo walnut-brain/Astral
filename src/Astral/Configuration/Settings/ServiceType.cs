@@ -1,9 +1,10 @@
 ﻿using System;
 using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class ServiceType : NewType<ServiceType, Type>
+    public sealed class ServiceType : Fact<Type>
     {
         public ServiceType(Type value) : base(value)
         {

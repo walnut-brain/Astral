@@ -75,9 +75,29 @@ namespace Astral.Transport
 
             public override int GetHashCode() => typeof(InstanceClass).GetHashCode();
         }
+
+        public class NoneClass : ResponseTo
+        {
+            internal NoneClass() {}
+
+            protected bool Equals(NoneClass other) => true;
+            
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((NoneClass) obj);
+            }
+
+            public override int GetHashCode() => typeof(NoneClass).GetHashCode();
+            
+        }
         
         public static ResponseTo System = new SystemClass();
         public static ResponseTo Named(string name) => new NamedClass(name);
         public static ResponseTo Instance = new InstanceClass();
+        public static ResponseTo None = new NoneClass();
     }
 }

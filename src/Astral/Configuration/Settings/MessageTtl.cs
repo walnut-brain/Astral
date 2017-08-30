@@ -1,9 +1,10 @@
 ﻿using System;
-using LanguageExt;
+using Astral.Predicates;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class MessageTtl : NewType<MessageTtl, TimeSpan>
+    public sealed class MessageTtl : Fact<TimeSpan, PositiveTimeSpan>
     {
         public MessageTtl(TimeSpan value) : base(value)
         {

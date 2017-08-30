@@ -1,9 +1,9 @@
 ﻿using System;
-using LanguageExt;
+using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public class MessageType : NewType<MessageType, Type>
+    public sealed class MessageType : Fact<Type>
     {
         public MessageType(Type value) : base(value)
         {
