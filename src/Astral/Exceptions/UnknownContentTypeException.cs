@@ -1,4 +1,5 @@
 ﻿using System;
+using Astral.Core;
 
 namespace Astral.Exceptions
 {

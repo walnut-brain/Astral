@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Core
+namespace Astral.Markup
 {
     [AttributeUsage(AttributeTargets.Interface)]
     public class ServiceAttribute : Attribute

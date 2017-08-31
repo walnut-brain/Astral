@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Astral;
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
+using Astral.Core;
 using Astral.DependencyInjection;
 using Astral.Serialization;
 using Astral.Transport;
@@ -23,7 +24,7 @@ namespace SampleApp
         {
         }
 
-        public Func<Task> PreparePublish<T>(EndpointConfig config, T message, Serialized<byte[]> serialized, PublishOptions options)
+        public Func<Task> PreparePublish<T>(EndpointConfig config, T message, Payload<byte[]> serialized, PublishOptions options)
         {
             throw new NotImplementedException();
         }

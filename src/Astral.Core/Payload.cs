@@ -1,10 +1,10 @@
 ﻿using System.Net.Mime;
 
-namespace Astral.Serialization
+namespace Astral.Core
 {
-    public class Serialized<TFormat>
+    public class Payload<TFormat>
     {
-        public Serialized(string typeCode, ContentType contentType, TFormat data)
+        public Payload(string typeCode, ContentType contentType, TFormat data)
         {
             TypeCode = typeCode;
             ContentType = contentType;

@@ -11,6 +11,7 @@ using Astral.Data;
 using Astral.DataContracts;
 using Astral.Delivery;
 using Astral.Exceptions;
+using Astral.Markup;
 using Astral.Serialization;
 using Astral.Transport;
 using LanguageExt;
@@ -65,9 +66,9 @@ namespace Astral.Internals
             }
 
             async Task<Acknowledge> Listener(
-                Serialized<byte[]> msg, EventContext ctx, CancellationToken token,
+                Payload<byte[]> msg, EventContext ctx, CancellationToken token,
                 IContractNameToType resolver, Option<bool> ignoreContractName,
-                Func<Type, Serialized<byte[]>, Try<object>> deserialize,
+                Func<Type, Payload<byte[]>, Try<object>> deserialize,
                 IReciveExceptionPolicy exceptionPolicy)
             {
                 async Task<Acknowledge> Receive()
@@ -135,7 +136,7 @@ namespace Astral.Internals
 
         private static Action Deliver<T, TStore>(ILogger logger, EndpointConfig config,
             DeliveryRecord record,
-            Serialized<string> serialized,
+            Payload<string> payload,
             T message,
             PreparePublish<T> preparePublish,
             PublishOptions options,
@@ -158,7 +159,7 @@ namespace Astral.Internals
                 {
                     try
                     {
-                        var rawSerialized = config.RawSerialize(message, serialized).IfFailThrow();
+                        var rawSerialized = config.RawSerialize(message, payload).IfFailThrow();
 
                         
 #pragma warning disable 4014

@@ -1,4 +1,4 @@
-﻿namespace Astral.Core
+﻿namespace Astral.Markup
 {
     public interface ICall<TCommand>
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using Astral.Configuration.Settings;
-using Astral.Core;
+using Astral.Markup;
 using Lawium;
 
 namespace Astral.Configuration.Configs

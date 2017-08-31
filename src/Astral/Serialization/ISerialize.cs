@@ -1,7 +1,9 @@
-﻿namespace Astral.Serialization
+﻿using Astral.Core;
+
+namespace Astral.Serialization
 {
     public interface ISerialize<TFormat>
     {
-        Serialized<TFormat> Serialize(string typeCode, object obj);
+        Payload<TFormat> Serialize(string typeCode, object obj);
     }
 }

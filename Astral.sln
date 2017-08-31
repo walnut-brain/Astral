@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFD8E592-8E24-4442-98E6-E105850659CE}"
 EndProject
@@ -13,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lawium", "src\Lawium\Lawium
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B8943705-69CD-4A40-9DB4-EBCE30BC7478}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleService", "samples\SampleService\SampleService.csproj", "{96A70A65-6EA7-448F-AF51-620BB9145F67}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleService", "samples\SampleService\SampleService.csproj", "{96A70A65-6EA7-448F-AF51-620BB9145F67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "samples\SampleApp\SampleApp.csproj", "{0441EC2C-04DF-4532-A2EC-35A92D955B9A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "samples\SampleApp\SampleApp.csproj", "{0441EC2C-04DF-4532-A2EC-35A92D955B9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Markup", "src\Astral.Markup\Astral.Markup.csproj", "{4851B6FB-033E-4334-BBF6-E78347784144}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,10 @@ Global
 		{0441EC2C-04DF-4532-A2EC-35A92D955B9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0441EC2C-04DF-4532-A2EC-35A92D955B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0441EC2C-04DF-4532-A2EC-35A92D955B9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4851B6FB-033E-4334-BBF6-E78347784144}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4851B6FB-033E-4334-BBF6-E78347784144}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4851B6FB-033E-4334-BBF6-E78347784144}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4851B6FB-033E-4334-BBF6-E78347784144}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{C476AD2F-5A76-44A4-B40C-507BF1A216E5} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{96A70A65-6EA7-448F-AF51-620BB9145F67} = {B8943705-69CD-4A40-9DB4-EBCE30BC7478}
 		{0441EC2C-04DF-4532-A2EC-35A92D955B9A} = {B8943705-69CD-4A40-9DB4-EBCE30BC7478}
+		{4851B6FB-033E-4334-BBF6-E78347784144} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}

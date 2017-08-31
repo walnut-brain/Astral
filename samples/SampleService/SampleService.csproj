@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Astral.Core\Astral.Core.csproj" />
+    <ProjectReference Include="..\..\src\Astral.Markup\Astral.Markup.csproj" />
   </ItemGroup>
 
 </Project>

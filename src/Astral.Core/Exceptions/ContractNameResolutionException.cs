@@ -1,4 +1,4 @@
-﻿namespace Astral.Exceptions
+﻿namespace Astral.Core
 {
     public class ContractNameResolutionException : DataContractResolutionException
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Astral.Core;
+using Astral.Markup;
 
 namespace Astral
 {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using LanguageExt.TypeClasses;
 
-namespace Lawium
+namespace Astral.Markup
 {
     /// <summary>
     /// Implementation of base class for typed Law values
@@ -76,20 +75,22 @@ namespace Lawium
     /// Fact with predicate
     /// </summary>
     /// <typeparam name="T">value type</typeparam>
-    /// <typeparam name="TPred"><predicate/typeparam>
+    /// <typeparam name="TPred">predicate</typeparam>
     public abstract class Fact<T, TPred> : Fact<T>
-        where TPred : struct, Pred<T>
+        where TPred : struct, IPredicate<T>
     {
+        /// <inheritdoc />
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="value">fact value</param>
-        /// <exception cref="ArgumentOutOfRangeException">when value not conform predicate</exception>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">when value not conform predicate</exception>
         protected Fact(T value) : base(value)
         {
             var pred = default(TPred);
-            if (!pred.True(value))
-                throw new ArgumentOutOfRangeException($"Value {value} not conform {pred}");
+            var (check, error) = pred.True(value);
+            if (!check)
+                throw new ArgumentOutOfRangeException(error ?? $"Value {value} not conform {pred}");
         }
     }
 }

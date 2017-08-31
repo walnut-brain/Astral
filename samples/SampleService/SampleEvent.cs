@@ -1,4 +1,4 @@
-﻿using Astral.Core;
+﻿using Astral.Markup;
 
 namespace SampleService
 {

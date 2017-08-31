@@ -1,17 +1,18 @@
 ﻿using System;
+using Astral.Core;
 using Astral.Serialization;
 
 namespace Astral.Data
 {
     public class DeliveryRecord
     {
-        public DeliveryRecord(Guid deliveryId, string serviceName, string endpointName, Serialized<string> serialized, DateTimeOffset leasedTo)
+        public DeliveryRecord(Guid deliveryId, string serviceName, string endpointName, Payload<string> payload, DateTimeOffset leasedTo)
         {
             DeliveryId = deliveryId;
             ServiceName = serviceName;
             EndpointName = endpointName;
             LeasedTo = leasedTo;
-            Serialized = serialized;
+            Payload = payload;
         }
 
         public Guid DeliveryId { get; }
@@ -19,7 +20,7 @@ namespace Astral.Data
         public string EndpointName { get; }
         public Guid? CorrelationId { get; set; }
         public string ReplayTo { get; set; }
-        public Serialized<string> Serialized { get; }
+        public Payload<string> Payload { get; }
         public string Key { get; set; }
         public DateTimeOffset LeasedTo { get; }
         public string Sponsor { get; set; }

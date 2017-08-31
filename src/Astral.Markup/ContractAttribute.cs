@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Core
+namespace Astral.Markup
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class ContractAttribute : Attribute

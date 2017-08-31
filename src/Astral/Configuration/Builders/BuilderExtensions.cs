@@ -5,7 +5,7 @@ using Astral.Configuration.Settings;
 using Astral.Core;
 using Astral.DataContracts;
 using Astral.Delivery;
-using Astral.Serialization;
+using Astral.Markup;
 using Astral.Serialization.Json;
 using Lawium;
 using Newtonsoft.Json;
@@ -101,21 +101,11 @@ namespace Astral.Configuration.Builders
         }
 
 
-        public static TBuilder UseDefaultTypeMapper<TBuilder>(this TBuilder builder, bool convertNames = false)
+        public static TBuilder UseDefaultTypeMapper<TBuilder>(this TBuilder builder)
             where TBuilder : BuilderBase
         {
-            var mapper = new DefaultTypeMapper();
-            builder.AddLaw(Law.Axiom<ITypeToContractName>(mapper));
-            builder.AddLaw(Law.Axiom<IContractNameToType>(mapper));
-            if (convertNames)
-                builder.AddLaw(Law.Create("TypeMapper with type name converter",
-                    (MemberNameToAstralName cvt) =>
-                    {
-                        var map = new DefaultTypeMapper(p => cvt.Value(p, false));
-                        return ((ITypeToContractName) map, (IContractNameToType) map);
-                    }));
-
-
+            builder.AddLaw(Law.Axiom(DataContract.ToTypeToContract(DataContractMappers.DefaultTypeMapper)));
+            builder.AddLaw(Law.Axiom(DataContract.ToContractToType(DataContractMappers.DefaultContractMapper)));
             return builder;
         }
 
@@ -127,10 +117,10 @@ namespace Astral.Configuration.Builders
             builder.AddLaw(Law.Axiom(jsettings));
             builder.AddLaw(Law.Create("JsonSerializer", (JsonSerializerSettings settings) =>
                 (
-                (ISerialize<string>) new JsonTextSerialize(settings),
-                (IDeserialize<string>) new JsonTextDeserialize(settings, checkContentType),
-                (ISerializedMapper<string, byte[]>) new Utf8Mapper(),
-                (ISerializedMapper<byte[], string>) new Utf8BackMapper(),
+                (Serialization.ISerialize<string>) new JsonTextSerialize(settings),
+                (Serialization.IDeserialize<string>) new JsonTextDeserialize(settings, checkContentType),
+                (Serialization.ISerializedMapper<string, byte[]>) new Utf8Mapper(),
+                (Serialization.ISerializedMapper<byte[], string>) new Utf8BackMapper(),
                 UseSerializeMapper.Always
                 )
             ));

@@ -1,4 +1,5 @@
 ﻿using System;
+using Astral.Core;
 using Astral.Exceptions;
 using LanguageExt;
 using Newtonsoft.Json;
@@ -16,7 +17,7 @@ namespace Astral.Serialization.Json
             _checkContextType = checkContextType;
         }
 
-        public Try<object> Deserialize(Type type, Serialized<string> data)
+        public Try<object> Deserialize(Type type, Payload<string> data)
         {
             if (!_checkContextType || data.ContentType?.IsJson() == true)
                 return Prelude.Try(() => JsonConvert.DeserializeObject(data.Data, type, _settings))

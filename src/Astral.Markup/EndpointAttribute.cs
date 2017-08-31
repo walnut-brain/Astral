@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Core
+namespace Astral.Markup
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class EndpointAttribute : Attribute
