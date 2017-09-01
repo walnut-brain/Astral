@@ -1,9 +1,9 @@
-﻿using Astral.Core;
+﻿using Astral.Payloads;
 
 namespace Astral.Serialization
 {
     public interface ISerializedMapper<TF1, TF2>
     {
-        Payload<TF2> Map(Payload<TF1> payload);
+        PayloadBase<TF2> Map(PayloadBase<TF1> payload);
     }
 }

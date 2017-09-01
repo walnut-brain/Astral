@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Core
+namespace Astral
 {
     public class PermanentException : Exception
     {

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using Astral.Core;
 using Astral.Exceptions;
 using Astral.Markup;
+using Astral.Payloads;
+using Astral.Payloads.Contracts;
 using LanguageExt;
 using static LanguageExt.Prelude;
 
@@ -39,7 +40,7 @@ namespace Astral.DataContracts
         }
 
         public static Option<string> DefaultTypeMapper(Type type, ITypeToContract elementMapper)
-            => DataContract.OrElse(WellKnownTypeMapper, ArrayLikeMapper).OrElse(AttributeMapper)(type, elementMapper);
+            => Contract.OrElse(WellKnownTypeMapper, ArrayLikeMapper).OrElse(AttributeMapper)(type, elementMapper);
 
         internal static Option<Type> TryGetElementType(Type arrayLikeType)
         {
@@ -110,7 +111,7 @@ namespace Astral.DataContracts
 
         public static Option<Type> DefaultContractMapper(string contract, Seq<Type> awaited,
             IContractToType elementMapper)
-            => DataContract.OrElse(WellKnownContractMapper, ArrayContractMapper).OrElse(AttributeContractMapper)(
+            => Contract.Fallback(WellKnownContractMapper, ArrayContractMapper).Fallback(AttributeContractMapper)(
                 contract, awaited, elementMapper);
     }
 

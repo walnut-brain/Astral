@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Astral.Configuration.Settings;
-using Astral.Core;
 using Astral.DataContracts;
 using Astral.Delivery;
 using Astral.Markup;
+using Astral.Payloads;
+using Astral.Payloads.Contracts;
 using Astral.Serialization.Json;
 using Lawium;
 using Newtonsoft.Json;
@@ -104,8 +105,8 @@ namespace Astral.Configuration.Builders
         public static TBuilder UseDefaultTypeMapper<TBuilder>(this TBuilder builder)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(DataContract.ToTypeToContract(DataContractMappers.DefaultTypeMapper)));
-            builder.AddLaw(Law.Axiom(DataContract.ToContractToType(DataContractMappers.DefaultContractMapper)));
+            builder.AddLaw(Law.Axiom(Contract.ToTypeToContract(DataContractMappers.DefaultTypeMapper)));
+            builder.AddLaw(Law.Axiom(Contract.ToContractToType(DataContractMappers.DefaultContractMapper)));
             return builder;
         }
 

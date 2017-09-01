@@ -1,11 +1,11 @@
 ﻿using System;
-using Astral.Core;
+using Astral.Payloads;
 using LanguageExt;
 
 namespace Astral.Serialization
 {
     public interface IDeserialize<TFormat>
     {
-        Try<object> Deserialize(Type type, Payload<TFormat> data);
+        Try<object> Deserialize(Type type, PayloadBase<TFormat> data);
     }
 }

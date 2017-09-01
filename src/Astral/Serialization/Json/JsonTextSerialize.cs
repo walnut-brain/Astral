@@ -1,5 +1,5 @@
 ﻿using System.Net.Mime;
-using Astral.Core;
+using Astral.Payloads;
 using Newtonsoft.Json;
 
 namespace Astral.Serialization.Json
@@ -13,10 +13,10 @@ namespace Astral.Serialization.Json
             _settings = settings;
         }
 
-        public Payload<string> Serialize(string typeCode, object obj)
+        public PayloadBase<string> Serialize(string typeCode, object obj)
         {
             var json = JsonConvert.SerializeObject(obj, _settings);
-            return new Payload<string>(typeCode, new ContentType("text/json"), json);
+            return new PayloadBase<string>(typeCode, new ContentType("text/json"), json);
         }
     }
 }

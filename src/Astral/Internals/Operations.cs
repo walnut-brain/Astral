@@ -6,12 +6,12 @@ using Astral.Configuration;
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
-using Astral.Core;
 using Astral.Data;
 using Astral.DataContracts;
 using Astral.Delivery;
 using Astral.Exceptions;
 using Astral.Markup;
+using Astral.Payloads;
 using Astral.Serialization;
 using Astral.Transport;
 using LanguageExt;
@@ -66,9 +66,9 @@ namespace Astral.Internals
             }
 
             async Task<Acknowledge> Listener(
-                Payload<byte[]> msg, EventContext ctx, CancellationToken token,
+                PayloadBase<byte[]> msg, EventContext ctx, CancellationToken token,
                 IContractNameToType resolver, Option<bool> ignoreContractName,
-                Func<Type, Payload<byte[]>, Try<object>> deserialize,
+                Func<Type, PayloadBase<byte[]>, Try<object>> deserialize,
                 IReciveExceptionPolicy exceptionPolicy)
             {
                 async Task<Acknowledge> Receive()
@@ -136,7 +136,7 @@ namespace Astral.Internals
 
         private static Action Deliver<T, TStore>(ILogger logger, EndpointConfig config,
             DeliveryRecord record,
-            Payload<string> payload,
+            PayloadBase<string> payload,
             T message,
             PreparePublish<T> preparePublish,
             PublishOptions options,

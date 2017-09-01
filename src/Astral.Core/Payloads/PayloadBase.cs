@@ -1,10 +1,10 @@
 ﻿using System.Net.Mime;
 
-namespace Astral.Core
+namespace Astral.Payloads
 {
-    public class Payload<TFormat>
+    public class PayloadBase<TFormat>
     {
-        public Payload(string typeCode, ContentType contentType, TFormat data)
+        public PayloadBase(string typeCode, ContentType contentType, TFormat data)
         {
             TypeCode = typeCode;
             ContentType = contentType;

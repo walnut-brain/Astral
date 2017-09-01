@@ -1,13 +1,13 @@
 using System;
 using System.Text;
-using Astral.Core;
 using Astral.Exceptions;
+using Astral.Payloads;
 
 namespace Astral.Serialization.Json
 {
     public class Utf8BackMapper : ISerializedMapper<byte[], string>
     {
-        public Payload<string> Map(Payload<byte[]> payload)
+        public PayloadBase<string> Map(PayloadBase<byte[]> payload)
         {
             var encode = Encoding.UTF8;
             Exception exEnc = null;
@@ -22,7 +22,7 @@ namespace Astral.Serialization.Json
                 }
             try
             {
-                return new Payload<string>(payload.TypeCode, payload.ContentType,
+                return new PayloadBase<string>(payload.TypeCode, payload.ContentType,
                     encode.GetString(payload.Data));
             }
             catch (Exception ex)

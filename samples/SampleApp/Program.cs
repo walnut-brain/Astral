@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Astral;
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
-using Astral.Core;
 using Astral.DependencyInjection;
 using Astral.Serialization;
 using Astral.Transport;

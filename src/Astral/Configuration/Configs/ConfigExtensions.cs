@@ -1,8 +1,9 @@
 using System;
 using Astral.Configuration.Settings;
-using Astral.Core;
 using Astral.DataContracts;
 using Astral.Exceptions;
+using Astral.Payloads;
+using Astral.Payloads.Contracts;
 using Astral.Serialization;
 using LanguageExt;
 using static LanguageExt.Prelude;
@@ -39,7 +40,7 @@ namespace Astral.Configuration.Configs
             var type = value?.GetType() ?? typeof(TContract);
             return config
                 .TryGet<ITypeToContract>()
-                .Bind(p => p.TryMap(type)).ToTry(new TypeResolutionException(type));
+                .Bind(p => p.TryMap(type)).ToTry(new TypeToContractException(type));
         }
 
 
@@ -48,7 +49,7 @@ namespace Astral.Configuration.Configs
             return config.AsTry<UseSerializeMapper>().IfFail(UseSerializeMapper.Allow);
         }
 
-        public static Try<Payload<byte[]>> RawSerialize<TContract>(this EndpointConfig config, TContract contract)
+        public static Try<PayloadBase<byte[]>> RawSerialize<TContract>(this EndpointConfig config, TContract contract)
         {
             return config
                 .ContractName(contract)
@@ -58,7 +59,7 @@ namespace Astral.Configuration.Configs
                     var textSerializer = config.AsTry<ISerialize<string>>();
                     var mapper = config.AsTry<ISerializedMapper<string, byte[]>>();
 
-                    Try<Payload<byte[]>> SerializeThenMap()
+                    Try<PayloadBase<byte[]>> SerializeThenMap()
                     {
                         return
                             textSerializer
@@ -67,7 +68,7 @@ namespace Astral.Configuration.Configs
                                     .Map(m => m.Map(s)));
                     }
 
-                    Try<Payload<byte[]>> SerilizeRaw()
+                    Try<PayloadBase<byte[]>> SerilizeRaw()
                     {
                         return rawSerializer
                             .Map(s => s.Serialize(p, contract));
@@ -84,12 +85,12 @@ namespace Astral.Configuration.Configs
                         case UseSerializeMapper.Always:
                             return SerializeThenMap();
                         default:
-                            return Try<Payload<byte[]>>(new ArgumentOutOfRangeException());
+                            return Try<PayloadBase<byte[]>>(new ArgumentOutOfRangeException());
                     }
                 });
         }
 
-        public static Try<Payload<string>> TextSerialize<TContract>(this EndpointConfig config, TContract contract)
+        public static Try<PayloadBase<string>> TextSerialize<TContract>(this EndpointConfig config, TContract contract)
         {
             return config
                 .ContractName(contract)
@@ -99,12 +100,12 @@ namespace Astral.Configuration.Configs
                         .Map(s => s.Serialize(p, contract)));
         }
 
-        public static Try<Payload<byte[]>> RawSerialize<TContract>(this EndpointConfig config, TContract contract,
-            Payload<string> textPayload)
+        public static Try<PayloadBase<byte[]>> RawSerialize<TContract>(this EndpointConfig config, TContract contract,
+            PayloadBase<string> textPayload)
         {
             var mapper = config.AsTry<ISerializedMapper<string, byte[]>>();
 
-            Try<Payload<byte[]>> SerilizeRaw()
+            Try<PayloadBase<byte[]>> SerilizeRaw()
             {
                 return config.AsTry<ISerialize<byte[]>>().Map(s => s.Serialize(textPayload.TypeCode, contract));
             }
@@ -122,11 +123,11 @@ namespace Astral.Configuration.Configs
                     return mapper
                         .Map(m => m.Map(textPayload));
                 default:
-                    return Try<Payload<byte[]>>(new ArgumentOutOfRangeException());
+                    return Try<PayloadBase<byte[]>>(new ArgumentOutOfRangeException());
             }
         }
 
-        public static Func<Type, Payload<byte[]>, Try<object>> DeserializeRaw(this EndpointConfig config)
+        public static Func<Type, PayloadBase<byte[]>, Try<object>> DeserializeRaw(this EndpointConfig config)
         {
             return (type, serialized) =>
             {
