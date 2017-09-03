@@ -4,13 +4,13 @@ using System.Reflection;
 using Astral.Configuration.Settings;
 using Astral.DataContracts;
 using Astral.Delivery;
-using Astral.Markup;
 using Astral.Payloads;
-using Astral.Payloads.Contracts;
 using Astral.Serialization.Json;
+using Astral.Settings;
 using Lawium;
 using Newtonsoft.Json;
 using Polly;
+using Contract = Astral.Payloads.DataContracts.Contract;
 
 namespace Astral.Configuration.Builders
 {

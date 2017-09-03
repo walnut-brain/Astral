@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Payloads.Contracts
+namespace Astral.Payloads.DataContracts
 {
     public class TypeToContractException : ContractResolutionException
     {

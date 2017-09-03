@@ -1,7 +1,4 @@
-﻿using Astral.Markup;
-using Lawium;
-
-namespace Astral.Configuration.Settings
+﻿namespace Astral.Settings
 {
     public sealed class EndpointName : Fact<string>
     {

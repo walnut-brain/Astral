@@ -4,11 +4,10 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Astral.Exceptions;
-using Astral.Markup;
 using Astral.Payloads;
-using Astral.Payloads.Contracts;
 using LanguageExt;
 using static LanguageExt.Prelude;
+using Contract = Astral.Payloads.DataContracts.Contract;
 
 namespace Astral.DataContracts
 {

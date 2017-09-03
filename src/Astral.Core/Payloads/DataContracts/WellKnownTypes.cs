@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace Astral.Payloads.Contracts
+namespace Astral.Payloads.DataContracts
 {
     public static class WellKnownTypes
     {

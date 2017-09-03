@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using Astral.Markup;
 using LanguageExt;
-using static LanguageExt.Prelude;
 
-namespace Astral.Payloads.Contracts
+namespace Astral.Payloads.DataContracts
 {
     public static partial class Contract
     {
@@ -27,8 +25,8 @@ namespace Astral.Payloads.Contracts
             {
                 var attr = type.GetCustomAttribute<ContractAttribute>();
                 if (attr != null)
-                    return Try(attr.Name);
-                return Try<string>(new TypeToContractException(type));
+                    return Prelude.Try(attr.Name);
+                return Prelude.Try<string>(new TypeToContractException(type));
             };
 
         public static ComplexTypeToContract DefaultTypeMapper =
@@ -37,10 +35,10 @@ namespace Astral.Payloads.Contracts
         public static ComplexContractToType ArrayContractMapper =
             (contract, awaited, resolver) =>
             {
-                if (!contract.EndsWith("[]")) return Try<Type>(new ContractToTypeException(contract));
+                if (!contract.EndsWith("[]")) return Prelude.Try<Type>(new ContractToTypeException(contract));
                 var elementName = contract.Remove(contract.Length - 2);
 
-                var elementTypes = awaited.Bind(p => TryGetElementType(p).Match(t => t.Cons(), Seq<Type>));
+                var elementTypes = awaited.Bind(p => TryGetElementType(p).Match(t => t.Cons(), Prelude.Seq<Type>));
 
                 return resolver(elementName, elementTypes).Map(p => p.MakeArrayType());
             };
@@ -60,7 +58,7 @@ namespace Astral.Payloads.Contracts
                                 var method = at.GetMethod(known.MethodName);
                                 return (IEnumerable<Type>) method.Invoke(null, new object[0]);
                             }).ToSeq();
-                        return resolver(contract, nt).Map(p => p.Cons()).IfFail(Seq<Type>);
+                        return resolver(contract, nt).Map(p => p.Cons()).IfFail(Prelude.Seq<Type>);
                     }).HeadOrNone().ToTry(new ContractToTypeException(contract));
 
                 bool CheckSubtype(Type t)
@@ -79,10 +77,10 @@ namespace Astral.Payloads.Contracts
             type =>
             {
                 if (WellKnownTypes.UnitTypes.Any(p => p == type))
-                    return Try(WellKnownTypes.UnitTypeCode);
+                    return Prelude.Try(WellKnownTypes.UnitTypeCode);
                 if (WellKnownTypes.CodeByType.TryGetValue(type, out var code))
-                    return Try(code);
-                return Try<string>(new TypeToContractException(type));
+                    return Prelude.Try(code);
+                return Prelude.Try<string>(new TypeToContractException(type));
             };
 
 
@@ -90,10 +88,10 @@ namespace Astral.Payloads.Contracts
             (contract, awaited) =>
             {
                 if (contract == WellKnownTypes.UnitTypeCode)
-                    return Try(WellKnownTypes.UnitTypes[0]);
+                    return Prelude.Try(WellKnownTypes.UnitTypes[0]);
                 if (WellKnownTypes.TypeByCode.TryGetValue(contract, out var type))
-                    return Try(type);
-                return Try<Type>(new ContractToTypeException(contract));
+                    return Prelude.Try(type);
+                return Prelude.Try<Type>(new ContractToTypeException(contract));
             };
 
 
@@ -111,7 +109,7 @@ namespace Astral.Payloads.Contracts
                 var elementType = enumIntf.GetGenericArguments()[0];
                 return elementType;
             }
-            return None;
+            return Prelude.None;
         }
     }
 }

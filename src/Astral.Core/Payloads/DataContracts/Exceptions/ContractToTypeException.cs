@@ -1,4 +1,4 @@
-﻿namespace Astral.Payloads.Contracts
+﻿namespace Astral.Payloads.DataContracts
 {
     public class ContractToTypeException : ContractResolutionException
     {

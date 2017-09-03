@@ -7,7 +7,6 @@ using Astral.Data;
 using Astral.Delivery;
 using Astral.Exceptions;
 using Astral.Internals;
-using Astral.Markup;
 using Astral.Serialization;
 using Astral.Transport;
 using Microsoft.Extensions.DependencyInjection;

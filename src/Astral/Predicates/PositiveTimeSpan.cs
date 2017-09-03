@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Astral.Markup;
 using LanguageExt.TypeClasses;
 
 namespace Astral.Predicates

@@ -1,5 +1,4 @@
-﻿using Astral.Markup;
-using Lawium;
+﻿using Lawium;
 
 namespace Astral.Configuration.Settings
 {

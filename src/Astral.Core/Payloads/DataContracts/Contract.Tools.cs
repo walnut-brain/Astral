@@ -1,8 +1,7 @@
 ﻿using System;
 using LanguageExt;
-using static LanguageExt.Prelude;
 
-namespace Astral.Payloads.Contracts
+namespace Astral.Payloads.DataContracts
 {
     public static partial class Contract
     {
@@ -10,7 +9,7 @@ namespace Astral.Payloads.Contracts
         {
             Try<string> Make(Type type)
             {
-                return source(type, t => t == type ? Try<string>(new RecursiveResolutionException(type)) : Make(t));
+                return source(type, t => t == type ? Prelude.Try<string>(new RecursiveResolutionException(type)) : Make(t));
             }
 
             return Make;
@@ -18,26 +17,26 @@ namespace Astral.Payloads.Contracts
 
         public static TypeToContract Fallback(this TypeToContract source, TypeToContract fallback)
         {
-            return type => source(type).BiBind(Try, _ => fallback(type));
+            return type => source(type).BiBind(Prelude.Try, _ => fallback(type));
         }
 
 
         public static ComplexTypeToContract Fallback(
             this ComplexTypeToContract source, ComplexTypeToContract next)
         {
-            return (type, ttc) => source(type, ttc).BiBind(Try, _ => next(type, ttc));
+            return (type, ttc) => source(type, ttc).BiBind(Prelude.Try, _ => next(type, ttc));
         }
 
         public static ComplexTypeToContract Fallback(
             this TypeToContract source, ComplexTypeToContract next)
         {
-            return (type, ttc) => source(type).BiBind(Try, _ => next(type, ttc));
+            return (type, ttc) => source(type).BiBind(Prelude.Try, _ => next(type, ttc));
         }
 
         public static ComplexTypeToContract Fallback(
             this ComplexTypeToContract source, TypeToContract next)
         {
-            return (type, ttc) => source(type, ttc).BiBind(Try, _ => next(type));
+            return (type, ttc) => source(type, ttc).BiBind(Prelude.Try, _ => next(type));
         }
 
         public static Try<string> TryMap<T>(this TypeToContract source, T value)
@@ -52,7 +51,7 @@ namespace Astral.Payloads.Contracts
             {
                 return complex(contract, awaited,
                     (c, a) => c == contract && a == awaited
-                        ? Try<Type>(new RecursiveResolutionException(contract))
+                        ? Prelude.Try<Type>(new RecursiveResolutionException(contract))
                         : Make(c, a));
             }
 
@@ -65,7 +64,7 @@ namespace Astral.Payloads.Contracts
             ComplexContractToType fallback)
         {
             return (contract, awaited, ctt) =>
-                source(contract, awaited, ctt).BiBind(Try, _ => fallback(contract, awaited, ctt));
+                source(contract, awaited, ctt).BiBind(Prelude.Try, _ => fallback(contract, awaited, ctt));
         }
 
         public static ComplexContractToType Fallback(
@@ -73,7 +72,7 @@ namespace Astral.Payloads.Contracts
             ContractToType fallback)
         {
             return (contract, awaited, ctt) =>
-                source(contract, awaited, ctt).BiBind(Try, _ => fallback(contract, awaited));
+                source(contract, awaited, ctt).BiBind(Prelude.Try, _ => fallback(contract, awaited));
         }
 
         public static ComplexContractToType Fallback(
@@ -81,7 +80,7 @@ namespace Astral.Payloads.Contracts
             ComplexContractToType fallback)
         {
             return (contract, awaited, ctt) =>
-                source(contract, awaited).BiBind(Try, _ => fallback(contract, awaited, ctt));
+                source(contract, awaited).BiBind(Prelude.Try, _ => fallback(contract, awaited, ctt));
         }
 
 
@@ -89,7 +88,7 @@ namespace Astral.Payloads.Contracts
             this ContractToType source,
             ContractToType fallback)
         {
-            return (contract, awaited) => source(contract, awaited).BiBind(Try, _ => fallback(contract, awaited));
+            return (contract, awaited) => source(contract, awaited).BiBind(Prelude.Try, _ => fallback(contract, awaited));
         }
     }
 }

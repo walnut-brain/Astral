@@ -1,17 +1,20 @@
 ﻿using System;
+using System.Reflection;
+using Astral.Configuration.Settings;
 
-namespace Astral.Markup
+namespace Astral
 {
     [AttributeUsage(AttributeTargets.Interface)]
-    public class ServiceAttribute : Attribute
+    public class ServiceAttribute : Attribute, IAstralAttribute
     {
-        public ServiceAttribute(string version, string name = null)
+        public ServiceAttribute(string name)
         {
-            Version = Version.Parse(version);
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        public Version Version { get; }
         public string Name { get; }
+
+        public object GetConfigElement(MemberInfo applyedTo)
+            => new ServiceName(Name);
     }
 }

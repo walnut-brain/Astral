@@ -1,8 +1,6 @@
 ﻿using System;
-using LanguageExt;
-using Lawium;
 
-namespace Astral.Configuration.Settings
+namespace Astral.Settings
 {
     public sealed class ServiceVersion : Fact<Version>
     {

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Reflection;
+using Astral.Settings;
 
-namespace Astral.Markup
+namespace Astral
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class EndpointAttribute : Attribute
+    public class EndpointAttribute : Attribute, IAstralAttribute
     {
         public EndpointAttribute(string name)
         {
@@ -11,5 +13,8 @@ namespace Astral.Markup
         }
 
         public string Name { get; }
+
+        public object GetConfigElement(MemberInfo applyedTo) => new EndpointName(Name);
+
     }
 }

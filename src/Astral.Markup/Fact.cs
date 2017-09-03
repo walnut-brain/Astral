@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Astral.Markup
+namespace Astral
 {
     /// <summary>
     /// Implementation of base class for typed Law values
@@ -15,6 +15,8 @@ namespace Astral.Markup
         /// <param name="value">value of fact</param>
         protected Fact(T value)
         {
+            if(Equals(value, null))
+                throw new ArgumentNullException(nameof(value));
             Value = value;
         }
 

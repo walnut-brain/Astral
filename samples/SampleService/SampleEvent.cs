@@ -1,6 +1,4 @@
-﻿using Astral.Markup;
-
-namespace SampleService
+﻿namespace SampleService
 {
     [Contract("sample.event")]
     public class SampleEvent

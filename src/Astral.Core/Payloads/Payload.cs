@@ -1,87 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Mime;
-using Astral.Payloads.Contracts;
-using Astral.Payloads.Serialization;
 using LanguageExt;
 using static LanguageExt.Prelude;
 
 namespace Astral.Payloads
 {
+    public class Payload<TFormat>
+    {
+        public Payload(string typeCode, ContentType contentType, TFormat data)
+        {
+            TypeCode = typeCode;
+            ContentType = contentType;
+            Data = data;
+        }
+
+        public string TypeCode { get; }
+        public ContentType ContentType { get; }
+        public TFormat Data { get; }
+    }
+
+
     public static class Payload
     {
-        public static Try<RawPayload> ToRaw(Type type, object obj, ContentType contentType, TypeToContract toContact,
-            SerializeProvider<byte[]> serializeProvider)
+
+
+        public static Try<Payload<TFormat>> ToPayload<TFormat>(Type type, object obj, ToPayloadOptions<TFormat> toPayloadOptions)
         {
             type = obj?.GetType() ?? type;
             return
-                toContact(type)
+                toPayloadOptions.ToContact(type)
                     .Bind(contract =>
-                        serializeProvider(contentType)
+                        toPayloadOptions.SerializeProvider(toPayloadOptions.ContentType)
                             .HeadOrNone()
-                            .ToTry(new UnknownContentTypeException($"Unknown content type {contentType}"))
+                            .ToTry(new UnknownContentTypeException($"Unknown content type {toPayloadOptions.ContentType}"))
                             .Bind(p => p(obj))
-                            .Map(data => new RawPayload(contract, data.Item1, data.Item2)));
+                            .Map(data => new Payload<TFormat>(contract, data.Item1, data.Item2)));
         }
 
-        public static Try<TextPayload> ToText(Type type, object obj, ContentType contentType, TypeToContract toContact,
-            SerializeProvider<string> serializeProvider)
-        {
-            type = obj?.GetType() ?? type;
-            return
-                toContact(type)
-                    .Bind(contract =>
-                        serializeProvider(contentType)
-                            .HeadOrNone()
-                            .ToTry(new UnknownContentTypeException($"Unknown content type {contentType}"))
-                            .Bind(p => p(obj))
-                            .Map(data => new TextPayload(contract, data.Item1, data.Item2)));
-        }
-
-        public static Try<RawPayload> ToRaw<T>(T obj, ContentType contentType, TypeToContract toContract,
-            SerializeProvider<byte[]> serializeProvider)
-        {
-            return ToRaw(typeof(T), obj, contentType, toContract, serializeProvider);
-        }
-
-        public static Try<TextPayload> ToText<T>(T obj, ContentType contentType, TypeToContract toContract,
-            SerializeProvider<string> serializeProvider)
-        {
-            return ToText(typeof(T), obj, contentType, toContract, serializeProvider);
-        }
+        public static Try<Payload<TFormat>> ToPayload<T, TFormat>(T obj, ToPayloadOptions<TFormat> toPayloadOptions) 
+            => ToPayload(typeof(T), obj, toPayloadOptions);
 
 
-        public static Try<object> FromRaw(RawPayload payload, Seq<Type> awaited, ContractToType toType,
-            DeserializeProvider<byte[]> deserializeProvider)
-        {
-            return toType(payload.TypeCode, awaited)
+        public static Try<object> FromPayload<TFormat>(Payload<TFormat> payload, Seq<Type> awaited, FromPayloadOptions<TFormat> fromPayloadOptions) 
+            => fromPayloadOptions.ToType(payload.TypeCode, awaited)
                 .Bind(type =>
-                    deserializeProvider(Optional(payload.ContentType))
-                        .Map(d => d(type, payload.Data))
-                        .FirstOrError(payload.ContentType?.ToString()));
+                    fromPayloadOptions.DeserializeProvider(
+                        Optional(payload.ContentType))
+                            .Map(d => d(type, payload.Data))
+                            .FirstOrError(payload.ContentType?.ToString()));
+
+
+        public interface IFromPayload
+        {
+            Try<T> As<T>();
         }
 
-        public static Try<object> FromText(TextPayload payload, Seq<Type> awaited, ContractToType toType,
-            DeserializeProvider<string> deserializeProvider)
+        public static IFromPayload FromPayload<TFormat>(Payload<TFormat> payload, FromPayloadOptions<TFormat> fromPayloadOptions)
+            => new FromPayloadDelegated<TFormat>(p => FromPayload(payload, p, fromPayloadOptions));
+
+
+
+
+        private class FromPayloadDelegated<TFormat> : IFromPayload
         {
-            return toType(payload.TypeCode, awaited)
-                .Bind(type =>
-                    deserializeProvider(Optional(payload.ContentType))
-                        .Map(d => d(type, payload.Data))
-                        .FirstOrError(payload.ContentType?.ToString()));
+            private readonly Func<Seq<Type>, Try<object>> _untyped;
+
+            public FromPayloadDelegated(Func<Seq<Type>, Try<object>> untyped)
+            {
+                _untyped = untyped;
+            }
+
+            public Try<T> As<T>()
+                => _untyped(typeof(T).Cons()).Bind(p => Try(() => (T) p));
         }
 
-        public static Try<T> FromRaw<T>(RawPayload payload, ContractToType toType,
-            DeserializeProvider<byte[]> deserializeProvider)
-        {
-            return FromRaw(payload, typeof(T).Cons(), toType, deserializeProvider).Bind(p => Try(() => (T) p));
-        }
-
-        public static Try<T> FromText<T>(TextPayload payload, ContractToType toType,
-            DeserializeProvider<string> deserializeProvider)
-        {
-            return FromText(payload, typeof(T).Cons(), toType, deserializeProvider).Bind(p => Try(() => (T) p));
-        }
+        
 
         internal static Try<T> FirstOrError<T>(this IEnumerable<Try<T>> enumerable, string contentType)
         {
