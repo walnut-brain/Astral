@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using LanguageExt;
 
 namespace Astral
@@ -48,6 +49,21 @@ namespace Astral
         public static Try<T> BindFail<T>(this Try<T> @try, Func<Try<T>> fnc)
         {
             return @try.BiBind(Prelude.Try, _ => fnc());
+        }
+
+        public static Try<T> FirstOrError<T>(this IEnumerable<Try<T>> enumerable, Exception emptyException)
+        {
+            var exs = new List<Exception>();
+            foreach (var p in enumerable)
+            {
+                var v = TryExtensions.Try<T>(p);
+                if (!v.IsFaulted)
+                    return Prelude.Try(v.Unwrap());
+                v.IfFail(ex => exs.Add(ex));
+            }
+            if (exs.Count == 0)
+                return Prelude.Try<T>(emptyException);
+            return Prelude.Try<T>(new AggregateException(exs));
         }
     }
 }

@@ -4,9 +4,4 @@
     {
         
     }
-
-    public interface IDeliveryStore<TStore>
-    {
-        
-    }
 }

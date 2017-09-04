@@ -14,10 +14,10 @@ namespace Astral
 
         public Version Version { get; }
 
-        public object GetConfigElement(MemberInfo applyedTo)
+        public (Type, object) GetConfigElement(MemberInfo applyedTo)
         {
             if (applyedTo is TypeInfo ti && ti.IsInterface)
-                return new ServiceVersion(Version);
+                return (typeof(ServiceVersion), new ServiceVersion(Version));
             throw new NotImplementedException();
         }
     }

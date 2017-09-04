@@ -15,28 +15,15 @@ namespace Astral.Deliveries
             
         }
 
-        public class SendWithReplay : DeliveryOperation
+        public class SendWithReply : DeliveryOperation
         {
-            public DeliveryReplayTo ReplayTo { get; }
+            public DeliveryReplyTo ReplyTo { get; }
         }
 
-        public class Replay : DeliveryOperation
+        public class Reply : DeliveryOperation
         {
-            public DeliveryReplayTo ReplayTo { get; }    
+            public DeliveryReplyTo ReplyTo { get; }    
             public string RequestCorrelationId { get; }
-        }
-    }
-
-    public abstract class DeliveryReplayTo
-    {
-        public class System : DeliveryReplayTo
-        {
-            
-        }
-
-        public class Subsystem : DeliveryReplayTo
-        {
-            
         }
     }
 }

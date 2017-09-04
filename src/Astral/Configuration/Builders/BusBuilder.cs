@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Transport;
@@ -21,7 +23,15 @@ namespace Astral.Configuration.Builders
             var type = typeof(TService);
             if (!type.IsInterface)
                 throw new ArgumentException($"{type} must be interface");
-            var builder = BookBuilder.GetSubBookBuilder(type, b => b.RegisterLaw(Law.Axiom(new ServiceType(type))));
+            var builder = BookBuilder.GetSubBookBuilder(type, b =>
+            {
+                b.RegisterLaw(Law.Axiom(new ServiceType(type)));
+                foreach (var astralAttribute in type.GetCustomAttributes(true).OfType<IAstralAttribute>())
+                {
+                    var (atype, value) = astralAttribute.GetConfigElement(type.GetTypeInfo());
+                    b.RegisterLaw(Law.Axiom(atype, value));
+                }
+            });
             return new ServiceBuilder<TService>(LoggerFactory, builder);
         }
 

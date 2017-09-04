@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using Astral.Configuration.Settings;
 using Lawium;
@@ -28,6 +29,11 @@ namespace Astral.Configuration.Builders
                     b.RegisterLaw(Law.Axiom(EndpointType.Event));
                     b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
                     b.RegisterLaw(Law.Axiom(new MessageType(typeof(TEvent))));
+                    foreach (var astralAttribute in propertyInfo.GetCustomAttributes(true).OfType<IAstralAttribute>())
+                    {
+                        var (atype, value) = astralAttribute.GetConfigElement(propertyInfo);
+                        b.RegisterLaw(Law.Axiom(atype, value));
+                    }
                 });
             return new EventEndpointBuilder<TEvent>(LoggerFactory, builder);
         }
@@ -42,6 +48,11 @@ namespace Astral.Configuration.Builders
                     b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
                     b.RegisterLaw(Law.Axiom(new MessageType(typeof(TArgs))));
                     b.RegisterLaw(Law.Axiom(new ResponseType(typeof(ValueTuple))));
+                    foreach (var astralAttribute in propertyInfo.GetCustomAttributes(true).OfType<IAstralAttribute>())
+                    {
+                        var (atype, value) = astralAttribute.GetConfigElement(propertyInfo);
+                        b.RegisterLaw(Law.Axiom(atype, value));
+                    }
                 });
             return new CallEndpointBuilder<TArgs>(LoggerFactory, builder);
         }
@@ -57,6 +68,11 @@ namespace Astral.Configuration.Builders
                     b.RegisterLaw(Law.Axiom(new EndpointMember(propertyInfo)));
                     b.RegisterLaw(Law.Axiom(new MessageType(typeof(TArgs))));
                     b.RegisterLaw(Law.Axiom(new ResponseType(typeof(TResult))));
+                    foreach (var astralAttribute in propertyInfo.GetCustomAttributes(true).OfType<IAstralAttribute>())
+                    {
+                        var (atype, value) = astralAttribute.GetConfigElement(propertyInfo);
+                        b.RegisterLaw(Law.Axiom(atype, value));
+                    }
                 });
             return new CallEndpointBuilder<TArgs, TResult>(LoggerFactory, builder);
         }

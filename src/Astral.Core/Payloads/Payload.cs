@@ -6,24 +6,34 @@ using static LanguageExt.Prelude;
 
 namespace Astral.Payloads
 {
-    public class Payload<TFormat>
+    public class Payload<TFormat> : Payload
     {
         public Payload(string typeCode, ContentType contentType, TFormat data)
+            : base(typeCode, contentType)
+        {
+            Data = data;
+        }
+
+        public TFormat Data { get; }
+
+        public override Type Format => typeof(TFormat);
+        public override object Value => Data;
+    }
+
+
+    public abstract class Payload 
+    {
+        internal Payload(string typeCode, ContentType contentType)
         {
             TypeCode = typeCode;
             ContentType = contentType;
-            Data = data;
         }
 
         public string TypeCode { get; }
         public ContentType ContentType { get; }
-        public TFormat Data { get; }
-    }
 
-
-    public static class Payload
-    {
-
+        public abstract Type Format { get; }
+        public abstract object Value { get; }
 
         public static Try<Payload<TFormat>> ToPayload<TFormat>(Type type, object obj, ToPayloadOptions<TFormat> toPayloadOptions)
         {
@@ -45,10 +55,13 @@ namespace Astral.Payloads
         public static Try<object> FromPayload<TFormat>(Payload<TFormat> payload, Seq<Type> awaited, FromPayloadOptions<TFormat> fromPayloadOptions) 
             => fromPayloadOptions.ToType(payload.TypeCode, awaited)
                 .Bind(type =>
-                    fromPayloadOptions.DeserializeProvider(
-                        Optional(payload.ContentType))
-                            .Map(d => d(type, payload.Data))
-                            .FirstOrError(payload.ContentType?.ToString()));
+                {
+                    string contentType = payload.ContentType?.ToString();
+                    return fromPayloadOptions.DeserializeProvider(
+                            Optional(payload.ContentType))
+                        .Map(d => d(type, payload.Data))
+                        .FirstOrError(new UnknownContentTypeException($"Unknown content type {contentType}"));
+                });
 
 
         public interface IFromPayload
@@ -57,12 +70,12 @@ namespace Astral.Payloads
         }
 
         public static IFromPayload FromPayload<TFormat>(Payload<TFormat> payload, FromPayloadOptions<TFormat> fromPayloadOptions)
-            => new FromPayloadDelegated<TFormat>(p => FromPayload(payload, p, fromPayloadOptions));
+            => new FromPayloadDelegated(p => FromPayload(payload, p, fromPayloadOptions));
 
 
 
 
-        private class FromPayloadDelegated<TFormat> : IFromPayload
+        private class FromPayloadDelegated: IFromPayload
         {
             private readonly Func<Seq<Type>, Try<object>> _untyped;
 
@@ -76,20 +89,5 @@ namespace Astral.Payloads
         }
 
         
-
-        internal static Try<T> FirstOrError<T>(this IEnumerable<Try<T>> enumerable, string contentType)
-        {
-            var exs = new List<Exception>();
-            foreach (var p in enumerable)
-            {
-                var v = p.Try();
-                if (!v.IsFaulted)
-                    return Try(v.Unwrap());
-                v.IfFail(ex => exs.Add(ex));
-            }
-            if (exs.Count == 0)
-                return Try<T>(new UnknownContentTypeException($"Unknown content type {contentType}"));
-            return Try<T>(new AggregateException(exs));
-        }
     }
 }

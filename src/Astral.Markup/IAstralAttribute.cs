@@ -5,6 +5,6 @@ namespace Astral
 {
     public interface IAstralAttribute
     {
-        object GetConfigElement(MemberInfo applyedTo);
+        (Type, object) GetConfigElement(MemberInfo applyedTo);
     }
 }

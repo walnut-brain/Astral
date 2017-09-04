@@ -14,7 +14,8 @@ namespace Astral
 
         public string Name { get; }
 
-        public object GetConfigElement(MemberInfo applyedTo) => new EndpointName(Name);
+        public (Type, object) GetConfigElement(MemberInfo applyedTo)
+            => (typeof(EndpointName), new EndpointName(Name));
 
     }
 }

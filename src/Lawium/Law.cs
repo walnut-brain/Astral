@@ -51,6 +51,21 @@ namespace Lawium
                 Prelude.Array(typeof(T)), (log, args) => Prelude.Array<object>(value));
         }
 
+        /// <summary>
+        /// Create axiom law
+        /// </summary>
+        /// <param name="type">type of result</param>
+        /// <param name="value">value</param>
+        /// <returns>law inference axiom value for type</returns>
+        public static Law Axiom(Type type, object value)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+            if(!type.IsInstanceOfType(value))
+                throw new ArgumentException($"{value} is not instance of {type}");
+            return new Law($"Value of {type}", Prelude.Array<Type>(),
+                Prelude.Array(type), (log, args) => Prelude.Array(value));
+        }
         
     }
 }

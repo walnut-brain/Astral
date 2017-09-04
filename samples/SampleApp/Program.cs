@@ -6,6 +6,7 @@ using Astral;
 using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
 using Astral.DependencyInjection;
+using Astral.Payloads;
 using Astral.Serialization;
 using Astral.Transport;
 using Autofac;

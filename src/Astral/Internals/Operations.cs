@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
-using Astral.Configuration.Builders;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Data;
-using Astral.DataContracts;
-using Astral.Delivery;
 using Astral.Exceptions;
-using Astral.Payloads;
-using Astral.Serialization;
 using Astral.Transport;
 using LanguageExt;
 using Microsoft.Extensions.Logging;
@@ -150,7 +144,7 @@ namespace Astral.Internals
                 var afterDelivery = 
                     record.IsAnswer ?
                         config.TryGet<AfterDelivery>().Map(p => p.Value).IfNone(OnDeliverySuccess.Delete)
-                        : config.TryGet<AfterAnswerDelivery>().Map(p => p.Value).IfNone(OnDeliverySuccess.Delete);
+                        : config.TryGet<AfterResponseDelivery>().Map(p => p.Value).IfNone(OnDeliverySuccess.Delete);
 
                 using (logger.BeginScope("Delivery {service} {endpoint} {isAnswer}", config.ServiceType,
                     config.PropertyInfo.Name,
