@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reactive.Disposables;
+using System.Reflection;
 using Astral.Configuration.Configs;
 using Astral.Transport;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Astral
 {
-    public class Bus<TTransport> : IDisposable
+    public class Bus<TTransport> : IDisposable, IBus
         where TTransport : class, ITransport
     {
         private readonly BusConfig _config;
@@ -49,5 +51,29 @@ namespace Astral
             return new BusService<TTransport, TService>(_config.Service<TService>(), Transport,
                 _serviceProvider.GetService<ILogger<BusService<TTransport, TService>>>(), _serviceProvider);
         }
+    }
+
+    public interface IBus
+    {
+        IBusService<T> Service<T>();
+    }
+
+    public interface IBusService<T> : IBusService
+    {
+        IBusEventEndpoint<TEvent> Endpoint<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector);
+    }
+
+    public interface IBusEventEndpoint<T> : IBusEndpoint
+    {
+    }
+
+    public interface IBusService
+    {
+        IBusEndpoint Endpoint(PropertyInfo property);
+
+    }
+
+    public interface IBusEndpoint
+    {
     }
 }
