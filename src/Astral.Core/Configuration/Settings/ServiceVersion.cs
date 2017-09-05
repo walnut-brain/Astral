@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Settings
+namespace Astral.Configuration.Settings
 {
     public sealed class ServiceVersion : Fact<Version>
     {

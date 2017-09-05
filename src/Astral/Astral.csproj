@@ -11,7 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Astral.Core\Astral.Core.csproj" />
-    <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
     <ProjectReference Include="..\Lawium\Lawium.csproj" />
   </ItemGroup>
   <ItemGroup>

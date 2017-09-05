@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
@@ -6,6 +7,7 @@ using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Data;
 using Astral.Exceptions;
+using Astral.Payloads;
 using Astral.Transport;
 using LanguageExt;
 using Microsoft.Extensions.Logging;
@@ -15,21 +17,26 @@ namespace Astral.Internals
 {
     internal static class Operations
     {
-        internal static Task PublishEventAsync<TEvent>(ILogger logger, EndpointConfig config, 
+        internal static Task PublishEventAsync<TEvent>(ILogger logger, EndpointConfig config,
+            ContentType contentType,
             PreparePublish<TEvent> preparePublish,
-            TEvent @event, EventPublishOptions options = null)
+            TEvent @event, EventPublishOptions options = null, CancellationToken token = default(CancellationToken))
         {
             Task Publish()
             {
-                var serialized = config.RawSerialize(@event).IfFailThrow();
+                
+                var serialized = Payload
+                    .ToPayload(@event, 
+                        new ToPayloadOptions<byte[]>(contentType, config.TypeEncoding.ToContract, config.Serializer.Serialize))
+                    .IfFailThrow();
 
                 var poptions = new PublishOptions(
                     options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(Timeout.InfiniteTimeSpan),
                     ResponseTo.None, null);
 
-                var prepared = preparePublish(config, @event, serialized, poptions);
+                var prepared = preparePublish(config, poptions);
 
-                return prepared();
+                return prepared(new Lazy<TEvent>(() => @event), serialized, token);
             }
 
             return logger.LogActivity(Publish, "event {service} {endpoint}", config.ServiceType,
@@ -47,41 +54,20 @@ namespace Astral.Internals
             IDisposable Listen()
             {
                 var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().IfFail(new DefaultExceptionPolicy());
-                var resolver = config.Get<IContractNameToType>();
-                var ignoreContractName =
-                    Prelude.Optional(options)
-                        .Bind(p => Prelude.Optional(p.IgnoreContractName)) || config.TryGet<IgnoreContractName>().Map(p => p.Value);
+                                
 
-                var deserialize = config.DeserializeRaw();
-
-                return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, resolver,
-                    ignoreContractName, deserialize, exceptionPolicy), options);
+                return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);
             }
 
             async Task<Acknowledge> Listener(
-                PayloadBase<byte[]> msg, EventContext ctx, CancellationToken token,
-                IContractNameToType resolver, Option<bool> ignoreContractName,
-                Func<Type, PayloadBase<byte[]>, Try<object>> deserialize,
-                IReciveExceptionPolicy exceptionPolicy)
+                Payload<byte[]> msg, EventContext ctx, CancellationToken token, IReciveExceptionPolicy exceptionPolicy)
             {
                 async Task<Acknowledge> Receive()
                 {
-                    var contractTypeResult = resolver.TryMap(msg.TypeCode, typeof(TEvent).Cons()).Try();
+                    var obj = Payload.FromPayload(msg, new FromPayloadOptions<byte[]>(config.TypeEncoding.ToType, 
+                        config.Serializer.Deserialize)).As<TEvent>().IfFailThrow();
 
-
-                    if (!contractTypeResult.IsFaulted || ignoreContractName.IfNone(false))
-                    {
-                        var type = contractTypeResult.IfFail(typeof(TEvent));
-                        var obj = deserialize(type, msg).IfFailThrow();
-                        if (obj is TEvent evt)
-                            await eventListener.Handle(evt, ctx, token);
-                        else
-                            throw new NackException($"Invalid data type arrived {obj?.GetType()}");
-                    }
-                    else
-                    {
-                        contractTypeResult.Unwrap();
-                    }
+                    await eventListener.Handle(obj, ctx, token);
                     return Acknowledge.Ack;
                 }
 
@@ -91,6 +77,7 @@ namespace Astral.Internals
             }
         }
 
+        /*
         public static Action EnqueueManual<TStore, TEvent>(ILogger logger, IDeliveryDataService<TStore> dataService,
             EndpointConfig config, PreparePublish<TEvent> preparePublish, TEvent @event, DeliveryManager<TStore> manager,
             EventPublishOptions options = null)
@@ -126,7 +113,7 @@ namespace Astral.Internals
             return Deliver(logger, config, deliveryRecord, serialized, @event, preparePublish,
                 new PublishOptions(messageTtl, ResponseTo.None, null), manager);
         }
-
+        
         private static Action Deliver<T, TStore>(ILogger logger, EndpointConfig config,
             DeliveryRecord record,
             PayloadBase<string> payload,
@@ -169,6 +156,6 @@ namespace Astral.Internals
                         logger.LogError(0, ex, "When deliver start");
                     }
                 }
-            };
+            };*/
     }
 }

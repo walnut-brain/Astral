@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Astral.Data;
 using Astral.Internals;
@@ -24,14 +25,16 @@ namespace Astral
         /// <typeparam name="TTransport">transport type</typeparam>
         /// <typeparam name="TEvent">event type</typeparam>
         /// <returns>awaitable task</returns>
-        public static Task PublishAsync<TService, TTransport, TEvent>(this BusService<TTransport, TService> service,
+        public static Task PublishAsync<TService, TEvent>(this BusService<TService> service,
             Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
-            EventPublishOptions options = null)
-            where TTransport : class, IEventTransport where TService : class
+            EventPublishOptions options = null, CancellationToken token = default(CancellationToken)) where TService : class
         {
-            return Operations.PublishEventAsync(service.Logger, service.Config.Endpoint(selector), service.Transport.PreparePublish,
+            var endpointConfig = service.Config.Endpoint(selector);
+            return Operations.PublishEventAsync(service.Logger, endpointConfig,
+                endpointConfig.ContentType,
+                endpointConfig.Transport.PreparePublish<TEvent>,
                 @event,
-                options);
+                options, token);
         }
 
 
@@ -46,7 +49,7 @@ namespace Astral
         /// <typeparam name="TTransport">transport type</typeparam>
         /// <typeparam name="TEvent">event type</typeparam>
         /// <returns>dispose to unlisten</returns>
-        public static IDisposable Listen<TService, TTransport, TEvent>(this BusService<TTransport, TService> service,
+        /*public static IDisposable Listen<TService, TTransport, TEvent>(this BusService<TTransport, TService> service,
             Expression<Func<TService, IEvent<TEvent>>> selector,
             IEventListener<TEvent> eventListener,
             EventListenOptions options = null)
@@ -79,6 +82,6 @@ namespace Astral
             where TService : class
         {
             service.Provider.GetRequiredService<TStore>().RegisterAfterCommit(service.EnqueueManual(dataService, selector, @event, options));
-        }
+        }*/
     }
 }

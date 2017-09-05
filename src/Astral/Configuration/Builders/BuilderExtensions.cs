@@ -5,7 +5,6 @@ using Astral.Configuration.Settings;
 using Astral.Deliveries;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
-using Astral.Settings;
 using Lawium;
 using Newtonsoft.Json;
 using Polly;
@@ -40,19 +39,19 @@ namespace Astral.Configuration.Builders
 
         public static BusBuilder MessageKeyExtractor<TEvent>(this BusBuilder builder, Func<TEvent, string> extractKey)
         {
-            builder.AddLaw(Law.Axiom(new MessageKeyExtract<TEvent>(extractKey)));
+            builder.AddLaw(Law.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
             return builder;
         }
 
         public static ServiceBuilder MessageKeyExtractor<TEvent>(this ServiceBuilder builder, Func<TEvent, string> extractKey)
         {
-            builder.AddLaw(Law.Axiom(new MessageKeyExtract<TEvent>(extractKey)));
+            builder.AddLaw(Law.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
             return builder;
         }
 
         public static EventEndpointBuilder<TEvent> MessageKeyExtractor<TEvent>(this EventEndpointBuilder<TEvent> builder, Func<TEvent, string> extractKey)
         {
-            builder.AddLaw(Law.Axiom(new MessageKeyExtract<TEvent>(extractKey)));
+            builder.AddLaw(Law.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
             return builder;
         }
 
@@ -65,26 +64,12 @@ namespace Astral.Configuration.Builders
         }
 
 
-
-        public static TBuilder UseDefaultTypeMapper<TBuilder>(this TBuilder builder)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law.Axiom(Contract.DefaultContractMapper.Loopback()));
-            builder.AddLaw(Law.Axiom(Contract.DefaultTypeMapper.Loopback()));
-            return builder;
-        }
-
-        public static TBuilder UseJson<TBuilder>(this TBuilder builder, JsonSerializerSettings jsettings = null,
-            bool checkContentType = false)
+        public static BusBuilder UseJsonSerializer<TBuilder>(this BusBuilder builder, JsonSerializerSettings jsettings = null)
             where TBuilder : BuilderBase
         {
             jsettings = jsettings ?? new JsonSerializerSettings();
-            builder.AddLaw(Law.Axiom(jsettings));
-            builder.AddLaw(Law.Create("JsonSerializer", (JsonSerializerSettings settings) =>
-                (   Serialization.JsonRawDeserializeProvider(settings),
-                    Serialization.JsonRawSerializeProvider(settings)
-                )
-            ));
+            builder.SetSerializer(new Serializer<byte[]>(Serialization.JsonRawSerializeProvider(jsettings),
+                Serialization.JsonRawDeserializeProvider(jsettings)));
             return builder;
         }
 
@@ -96,16 +81,5 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-
-        
-
-
-        public static BusBuilder UseDefaults(this BusBuilder builder)
-        {
-            return
-                builder
-                    .UseDefaultTypeMapper()
-                    .UseJson();
-        }
     }
 }

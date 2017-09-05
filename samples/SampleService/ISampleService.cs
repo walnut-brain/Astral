@@ -1,6 +1,9 @@
-﻿namespace SampleService
+﻿using Astral;
+
+namespace SampleService
 {
-    [Service("1.0", "sample.service")]
+    [Service("sample.service")]
+    [Version("1.0")]
     public interface ISampleService
     {
         [Endpoint("awesome.event")]

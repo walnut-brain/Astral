@@ -53,7 +53,7 @@ namespace Astral.Deliveries
                     case AfterCommitDelivery.NoOpType _:
                         break;
                     case AfterCommitDelivery.SendType send:
-                        work.Subscribe(_ => AddDelivery(guid, payload, new Lazy<T>(() => message), send.OnSuccess, sender, toPayloadOptions, true).Wait());
+                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(guid, payload, new Lazy<T>(() => message), send.OnSuccess, sender, toPayloadOptions, true).Wait());
                         break;
                     default:
                         throw new ArgumentOutOfRangeException($"Unknown {nameof(AfterCommitDelivery)} - {afterCommit}");

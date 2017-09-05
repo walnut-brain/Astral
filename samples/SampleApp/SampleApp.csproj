@@ -1,14 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Astral.Core\Astral.Core.csproj" />
-    <ProjectReference Include="..\..\src\Astral.Markup\Astral.Markup.csproj" />
+    <ProjectReference Include="..\..\src\Astral\Astral.csproj" />
     <ProjectReference Include="..\SampleService\SampleService.csproj" />
   </ItemGroup>
-
 </Project>

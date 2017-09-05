@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Reflection;
-using Astral.Settings;
+using Astral.Configuration.Settings;
 
 namespace Astral
 {

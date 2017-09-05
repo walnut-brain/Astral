@@ -9,33 +9,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Astral
 {
-    public class Bus<TTransport> : IDisposable, IBus
-        where TTransport : class, ITransport
+    public class Bus : IBus
     {
+        private readonly ILoggerFactory _factory;
         private readonly BusConfig _config;
         private readonly CompositeDisposable _disposable;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly TTransport _transport;
 
-        public Bus(IServiceProvider serviceProvider, BusConfig config)
+        public Bus(ILoggerFactory factory, BusConfig config)
         {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _factory = factory;
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _transport = null;
-            _disposable = new CompositeDisposable();
+            _disposable = new CompositeDisposable(config);
         }
 
-        public Bus(IServiceProvider serviceProvider, BusConfig config, TTransport transport)
-            : this(serviceProvider, config)
-        {
-            _serviceProvider = serviceProvider;
-            _config = config;
-            _transport = transport;
-            if (_transport is IDisposable d)
-                _disposable.Add(d);
-        }
-
-        private TTransport Transport => _transport ?? _serviceProvider.GetRequiredService<TTransport>();
+        
 
 
         public void Dispose()
@@ -43,37 +30,31 @@ namespace Astral
             _disposable.Dispose();
         }
 
-        public BusService<TTransport, TService> Service<TService>()
+        public BusService<TService> Service<TService>()
             where TService : class
         {
             if (_disposable.IsDisposed)
                 throw new ObjectDisposedException(GetType().Name);
-            return new BusService<TTransport, TService>(_config.Service<TService>(), Transport,
-                _serviceProvider.GetService<ILogger<BusService<TTransport, TService>>>(), _serviceProvider);
+            return new BusService<TService>(_config.Service<TService>(), _factory);
         }
     }
 
-    public interface IBus
+    public interface IBus : IDisposable
     {
-        IBusService<T> Service<T>();
+        BusService<T> Service<T>() where T : class;
     }
 
     public interface IBusService<T> : IBusService
+        where T : class
     {
-        IBusEventEndpoint<TEvent> Endpoint<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector);
-    }
-
-    public interface IBusEventEndpoint<T> : IBusEndpoint
-    {
+        
     }
 
     public interface IBusService
     {
-        IBusEndpoint Endpoint(PropertyInfo property);
+//        IBusEndpoint Endpoint(PropertyInfo property);
 
     }
 
-    public interface IBusEndpoint
-    {
-    }
+    
 }

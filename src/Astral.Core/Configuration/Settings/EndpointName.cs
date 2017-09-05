@@ -1,4 +1,4 @@
-﻿namespace Astral.Settings
+﻿namespace Astral.Configuration.Settings
 {
     public sealed class EndpointName : Fact<string>
     {

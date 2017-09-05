@@ -1,4 +1,6 @@
-﻿namespace SampleService
+﻿using Astral;
+
+namespace SampleService
 {
     [Contract("sample.event")]
     public class SampleEvent

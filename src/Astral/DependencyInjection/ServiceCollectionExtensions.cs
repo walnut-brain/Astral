@@ -4,6 +4,7 @@ using Astral.Configuration.Configs;
 using Astral.Deliveries;
 using Astral.Transport;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Astral.DependencyInjection
 {
@@ -15,20 +16,19 @@ namespace Astral.DependencyInjection
             return serviceCollection;
         }
 
-        public static IServiceCollection AddBus<TBus, TTransport, TInterface>(this IServiceCollection serviceCollection,
-            BusBuilder builder, Func<IServiceProvider, BusConfig, TBus> factory)
+        public static IServiceCollection AddBus<TBus, TInterface>(this IServiceCollection serviceCollection,
+            BusBuilder builder, Func<ILoggerFactory, BusConfig, TBus> factory)
             where TInterface : class
-            where TBus : Bus<TTransport>, TInterface
-            where TTransport : class, ITransport
+            where TBus : Bus, TInterface
         {
             return serviceCollection.AddSingleton<TInterface, TBus>(sp =>
-                builder.Build<TBus, TTransport>(sp, factory));
+                builder.Build(sp, factory));
         }
 
-        public static IServiceCollection AddBus<TTransport>(this IServiceCollection serviceCollection,
-            BusBuilder builder) where TTransport : class, ITransport
+        public static IServiceCollection AddBus(this IServiceCollection serviceCollection,
+            BusBuilder builder) 
         {
-            return serviceCollection.AddSingleton(builder.Build<TTransport>);
+            return serviceCollection.AddSingleton(builder.Build);
         }
     }
 }

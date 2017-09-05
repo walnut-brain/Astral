@@ -29,8 +29,8 @@ namespace Astral.Payloads.DataContracts
                 return Prelude.Try<string>(new TypeToContractException(type));
             };
 
-        public static ComplexTypeToContract DefaultTypeMapper =
-            WellKnownTypeMapper.Fallback(ArrayLikeTypeMapper).Fallback(AttributeTypeMapper);
+        public static ComplexTypeToContract DefaultTypeMapper(WellKnownTypes wellKnownTypes) =>
+            WellKnownTypeMapper(wellKnownTypes).Fallback(ArrayLikeTypeMapper).Fallback(AttributeTypeMapper);
 
         public static ComplexContractToType ArrayContractMapper =
             (contract, awaited, resolver) =>
@@ -70,26 +70,26 @@ namespace Astral.Payloads.DataContracts
                 }
             };
 
-        public static ComplexContractToType DefaultContractMapper =
-            WellKnownContractMapper.Fallback(ArrayContractMapper).Fallback(AttributeContractMapper);
+        public static ComplexContractToType DefaultContractMapper(WellKnownTypes wellKnownTypes) =>
+            WellKnownContractMapper(wellKnownTypes).Fallback(ArrayContractMapper).Fallback(AttributeContractMapper);
 
-        public static TypeToContract WellKnownTypeMapper =>
+        public static TypeToContract WellKnownTypeMapper(WellKnownTypes knowns) =>
             type =>
             {
-                if (WellKnownTypes.UnitTypes.Any(p => p == type))
-                    return Prelude.Try(WellKnownTypes.UnitTypeCode);
-                if (WellKnownTypes.CodeByType.TryGetValue(type, out var code))
+                if (knowns.IsUnit(type))
+                    return Prelude.Try(WellKnownTypes.UnitCode);
+                if (knowns.TryGetCode(type, out var code))
                     return Prelude.Try(code);
                 return Prelude.Try<string>(new TypeToContractException(type));
             };
 
 
-        public static ContractToType WellKnownContractMapper =>
+        public static ContractToType WellKnownContractMapper(WellKnownTypes knowns) =>
             (contract, awaited) =>
             {
-                if (contract == WellKnownTypes.UnitTypeCode)
-                    return Prelude.Try(WellKnownTypes.UnitTypes[0]);
-                if (WellKnownTypes.TypeByCode.TryGetValue(contract, out var type))
+                if (contract == WellKnownTypes.UnitCode)
+                    return Prelude.Try(knowns.DefaultUnitType);
+                if (knowns.TryGetType(contract, out var type))
                     return Prelude.Try(type);
                 return Prelude.Try<Type>(new ContractToTypeException(contract));
             };

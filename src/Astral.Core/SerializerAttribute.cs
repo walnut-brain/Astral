@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Mime;
 using System.Reflection;
-using Astral.Settings;
+using Astral.Configuration.Settings;
 
 namespace Astral
 {

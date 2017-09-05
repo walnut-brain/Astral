@@ -1,6 +1,6 @@
 ﻿using System.Net.Mime;
 
-namespace Astral.Settings
+namespace Astral.Configuration.Settings
 {
     public class SerailizationContentType : Fact<ContentType>
     {

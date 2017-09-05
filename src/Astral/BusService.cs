@@ -5,22 +5,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Astral
 {
-    public class BusService<TTransport, TService>
-        where TTransport : class, ITransport
+    public class BusService<TService> : IBusService<TService>
         where TService : class
 
     {
-        internal BusService(ServiceConfig<TService> config, TTransport transport, ILogger logger, IServiceProvider provider)
+        private readonly ILoggerFactory _loggerFactory;
+
+        internal BusService(ServiceConfig<TService> config, ILoggerFactory loggerFactory)
         {
+            _loggerFactory = loggerFactory;
             Config = config;
-            Transport = transport;
-            Logger = logger;
-            Provider = provider;
+            Logger = _loggerFactory.CreateLogger<BusService<TService>>();
         }
 
         internal ServiceConfig<TService> Config { get; }
-        internal TTransport Transport { get; }
-        internal ILogger Logger { get; }
-        internal IServiceProvider Provider { get; }
+        
+        public ILogger Logger { get; }
     }
 }

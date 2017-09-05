@@ -4,13 +4,10 @@
     <RootNamespace>Astral</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LanguageExt.Core" Version="2.1.18" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
+    <Folder Include="Configuration" />
   </ItemGroup>
 </Project>
