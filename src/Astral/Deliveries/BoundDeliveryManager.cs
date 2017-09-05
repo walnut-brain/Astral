@@ -85,11 +85,11 @@ namespace Astral.Deliveries
                     }
                     catch
                     {
-                        rawPayload = Payload.ToPayload(message.Value, toPayloadOptions).IfFailThrow();
+                        rawPayload = Payload.ToPayload(message.Value, toPayloadOptions).Unwrap();
                     }
                     break;
                 default:
-                    rawPayload = Payload.ToPayload(message.Value, toPayloadOptions).IfFailThrow();
+                    rawPayload = Payload.ToPayload(message.Value, toPayloadOptions).Unwrap();
                     break;
             }
 

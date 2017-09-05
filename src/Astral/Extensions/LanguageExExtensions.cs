@@ -51,6 +51,9 @@ namespace Astral
             return @try.BiBind(Prelude.Try, _ => fnc());
         }
 
+        public static T Unwrap<T>(this Try<T> @try)
+            => @try.Try().Unwrap();
+
         public static Try<T> FirstOrError<T>(this IEnumerable<Try<T>> enumerable, Exception emptyException)
         {
             var exs = new List<Exception>();

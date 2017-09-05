@@ -25,7 +25,7 @@ namespace Astral.Configuration.Configs
 
         public static T Get<T>(this ConfigBase config)
         {
-            return config.AsTry<T>().IfFailThrow();
+            return config.AsTry<T>().Unwrap();
         }
 
         

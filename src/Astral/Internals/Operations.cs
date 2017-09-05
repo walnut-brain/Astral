@@ -28,7 +28,7 @@ namespace Astral.Internals
                 var serialized = Payload
                     .ToPayload(@event, 
                         new ToPayloadOptions<byte[]>(contentType, config.TypeEncoding.ToContract, config.Serializer.Serialize))
-                    .IfFailThrow();
+                    .Unwrap();
 
                 var poptions = new PublishOptions(
                     options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(Timeout.InfiniteTimeSpan),
@@ -65,7 +65,7 @@ namespace Astral.Internals
                 async Task<Acknowledge> Receive()
                 {
                     var obj = Payload.FromPayload(msg, new FromPayloadOptions<byte[]>(config.TypeEncoding.ToType, 
-                        config.Serializer.Deserialize)).As<TEvent>().IfFailThrow();
+                        config.Serializer.Deserialize)).As<TEvent>().Unwrap();
 
                     await eventListener.Handle(obj, ctx, token);
                     return Acknowledge.Ack;
