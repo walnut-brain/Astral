@@ -1,14 +1,14 @@
 using Astral.Exceptions;
-using LanguageExt;
+using CsFun;
 
 namespace Astral.Configuration.Configs
 {
     public static class ConfigExtensions
     {
-        public static Try<T> AsTry<T>(this ConfigBase config)
+        public static Result<T> AsTry<T>(this ConfigBase config)
         {
             return config.TryGet<T>()
-                .ToTry(new InvalidConfigurationException($"Cannot find config setting {typeof(T)}"));
+                .ToResult(new InvalidConfigurationException($"Cannot find config setting {typeof(T)}"));
         }
 
         public static bool TryGet<T>(this ConfigBase config, out T result)

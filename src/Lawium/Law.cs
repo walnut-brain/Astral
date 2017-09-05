@@ -1,5 +1,5 @@
 ﻿using System;
-using LanguageExt;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 
 namespace Lawium
@@ -10,8 +10,8 @@ namespace Lawium
     public partial class Law
     {
 
-        internal Law(string name, Arr<Type> arguments, Arr<Type> findings,
-            Func<ILogger, Arr<object>, Arr<object>> executor) 
+        internal Law(string name, ImmutableArray<Type> arguments, ImmutableArray<Type> findings,
+            Func<ILogger, ImmutableArray<object>, ImmutableArray<object>> executor) 
         {
         
             Name = name;
@@ -28,15 +28,15 @@ namespace Lawium
         /// <summary>
         /// In arguments types
         /// </summary>
-        public Arr<Type> Arguments { get; }
+        public ImmutableArray<Type> Arguments { get; }
 
         /// <summary>
         /// Result of inference types
         /// </summary>
-        public Arr<Type> Findings { get; }
+        public ImmutableArray<Type> Findings { get; }
 
 
-        internal Func<ILogger, Arr<object>, Arr<object>> Executor { get; }
+        internal Func<ILogger, ImmutableArray<object>, ImmutableArray<object>> Executor { get; }
         
         /// <summary>
         /// Create axiom law
@@ -47,8 +47,8 @@ namespace Lawium
         public static Law Axiom<T>(T value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
-            return new Law($"Value of {typeof(T)}", Prelude.Array<Type>(),
-                Prelude.Array(typeof(T)), (log, args) => Prelude.Array<object>(value));
+            return new Law($"Value of {typeof(T)}", ImmutableArray<Type>.Empty,
+                ImmutableArray.Create(typeof(T)), (log, args) => ImmutableArray.Create((object) value));
         }
 
         /// <summary>
@@ -63,8 +63,8 @@ namespace Lawium
             if (value == null) throw new ArgumentNullException(nameof(value));
             if(!type.IsInstanceOfType(value))
                 throw new ArgumentException($"{value} is not instance of {type}");
-            return new Law($"Value of {type}", Prelude.Array<Type>(),
-                Prelude.Array(type), (log, args) => Prelude.Array(value));
+            return new Law($"Value of {type}", ImmutableArray<Type>.Empty, 
+                ImmutableArray.Create(type), (log, args) => ImmutableArray.Create(value));
         }
         
     }

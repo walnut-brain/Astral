@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Astral;
+using System.Collections.Immutable;
 using Astral.Payloads.DataContracts;
-using LanguageExt;
+using CsFun;
 using Xunit;
 
 namespace AstralTests.Payloads.DataContracts
@@ -13,14 +13,14 @@ namespace AstralTests.Payloads.DataContracts
         public void WellKnownTypesShort()
         {
             var cvt = Contract.WellKnownContractMapper(WellKnownTypes.Default);
-            Assert.Equal(typeof(short), cvt("i16", Seq<Type>.Empty).Unwrap());
+            Assert.Equal(typeof(short), cvt("i16", ImmutableList<Type>.Empty).Unwrap());
         }
         
         [Fact]
         public void WellKnownTypesString()
         {
             var cvt = Contract.WellKnownContractMapper(WellKnownTypes.Default);
-            Assert.Equal(typeof(string), cvt("string", Seq<Type>.Empty).Unwrap());
+            Assert.Equal(typeof(string), cvt("string", ImmutableList<Type>.Empty).Unwrap());
         }
         
         [Fact]
@@ -28,28 +28,28 @@ namespace AstralTests.Payloads.DataContracts
         {
             var cvt = Contract.WellKnownContractMapper(WellKnownTypes.Default);
             
-            Assert.Throws<ContractToTypeException>(() => cvt("version", typeof(Version).Cons()).Unwrap());
+            Assert.Throws<ContractToTypeException>(() => cvt("version", ImmutableList.Create(typeof(Version))).Unwrap());
         }
         
         [Fact]
         public void AttributeTest()
         {
             var cvt = Contract.AttributeContractMapper.Loopback();
-            Assert.Equal(typeof(TestContract), cvt("test.contract", typeof(TestContract).Cons()).Unwrap());
+            Assert.Equal(typeof(TestContract), cvt("test.contract", ImmutableList.Create(typeof(TestContract))).Unwrap());
         }
         
         [Fact]
         public void AttributeThrow()
         {
             var cvt = Contract.AttributeContractMapper.Loopback();
-            Assert.Throws<ContractToTypeException>(() => cvt("string", typeof(string).Cons()).Unwrap());
+            Assert.Throws<ContractToTypeException>(() => cvt("string", ImmutableList.Create(typeof(string))).Unwrap());
         }
         
         [Fact]
         public void AttributeChield()
         {
             var cvt = Contract.AttributeContractMapper.Loopback();
-            Assert.Equal(typeof(ChieldTestContract), cvt("chield.test", typeof(TestContract).Cons()).Unwrap());
+            Assert.Equal(typeof(ChieldTestContract), cvt("chield.test", ImmutableList.Create(typeof(TestContract))).Unwrap());
         }
         
         [Fact]
@@ -57,7 +57,7 @@ namespace AstralTests.Payloads.DataContracts
         {
             var cvt = Contract.WellKnownContractMapper(WellKnownTypes.Default).Fallback(Contract.ArrayContractMapper)
                 .Loopback();
-            Assert.Equal(typeof(int[]), cvt("i32[]", typeof(IEnumerable<int>).Cons()).Unwrap());
+            Assert.Equal(typeof(int[]), cvt("i32[]", ImmutableList.Create(typeof(IEnumerable<int>))).Unwrap());
         }
         
         [Fact]
@@ -65,21 +65,23 @@ namespace AstralTests.Payloads.DataContracts
         {
             var cvt = Contract.WellKnownContractMapper(WellKnownTypes.Default).Fallback(Contract.ArrayContractMapper)
                 .Loopback();
-            Assert.Equal(typeof(int[][]), cvt("i32[][]", typeof(int[][]).Cons()).Unwrap());
+            Assert.Equal(typeof(int[][]), cvt("i32[][]", ImmutableList.Create(typeof(int[][]))).Unwrap());
         }
         
         [Fact]
         public void DefaultTest()
         {
             var cvt = Contract.DefaultContractMapper(WellKnownTypes.Default).Loopback();
-            Assert.Equal(typeof(ChieldTestContract[]), cvt("chield.test[]", typeof(TestContract[]).Cons()).Unwrap());
+            Assert.Equal(typeof(ChieldTestContract[]), cvt("chield.test[]", 
+                ImmutableList.Create(typeof(TestContract[]))).Unwrap());
         }
         
         [Fact]
         public void DefaultThrow()
         {
             var cvt = Contract.DefaultContractMapper(WellKnownTypes.Default).Loopback();
-            Assert.Throws<ContractToTypeException>(() => cvt("version[]",typeof(Version[]).Cons()).Unwrap());
+            Assert.Throws<ContractToTypeException>(() => cvt("version[]",
+                ImmutableList.Create(typeof(Version[]))).Unwrap());
         }
     }
 }

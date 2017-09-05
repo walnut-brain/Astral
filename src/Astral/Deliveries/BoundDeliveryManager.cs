@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Astral.Data;
 using Astral.Payloads;
 using Astral.Transport;
-using LanguageExt;
+using CsFun;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.Deliveries

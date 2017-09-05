@@ -6,6 +6,7 @@ using Astral.Payloads.Serialization;
 using Newtonsoft.Json;
 using Xunit;
 using System;
+using CsFun;
 
 namespace AstralTests.Payloads
 {

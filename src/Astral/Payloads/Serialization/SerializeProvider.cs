@@ -1,7 +1,7 @@
-﻿using System.Net.Mime;
-using LanguageExt;
+﻿using System.Collections.Immutable;
+using System.Net.Mime;
 
 namespace Astral.Payloads.Serialization
 {
-    public delegate Seq<Serialize<T>> SerializeProvider<T>(ContentType contentType);
+    public delegate ImmutableList<Serialize<T>> SerializeProvider<T>(ContentType contentType);
 }

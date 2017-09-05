@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using LanguageExt;
+using CsFun;
 using Microsoft.Extensions.Logging;
 
 namespace Lawium
@@ -13,7 +13,7 @@ namespace Lawium
     public class LawBook
     {
         private readonly string _path;
-        private readonly IReadOnlyCollection<global::Lawium.Law> _laws;
+        private readonly IReadOnlyCollection<Law> _laws;
         private readonly IReadOnlyDictionary<Type, object> _facts;
         private readonly Dictionary<object, Task<LawBook>> _subBooks = new Dictionary<object, Task<LawBook>>();
         private readonly ReaderWriterLockSlim _locker = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
@@ -21,7 +21,7 @@ namespace Lawium
         internal LawBook(
             ILoggerFactory loggerFactory,
             string path, 
-            IReadOnlyCollection<global::Lawium.Law> laws, 
+            IReadOnlyCollection<Law> laws, 
             IReadOnlyDictionary<Type, object> facts,
             IReadOnlyDictionary<object, LawBook> subBooks)
         {

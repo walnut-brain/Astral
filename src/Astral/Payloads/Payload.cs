@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Net.Mime;
-using LanguageExt;
-using static LanguageExt.Prelude;
+using CsFun;
 
 namespace Astral.Payloads
 {
@@ -35,38 +35,38 @@ namespace Astral.Payloads
         public abstract Type Format { get; }
         public abstract object Value { get; }
 
-        public static Try<Payload<TFormat>> ToPayload<TFormat>(Type type, object obj, ToPayloadOptions<TFormat> toPayloadOptions)
+        public static Result<Payload<TFormat>> ToPayload<TFormat>(Type type, object obj, ToPayloadOptions<TFormat> toPayloadOptions)
         {
             type = obj?.GetType() ?? type;
             return
                 toPayloadOptions.ToContact(type)
                     .Bind(contract =>
                         toPayloadOptions.SerializeProvider(toPayloadOptions.ContentType)
-                            .HeadOrNone()
-                            .ToTry(new UnknownContentTypeException($"Unknown content type {toPayloadOptions.ContentType}"))
+                            .FirstOrNone()
+                            .ToResult(new UnknownContentTypeException($"Unknown content type {toPayloadOptions.ContentType}"))
                             .Bind(p => p(obj))
                             .Map(data => new Payload<TFormat>(contract, data.Item1, data.Item2)));
         }
 
-        public static Try<Payload<TFormat>> ToPayload<T, TFormat>(T obj, ToPayloadOptions<TFormat> toPayloadOptions) 
+        public static Result<Payload<TFormat>> ToPayload<T, TFormat>(T obj, ToPayloadOptions<TFormat> toPayloadOptions) 
             => ToPayload(typeof(T), obj, toPayloadOptions);
 
 
-        public static Try<object> FromPayload<TFormat>(Payload<TFormat> payload, Seq<Type> awaited, FromPayloadOptions<TFormat> fromPayloadOptions) 
+        public static Result<object> FromPayload<TFormat>(Payload<TFormat> payload, ImmutableList<Type> awaited, FromPayloadOptions<TFormat> fromPayloadOptions) 
             => fromPayloadOptions.ToType(payload.TypeCode, awaited)
                 .Bind(type =>
                 {
                     string contentType = payload.ContentType?.ToString();
                     return fromPayloadOptions.DeserializeProvider(
-                            Optional(payload.ContentType))
-                        .Map(d => d(type, payload.Data))
+                            payload.ContentType.ToOption())
+                        .Select(d => d(type, payload.Data))
                         .FirstOrError(new UnknownContentTypeException($"Unknown content type {contentType}"));
                 });
 
 
         public interface IFromPayload
         {
-            Try<T> As<T>();
+            Result<T> As<T>();
         }
 
         public static IFromPayload FromPayload<TFormat>(Payload<TFormat> payload, FromPayloadOptions<TFormat> fromPayloadOptions)
@@ -77,15 +77,15 @@ namespace Astral.Payloads
 
         private class FromPayloadDelegated: IFromPayload
         {
-            private readonly Func<Seq<Type>, Try<object>> _untyped;
+            private readonly Func<ImmutableList<Type>, Result<object>> _untyped;
 
-            public FromPayloadDelegated(Func<Seq<Type>, Try<object>> untyped)
+            public FromPayloadDelegated(Func<ImmutableList<Type>, Result<object>> untyped)
             {
                 _untyped = untyped;
             }
 
-            public Try<T> As<T>()
-                => _untyped(typeof(T).Cons()).Bind(p => Try(() => (T) p));
+            public Result<T> As<T>()
+                => _untyped(ImmutableList.Create(typeof(T))).Map(p => (T) p);
         }
 
         

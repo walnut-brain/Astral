@@ -1,5 +1,6 @@
 ﻿using System;
-using LanguageExt;
+using System.Collections.Immutable;
+using CsFun;
 
 namespace Astral.Payloads.DataContracts
 {
@@ -7,9 +8,9 @@ namespace Astral.Payloads.DataContracts
     {
         public static TypeToContract Loopback(this ComplexTypeToContract source)
         {
-            Try<string> Make(Type type)
+            Result<string> Make(Type type)
             {
-                return source(type, t => t == type ? Prelude.Try<string>(new RecursiveResolutionException(type)) : Make(t));
+                return source(type, t => t == type ? new RecursiveResolutionException(type).ToFail<string>() : Make(t));
             }
 
             return Make;
@@ -17,29 +18,29 @@ namespace Astral.Payloads.DataContracts
 
         public static TypeToContract Fallback(this TypeToContract source, TypeToContract fallback)
         {
-            return type => source(type).BiBind(Prelude.Try, _ => fallback(type));
+            return type => source(type).OrElse(() => fallback(type));
         }
 
 
         public static ComplexTypeToContract Fallback(
             this ComplexTypeToContract source, ComplexTypeToContract next)
         {
-            return (type, ttc) => source(type, ttc).BiBind(Prelude.Try, _ => next(type, ttc));
+            return (type, ttc) => source(type, ttc).OrElse(() => next(type, ttc));
         }
 
         public static ComplexTypeToContract Fallback(
             this TypeToContract source, ComplexTypeToContract next)
         {
-            return (type, ttc) => source(type).BiBind(Prelude.Try, _ => next(type, ttc));
+            return (type, ttc) => source(type).OrElse(() => next(type, ttc));
         }
 
         public static ComplexTypeToContract Fallback(
             this ComplexTypeToContract source, TypeToContract next)
         {
-            return (type, ttc) => source(type, ttc).BiBind(Prelude.Try, _ => next(type));
+            return (type, ttc) => source(type, ttc).OrElse(() => next(type));
         }
 
-        public static Try<string> TryMap<T>(this TypeToContract source, T value)
+        public static Result<string> TryMap<T>(this TypeToContract source, T value)
         {
             return source(value?.GetType() ?? typeof(T));
         }
@@ -47,11 +48,11 @@ namespace Astral.Payloads.DataContracts
 
         public static ContractToType Loopback(this ComplexContractToType complex)
         {
-            Try<Type> Make(string contract, Seq<Type> awaited)
+            Result<Type> Make(string contract, ImmutableList<Type> awaited)
             {
                 return complex(contract, awaited,
                     (c, a) => c == contract && a == awaited
-                        ? Prelude.Try<Type>(new RecursiveResolutionException(contract))
+                        ? new RecursiveResolutionException(contract).ToFail<Type>()
                         : Make(c, a));
             }
 
@@ -64,7 +65,7 @@ namespace Astral.Payloads.DataContracts
             ComplexContractToType fallback)
         {
             return (contract, awaited, ctt) =>
-                source(contract, awaited, ctt).BiBind(Prelude.Try, _ => fallback(contract, awaited, ctt));
+                source(contract, awaited, ctt).OrElse(() => fallback(contract, awaited, ctt));
         }
 
         public static ComplexContractToType Fallback(
@@ -72,7 +73,7 @@ namespace Astral.Payloads.DataContracts
             ContractToType fallback)
         {
             return (contract, awaited, ctt) =>
-                source(contract, awaited, ctt).BiBind(Prelude.Try, _ => fallback(contract, awaited));
+                source(contract, awaited, ctt).OrElse(() => fallback(contract, awaited));
         }
 
         public static ComplexContractToType Fallback(
@@ -80,7 +81,7 @@ namespace Astral.Payloads.DataContracts
             ComplexContractToType fallback)
         {
             return (contract, awaited, ctt) =>
-                source(contract, awaited).BiBind(Prelude.Try, _ => fallback(contract, awaited, ctt));
+                source(contract, awaited).OrElse(() => fallback(contract, awaited, ctt));
         }
 
 
@@ -88,7 +89,7 @@ namespace Astral.Payloads.DataContracts
             this ContractToType source,
             ContractToType fallback)
         {
-            return (contract, awaited) => source(contract, awaited).BiBind(Prelude.Try, _ => fallback(contract, awaited));
+            return (contract, awaited) => source(contract, awaited).OrElse(() => fallback(contract, awaited));
         }
     }
 }

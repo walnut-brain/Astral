@@ -6,8 +6,9 @@
     <DocumentationFile>bin\Debug\netstandard2.0\Lawium.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LanguageExt.Core" Version="2.1.18" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <PackageReference Include="System.Reactive" Version="3.1.1" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Laws.tt">
@@ -24,5 +25,8 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Laws.tt</DependentUpon>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CsFun\CsFun.csproj" />
   </ItemGroup>
 </Project>

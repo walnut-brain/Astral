@@ -3,9 +3,9 @@
 
 using System;
 using System.Linq;
-using LanguageExt;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
-using static LanguageExt.Prelude;
+using CsFun;
 
 namespace Lawium
 {
@@ -32,7 +32,7 @@ namespace Lawium
 		
 		#>> execute)
 		{
-			Arr<object> Calc(ILogger logger, Arr<object> args)
+			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
                 <#
 
@@ -49,12 +49,12 @@ namespace Lawium
                             for(var k = 1; k < i; k++) {#>(TI<#=k#>) args[<#=k-1#>], <#} 
                             #>(TI<#=i#>) args[<#=i-1#>]);
                 
-                return Arr.create<object>(<#
+                return ImmutableArray.Create<object>(<#
                     for(var k = 1; k < j; k++) {#>r<#=k#>, <#}#>r<#=j#>);
 			}
 
-			var inArr = Arr.create(<#for(var k = 1; k < i; k++) {#>typeof(TI<#=k#>), <# } #>typeof(TI<#=i#>));
-			var outArr = Arr.create(<#for(var k = 1; k < j; k++) {#>typeof(TO<#=k#>), <# } #>typeof(TO<#=j#>));
+			var inArr = ImmutableArray.Create(<#for(var k = 1; k < i; k++) {#>typeof(TI<#=k#>), <# } #>typeof(TI<#=i#>));
+			var outArr = ImmutableArray.Create(<#for(var k = 1; k < j; k++) {#>typeof(TO<#=k#>), <# } #>typeof(TO<#=j#>));
 
 			return new Law(name, inArr, outArr, Calc);
 		}

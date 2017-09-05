@@ -1,5 +1,6 @@
 ﻿using System;
-using LanguageExt;
+using CsFun;
+
 
 namespace Lawium
 {
@@ -38,13 +39,10 @@ namespace Lawium
         /// <param name="book">law book</param>
         /// <returns>value</returns>
         public static T Get<T>(this LawBook book)
-            => book.TryGet<T>().Unwrap($"Value for type {typeof(T)} not found");
+            => book.TryGet<T>().Unwrap();
 
-
-        internal static T Unwrap<T>(this Option<T> option, string message = null)
-            => option.IfNone(() => throw new InvalidOperationException(message ?? $"Unwrap None of type {typeof(T)}"));
 
         internal static Option<T> Unbox<T>(this Option<object> option) 
-            => option.Bind(p => p is T v ? Prelude.Some(v) : Prelude.None);                
+            => option.Bind(p => p is T v ? v.ToOption() : Option.None);                
     }
 }

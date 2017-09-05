@@ -1,4 +1,4 @@
-﻿using LanguageExt;
+﻿using CsFun;
 using Lawium;
 using Microsoft.Extensions.Logging;
 

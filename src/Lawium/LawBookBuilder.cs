@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
-using LanguageExt;
 using Microsoft.Extensions.Logging;
+using CsFun;
 
 namespace Lawium
 {
@@ -17,7 +18,7 @@ namespace Lawium
         /// </summary>
         public static volatile ushort MaxRecursion = 100;
 
-        private readonly Func<IEnumerable<global::Lawium.Law>> _parentLaws;
+        private readonly Func<IEnumerable<Law>> _parentLaws;
         private readonly string _path = "";
         private readonly Dictionary<object, LawBookBuilder> _subBuilders = new Dictionary<object, LawBookBuilder>();
 
@@ -28,19 +29,19 @@ namespace Lawium
         public LawBookBuilder(ILoggerFactory loggerFactory = null)
         {
             LoggerFactory = loggerFactory ?? new FakeLoggerFactory();
-            _parentLaws = Enumerable.Empty<global::Lawium.Law>;
+            _parentLaws = Enumerable.Empty<Law>;
         }
 
-        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<global::Lawium.Law>> parentLaws, string path)
+        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<Law>> parentLaws, string path)
         {
             LoggerFactory = loggerFactory;
             _parentLaws = parentLaws;
             _path = path;
         }
 
-        private readonly List<global::Lawium.Law> _laws = new List<global::Lawium.Law>();
+        private readonly List<Law> _laws = new List<global::Lawium.Law>();
 
-        private IEnumerable<global::Lawium.Law> GetLaws() => _parentLaws().Union(_laws);
+        private IEnumerable<Law> GetLaws() => _parentLaws().Union(_laws);
 
         /// <summary>
         /// Logger factory
@@ -90,15 +91,15 @@ namespace Lawium
                     var laws = GetLaws().Select((p, n) => new LawRec(n, false, p)).ToList();
                     IDictionary<Type, Inference> inferences = new Dictionary<Type, Inference>();
                     // process axioms
-                    foreach (var law in laws.Where(p => p.Law.Arguments.Count == 0))
+                    foreach (var law in laws.Where(p => p.Law.Arguments.Length == 0))
                     {
                         using (logger.BeginScope("{law}", law.Law.Name))
                         {
                             try
                             {
                                 logger.LogTrace("Processing");
-                                var result = law.Law.Executor(logger, Prelude.Array<object>());
-                                for (var i = 0; i < law.Law.Findings.Count; i++)
+                                var result = law.Law.Executor(logger, ImmutableArray<object>.Empty);
+                                for (var i = 0; i < law.Law.Findings.Length; i++)
                                     if (result[i] != null)
                                     {
                                         if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
@@ -136,7 +137,7 @@ namespace Lawium
                             inferences
                                 .TryGetValue(p)
                                 .Map(t => t.Law.Index > nextLaw)
-                                .IfNone(false)))
+                                .IfNone(() => false)))
                         {
                             law.Processed = true;
                             nextLaw++;
@@ -148,9 +149,9 @@ namespace Lawium
                             try
                             {
                                 logger.LogTrace("Processing");
-                                var result = law.Law.Executor(logger, Prelude.Array<object>());
+                                var result = law.Law.Executor(logger, ImmutableArray<object>.Empty);
                                 law.Processed = true;
-                                for (var i = 0; i < law.Law.Findings.Count; i++)
+                                for (var i = 0; i < law.Law.Findings.Length; i++)
                                     if (result[i] != null)
                                     {
                                         if (inferences.TryGetValue(law.Law.Findings[i], out var current))
@@ -169,7 +170,7 @@ namespace Lawium
                                                     inferences
                                                         .TryGetValue(p)
                                                         .Map(t => t.Law.Index > nextLaw)
-                                                        .IfNone(false)))
+                                                        .IfNone(() => false)))
                                                 {
                                                     rec.Processed = false;
                                                 }
@@ -200,7 +201,8 @@ namespace Lawium
                         throw new InvalidOperationException($"Maximal recursion {maxRecursion} reached on build law book {_path}");
 
                     return new LawBook(LoggerFactory, _path, 
-                        GetLaws().ToArr(), 
+                        GetLaws().ToImmutableArray()
+                        , 
                         new ReadOnlyDictionary<Type, object>(
                                 inferences.ToDictionary(p => p.Key, p => p.Value.Value)), 
                         new ReadOnlyDictionary<object, LawBook>(
@@ -230,16 +232,16 @@ namespace Lawium
 
         private class LawRec
         {
-            public LawRec(int Index, bool processed, global::Lawium.Law law)
+            public LawRec(int index, bool processed, Law law)
             {
-                this.Index = Index;
+                Index = index;
                 Processed = processed;
                 Law = law;
             }
 
             public int Index { get; }
             public bool Processed { get; set; }
-            public global::Lawium.Law Law { get; }
+            public Law Law { get; }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Net.Mime;
-using LanguageExt;
+using CsFun;
 
 namespace Astral.Payloads.Serialization
 {
-    public delegate Try<(ContentType, T)> Serialize<T>(object value);
+    public delegate Result<(ContentType, T)> Serialize<T>(object value);
 }

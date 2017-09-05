@@ -33,13 +33,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LanguageExt.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\packages\LanguageExt.Core.2.1.18\lib\net451\LanguageExt.Core.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>..\..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\..\packages\System.Collections.Immutable.1.4.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Reactive.Core, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263">
@@ -93,6 +93,10 @@
     <ProjectReference Include="..\..\src\Astral\Astral.csproj">
       <Project>{7875a996-54b0-473a-afb6-893ef2b02463}</Project>
       <Name>Astral</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\CsFun\CsFun.csproj">
+      <Project>{3c5e75bd-7f85-475d-b759-7ceec6214047}</Project>
+      <Name>CsFun</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Lawium\Lawium.csproj">
       <Project>{c476ad2f-5a76-44a4-b40c-507bf1a216e5}</Project>

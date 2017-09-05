@@ -1,7 +1,7 @@
 ﻿using System;
-using LanguageExt;
+using CsFun;
 
 namespace Astral.Payloads.Serialization
 {
-    public delegate Try<object> Deserialize<in T>(Type toType, T data);
+    public delegate Result<object> Deserialize<in T>(Type toType, T data);
 }

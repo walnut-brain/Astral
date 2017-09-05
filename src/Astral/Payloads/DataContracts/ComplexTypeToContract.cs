@@ -1,7 +1,7 @@
 ﻿using System;
-using LanguageExt;
+using CsFun;
 
 namespace Astral.Payloads.DataContracts
 {
-    public delegate Try<string> ComplexTypeToContract(Type type, TypeToContract elementResolver);
+    public delegate Result<string> ComplexTypeToContract(Type type, TypeToContract elementResolver);
 }

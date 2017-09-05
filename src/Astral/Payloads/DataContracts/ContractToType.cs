@@ -1,7 +1,8 @@
 ﻿using System;
-using LanguageExt;
+using System.Collections.Immutable;
+using CsFun;
 
 namespace Astral.Payloads.DataContracts
 {
-    public delegate Try<Type> ContractToType(string contract, Seq<Type> awaited);
+    public delegate Result<Type> ContractToType(string contract, ImmutableList<Type> awaited);
 }

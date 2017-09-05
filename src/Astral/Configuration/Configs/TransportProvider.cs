@@ -4,7 +4,7 @@ using System.Reactive.Disposables;
 using Astral.Configuration.Builders;
 using Astral.Exceptions;
 using Astral.Transport;
-using LanguageExt;
+using CsFun;
 
 namespace Astral.Configuration.Configs
 {
@@ -20,10 +20,10 @@ namespace Astral.Configuration.Configs
             _disposable.Add(disposable);
         }
 
-        public Try<ITransport> GetTransport(string tag = null)
+        public Result<ITransport> GetTransport(string tag = null)
         {
             tag = BusBuilder.NormalizeTag(tag);
-            return Prelude.Try(() =>
+            return Result.Try(() =>
             {
                 if(_disposable.IsDisposed)
                     throw new ObjectDisposedException(nameof(TransportProvider));
@@ -34,10 +34,10 @@ namespace Astral.Configuration.Configs
             });
         }
         
-        public Try<IRpcTransport> GetRpcTransport(string tag = null)
+        public Result<IRpcTransport> GetRpcTransport(string tag = null)
         {
             tag = BusBuilder.NormalizeTag(tag);
-            return Prelude.Try(() =>
+            return Result.Try(() =>
             {
                 if(_disposable.IsDisposed)
                     throw new ObjectDisposedException(nameof(TransportProvider));

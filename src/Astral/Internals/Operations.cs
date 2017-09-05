@@ -5,13 +5,10 @@ using System.Threading.Tasks;
 using Astral.Configuration;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
-using Astral.Data;
-using Astral.Exceptions;
 using Astral.Payloads;
 using Astral.Transport;
-using LanguageExt;
+using CsFun;
 using Microsoft.Extensions.Logging;
-using Polly;
 
 namespace Astral.Internals
 {
@@ -31,7 +28,7 @@ namespace Astral.Internals
                     .Unwrap();
 
                 var poptions = new PublishOptions(
-                    options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(Timeout.InfiniteTimeSpan),
+                    options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(_ => Timeout.InfiniteTimeSpan),
                     ResponseTo.None, null);
 
                 var prepared = preparePublish(config, poptions);
@@ -53,7 +50,7 @@ namespace Astral.Internals
 
             IDisposable Listen()
             {
-                var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().IfFail(new DefaultExceptionPolicy());
+                var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().IfFail(_=> new DefaultExceptionPolicy());
                                 
 
                 return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);
