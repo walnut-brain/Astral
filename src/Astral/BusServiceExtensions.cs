@@ -17,27 +17,7 @@ namespace Astral
         
 
 
-        /// <summary>
-        ///     Listen event
-        /// </summary>
-        /// <param name="service">bus service</param>
-        /// <param name="selector">event selector</param>
-        /// <param name="eventListener">event listener</param>
-        /// <param name="options">listen options</param>
-        /// <typeparam name="TService">service type</typeparam>
-        /// <typeparam name="TTransport">transport type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>dispose to unlisten</returns>
-        /*public static IDisposable Listen<TService, TTransport, TEvent>(this BusService<TTransport, TService> service,
-            Expression<Func<TService, IEvent<TEvent>>> selector,
-            IEventListener<TEvent> eventListener,
-            EventListenOptions options = null)
-            where TTransport : class, IEventTransport where TService : class
-        {
-            return Operations.ListenEvent(service.Logger, service.Config.Endpoint(selector), service.Transport.Subscribe,
-                eventListener,
-                options);
-        }
+        /*
 
         public static Action EnqueueManual<TService, TTransport, TStore, TEvent>(
             this BusService<TTransport, TService> service, IDeliveryDataService<TStore> dataService,

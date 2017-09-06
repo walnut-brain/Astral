@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Astral.Configuration;
 using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Contracts;
@@ -30,7 +31,7 @@ namespace Astral.Internals
         }
 
         internal ServiceConfig<TService> Config { get; }
-        
+
         public ILogger Logger { get; }
 
         /// <inheritdoc />
@@ -39,10 +40,13 @@ namespace Astral.Internals
         {
             var endpointConfig = Config.Endpoint(selector);
             var (transport, _, contentType) = endpointConfig.Transport;
-            return PublishEventAsync(endpointConfig, @event, transport.PreparePublish<TEvent>, contentType, options, token);
+            return PublishEventAsync(endpointConfig, @event, transport.PreparePublish<TEvent>, contentType, options,
+                token);
         }
 
-        public async Task<Guid> Deliver<TStore, TEvent>(TStore store, Expression<Func<TService, IEvent<TEvent>>> selector,
+        /// <inheritdoc />
+        public async Task<Guid> Deliver<TStore, TEvent>(TStore store,
+            Expression<Func<TService, IEvent<TEvent>>> selector,
             TEvent @event, DeliveryOptions options = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
@@ -63,11 +67,14 @@ namespace Astral.Internals
                 .Filter(_ => endpointConfig.TryGet<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true));
 
             var prepared = transport.PreparePublish<TEvent>(endpointConfig, poptions);
-            return await deliveryManager.Prepare(store, @event, new DeliveryPoint(endpointConfig.SystemName, tag, endpointConfig.ServiceName, endpointConfig.EndpointName), 
+            return await deliveryManager.Prepare(store, @event,
+                new DeliveryPoint(endpointConfig.SystemName, tag, endpointConfig.ServiceName,
+                    endpointConfig.EndpointName),
                 DeliveryOperation.Send, messageTtl, afterCommit, prepared, toPayloadOptions, key);
         }
 
-        private Task PublishEventAsync<TEvent>(EndpointConfig config, TEvent @event, PreparePublish<TEvent> preparePublish, ContentType contentType, EventPublishOptions options = null,
+        private Task PublishEventAsync<TEvent>(EndpointConfig config, TEvent @event,
+            PreparePublish<TEvent> preparePublish, ContentType contentType, EventPublishOptions options = null,
             CancellationToken token = default(CancellationToken))
         {
             Task Publish()
@@ -90,10 +97,59 @@ namespace Astral.Internals
                 config.PropertyInfo.Name);
         }
 
-        private ToPayloadOptions<byte[]> GetToPayloadOptions(ContentType contentType, EndpointConfig config)
+
+        /// <inheritdoc />
+        public IDisposable Listen<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector,
+            IEventListener<TEvent> eventListener, EventListenOptions options = null)
+        {
+            var endpointConfig = Config.Endpoint(selector);
+            var (transport, _, _) = endpointConfig.Transport;
+            return ListenEvent(Logger, endpointConfig, transport.Subscribe, eventListener, options);
+        }
+
+
+        private IDisposable ListenEvent<TEvent>(ILogger logger, EndpointConfig config,
+            RawMessageSubscribe subscribe,
+            IEventListener<TEvent> eventListener,
+            EventListenOptions options)
+        {
+            return logger.LogActivity(Listen, "listen {service} {endpoint}", config.ServiceType,
+                config.PropertyInfo.Name);
+
+            IDisposable Listen()
+            {
+                var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().RecoverTo(new DefaultExceptionPolicy());
+
+
+                return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);
+            }
+
+            async Task<Acknowledge> Listener(
+                Payload<byte[]> msg, EventContext ctx, CancellationToken token, IReciveExceptionPolicy exceptionPolicy)
+            {
+                async Task<Acknowledge> Receive()
+                {
+                    var obj = Payload.FromPayload(msg, GetFromPayloadOptions(config)).As<TEvent>().Unwrap();
+
+                    await eventListener.Handle(obj, ctx, token);
+                    return Acknowledge.Ack;
+                }
+
+                return await Receive()
+                    .LogResult(logger, "recive event {service} {endpoint}", config.ServiceType, config.PropertyInfo)
+                    .CorrectError(exceptionPolicy.WhenException);
+            }
+        }
+
+        private static ToPayloadOptions<byte[]> GetToPayloadOptions(ContentType contentType, IServiceProvider config)
             => new ToPayloadOptions<byte[]>(
                 contentType,
                 config.GetService<TypeEncoding>().ToContract,
                 config.GetService<Serializer<byte[]>>().Serialize);
+
+        private static FromPayloadOptions<byte[]> GetFromPayloadOptions(IServiceProvider config)
+            => new FromPayloadOptions<byte[]>(
+                config.GetService<TypeEncoding>().ToType,
+                config.GetService<Serializer<byte[]>>().Deserialize);
     }
 }
