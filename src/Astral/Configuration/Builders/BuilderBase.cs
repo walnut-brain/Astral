@@ -1,5 +1,6 @@
-﻿using Astral.Fakes;
+﻿using System;
 using Lawium;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Astral.Configuration.Builders
@@ -9,15 +10,18 @@ namespace Astral.Configuration.Builders
     /// </summary>
     public abstract class BuilderBase
     {
+        protected IServiceProvider ServiceProvider { get; }
+
         /// <summary>
         ///     constructor
         /// </summary>
-        /// <param name="loggerFactory">logger factory</param>
+        /// <param name="serviceProvider">service provider</param>
         /// <param name="bookBuilder">law builder to use</param>
-        protected BuilderBase(ILoggerFactory loggerFactory, LawBookBuilder bookBuilder)
+        protected BuilderBase(IServiceProvider serviceProvider, LawBookBuilder bookBuilder)
         {
-            LoggerFactory = loggerFactory ?? new FakeLoggerFactory();
-            Logger = loggerFactory.CreateLogger(GetType());
+            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            LoggerFactory = serviceProvider.GetService<ILoggerFactory>() ?? bookBuilder.LoggerFactory;
+            Logger = LoggerFactory.CreateLogger(GetType());
             BookBuilder = bookBuilder;
         }
 
@@ -29,7 +33,7 @@ namespace Astral.Configuration.Builders
         /// <summary>
         ///     logger
         /// </summary>
-        protected ILogger Logger { get; }
+        public ILogger Logger { get; }
 
         /// <summary>
         ///     law book builder

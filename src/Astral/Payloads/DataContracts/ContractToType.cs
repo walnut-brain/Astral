@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
-using CsFun;
+using FunEx;
 
 namespace Astral.Payloads.DataContracts
 {

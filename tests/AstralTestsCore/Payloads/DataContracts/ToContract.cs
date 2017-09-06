@@ -1,6 +1,6 @@
 ﻿using System;
 using Astral.Payloads.DataContracts;
-using CsFun;
+using FunEx;
 using Xunit;
 
 namespace AstralTests.Payloads.DataContracts

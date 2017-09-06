@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Astral.Configuration.Settings;
 using Astral.Deliveries;
-using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
 using Lawium;
 using Newtonsoft.Json;
 using Polly;
-using Contract = Astral.Payloads.DataContracts.Contract;
 
 namespace Astral.Configuration.Builders
 {
@@ -30,10 +27,10 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-        public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, OnDeliverySuccess action)
+        public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, AfterCommitDelivery action)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new AfterDelivery(action)));
+            builder.AddLaw(Law.Axiom(new AfterCommitDelivery(action)));
             return builder;
         }
 

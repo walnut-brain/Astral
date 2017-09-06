@@ -4,9 +4,9 @@ using Lawium;
 
 namespace Astral.Configuration.Settings
 {
-    public sealed class AfterResponseDelivery : Fact<OnDeliverySuccess>
+    public sealed class AfterResponseDelivery : Fact<DeliveryOnSuccess>
     {
-        public AfterResponseDelivery(OnDeliverySuccess value) : base(value)
+        public AfterResponseDelivery(DeliveryOnSuccess value) : base(value)
         {
         }
     }

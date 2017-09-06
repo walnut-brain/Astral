@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Astral.Data;
 using Astral.Payloads;
 using Astral.Transport;
-using CsFun;
+using FunEx;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.Deliveries
@@ -38,25 +38,25 @@ namespace Astral.Deliveries
         }
 
 
-        public async Task<Guid> Prepare<T>(TStore store, T message, DeliveryOperation operation, TimeSpan messageTtl, AfterCommitDelivery afterCommit,
+        public async Task<Guid> Prepare<T>(TStore store, T message, DeliveryPoint point, DeliveryOperation operation, TimeSpan messageTtl, DeliveryAfterCommit deliveryAfterCommit,
             PayloadSender<T> sender, ToPayloadOptions<byte[]> toPayloadOptions, Option<string> key)
         {
             var service = store.DeliveryService;
             using (var work = store.BeginWork())
             {
-                key.IfSome(p => service.RemoveByKey(operation.Operation, p));
-                var (guid, payload) = await service.NewDelivery(message?.GetType() ?? typeof(T), message, operation,
+                key.IfSome(p => service.RemoveByKey(point.Service, point.Endpoint, p));
+                var (guid, payload) = await service.NewDelivery(message?.GetType() ?? typeof(T), message, point, operation,
                     messageTtl, _sponsor,
-                    afterCommit is AfterCommitDelivery.NoOpType ? TimeSpan.Zero :_leaseInterval + _leaseInterval);
-                switch (afterCommit)
+                    deliveryAfterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero :_leaseInterval + _leaseInterval);
+                switch (deliveryAfterCommit)
                 {
-                    case AfterCommitDelivery.NoOpType _:
+                    case DeliveryAfterCommit.NoOpType _:
                         break;
-                    case AfterCommitDelivery.SendType send:
-                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(guid, payload, new Lazy<T>(() => message), send.OnSuccess, sender, toPayloadOptions, true).Wait());
+                    case DeliveryAfterCommit.SendType send:
+                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(guid, payload, new Lazy<T>(() => message), send.DeliveryOnSuccess, sender, toPayloadOptions, true).Wait());
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException($"Unknown {nameof(AfterCommitDelivery)} - {afterCommit}");
+                        throw new ArgumentOutOfRangeException($"Unknown {nameof(DeliveryAfterCommit)} - {deliveryAfterCommit}");
                 }
                 work.Commit();
                 return guid;
@@ -68,7 +68,7 @@ namespace Astral.Deliveries
 
 
         private async Task AddDelivery<T>(Guid deliveryId, Payload payload, Lazy<T> message, 
-            OnDeliverySuccess onSuccess, PayloadSender<T> sender, ToPayloadOptions<byte[]> toPayloadOptions, bool pickup)
+            DeliveryOnSuccess deliveryOnSuccess, PayloadSender<T> sender, ToPayloadOptions<byte[]> toPayloadOptions, bool pickup)
         {
             Payload<byte[]> rawPayload;
             switch (payload)
@@ -108,7 +108,7 @@ namespace Astral.Deliveries
 
             try
             {
-                await ContinueDoInLease(sender(message, rawPayload, compositeCancellation.Token), deliveryId, onSuccess);
+                await ContinueDoInLease(sender(message, rawPayload, compositeCancellation.Token), deliveryId, deliveryOnSuccess);
             }
             finally
             {
@@ -126,7 +126,7 @@ namespace Astral.Deliveries
 
         }
 
-        private async Task ContinueDoInLease(Task task, Guid deliveryId, OnDeliverySuccess behavior)
+        private async Task ContinueDoInLease(Task task, Guid deliveryId, DeliveryOnSuccess behavior)
         {
             try
             {
@@ -135,14 +135,14 @@ namespace Astral.Deliveries
                 {
                     switch (behavior)
                     {
-                        case OnDeliverySuccess.ArchiveType archiveType:
+                        case DeliveryOnSuccess.ArchiveType archiveType:
                             await p.TryUpdateLease(deliveryId, _sponsor, Timeout.InfiniteTimeSpan,
                                 archiveType.DeleteAfter);
                             break;
-                        case OnDeliverySuccess.DeleteType deleteType:
+                        case DeliveryOnSuccess.DeleteType deleteType:
                             await p.DeleteDelivery(deliveryId);
                             break;
-                        case OnDeliverySuccess.RedeliveryType redeliveryType:
+                        case DeliveryOnSuccess.RedeliveryType redeliveryType:
                             await p.TryUpdateLease(deliveryId, _sponsor, redeliveryType.RedeliveryAfter, null);
                             break;
                     }

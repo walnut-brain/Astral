@@ -9,14 +9,14 @@ namespace Astral.Configuration.Builders
 {
     public abstract class ServiceBuilder : BuilderBase
     {
-        protected ServiceBuilder(ILoggerFactory factory, LawBookBuilder bookBuilder) : base(factory, bookBuilder)
+        protected ServiceBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider, bookBuilder)
         {
         }
     }
 
     public class ServiceBuilder<TService> : ServiceBuilder
     {
-        internal ServiceBuilder(ILoggerFactory factory, LawBookBuilder bookBuilder) : base(factory, bookBuilder)
+        internal ServiceBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider, bookBuilder)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Astral.Configuration.Builders
             var propertyInfo = selector.GetProperty();
             var builder = BookBuilder.GetSubBookBuilder(propertyInfo.Name,
                 b => b.AddEndpointLaws(propertyInfo));
-            return new EventEndpointBuilder<TEvent>(LoggerFactory, builder);
+            return new EventEndpointBuilder<TEvent>(ServiceProvider, builder);
         }
 
         public CallEndpointBuilder<TArgs> Endpoint<TArgs>(Expression<Func<TService, ICall<TArgs>>> selector)
@@ -33,7 +33,7 @@ namespace Astral.Configuration.Builders
             var propertyInfo = selector.GetProperty();
             var builder = BookBuilder.GetSubBookBuilder(propertyInfo.Name,
                 b => b.AddEndpointLaws(propertyInfo));
-            return new CallEndpointBuilder<TArgs>(LoggerFactory, builder);
+            return new CallEndpointBuilder<TArgs>(ServiceProvider, builder);
         }
 
         public CallEndpointBuilder<TArgs, TResult> Endpoint<TArgs, TResult>(
@@ -42,7 +42,7 @@ namespace Astral.Configuration.Builders
             var propertyInfo = selector.GetProperty();
             var builder = BookBuilder.GetSubBookBuilder(propertyInfo.Name,
                 b => b.AddEndpointLaws(propertyInfo));
-            return new CallEndpointBuilder<TArgs, TResult>(LoggerFactory, builder);
+            return new CallEndpointBuilder<TArgs, TResult>(ServiceProvider, builder);
         }
     }
 }

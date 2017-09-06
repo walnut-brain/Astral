@@ -2,9 +2,11 @@
 using System.Net.Mime;
 using System.Reflection;
 using Astral.Configuration.Settings;
+using Astral.Exceptions;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
 using Astral.Transport;
+using FunEx;
 using Lawium;
 
 namespace Astral.Configuration.Configs
@@ -15,7 +17,7 @@ namespace Astral.Configuration.Configs
         public Serializer<byte[]> Serializer { get; }
         internal TransportProvider Transports { get; }
 
-        internal EndpointConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transports) : base(lawBook)
+        internal EndpointConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transports, IServiceProvider provider) : base(lawBook, provider)
         {
             TypeEncoding = typeEncoding;
             Serializer = serializer;
@@ -28,7 +30,30 @@ namespace Astral.Configuration.Configs
         public EndpointType EndpointType => this.Get<EndpointType>();
         public Type MessageType => this.Get<MessageType>().Value;
         public string EndpointName => this.Get<EndpointName>().Value;
-        internal ITransport Transport => throw new NotImplementedException();
-        public ContentType ContentType => throw new NotImplementedException();
+
+        internal (ITransport, string, ContentType) Transport
+        {
+            get
+            {
+                var selector = TryGet<TransportSelector>().Map(p => p.Value);
+                var tag = selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null));
+                var contentType = selector.Map(p => p.Item2).OrElse(() => TryGet<SerailizationContentType>().Map(p => p.Value))
+                    .Unwrap(new InvalidConfigurationException($"For {ServiceType}  {PropertyInfo.Name} not setted content type of transport"));
+                return (Transports.GetTransport(tag).Unwrap(), tag, contentType);
+
+            }
+        }
+        internal (IRpcTransport, string, ContentType) RpcTransport 
+        {
+            get
+            {
+                var selector = TryGet<RpcTransportSelector>().Map(p => p.Value).OrElse(() => TryGet<TransportSelector>().Map(p => p.Value));
+                var tag = selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null));
+                var contentType = selector.Map(p => p.Item2).OrElse(() => TryGet<SerailizationContentType>().Map(p => p.Value))
+                    .Unwrap(new InvalidConfigurationException($"For {ServiceType}  {PropertyInfo.Name} not setted content type of transport {tag}"));
+                return (Transports.GetRpcTransport(tag).Unwrap(), tag, contentType);
+
+            }
+        }
     }
 }

@@ -6,7 +6,7 @@ namespace Astral.Configuration.Builders
 {
     public class CallEndpointBuilder<TMessage> : CallEndpointBuilderBase<TMessage, ValueTuple>
     {
-        internal CallEndpointBuilder(ILoggerFactory loggerFactory, LawBookBuilder bookBuilder) : base(loggerFactory, bookBuilder)
+        internal CallEndpointBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider, bookBuilder)
         {
         }
     }
@@ -15,7 +15,7 @@ namespace Astral.Configuration.Builders
     
     public class CallEndpointBuilder<TArgs, TResult> : CallEndpointBuilderBase<TArgs, TResult>
     {
-        internal CallEndpointBuilder(ILoggerFactory loggerFactory, LawBookBuilder bookBuilder) : base(loggerFactory, bookBuilder)
+        internal CallEndpointBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider, bookBuilder)
         {
         }
     }

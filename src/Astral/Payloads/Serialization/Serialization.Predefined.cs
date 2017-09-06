@@ -1,6 +1,6 @@
 using System.Net.Mime;
 using System.Text;
-using CsFun;
+using FunEx;
 using Newtonsoft.Json;
 
 namespace Astral.Payloads.Serialization

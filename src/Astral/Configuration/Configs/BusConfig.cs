@@ -11,7 +11,7 @@ namespace Astral.Configuration.Configs
     public class BusConfig : ConfigBase, IDisposable
     {
 
-        internal BusConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transportProvider) : base(lawBook)
+        internal BusConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transportProvider, IServiceProvider provider) : base(lawBook, provider)
         {
             Transports = transportProvider;
             TypeEncoding = typeEncoding;

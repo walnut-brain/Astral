@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
-using CsFun;
+using FunEx;
 
 namespace Lawium
 {

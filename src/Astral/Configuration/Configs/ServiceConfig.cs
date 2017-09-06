@@ -14,7 +14,7 @@ namespace Astral.Configuration.Configs
         public TypeEncoding TypeEncoding { get; }
         public Serializer<byte[]> Serializer { get; }
 
-        internal ServiceConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transports) : base(lawBook)
+        internal ServiceConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transports, IServiceProvider provider) : base(lawBook, provider)
         {
             TypeEncoding = typeEncoding;
             Serializer = serializer;
@@ -35,7 +35,7 @@ namespace Astral.Configuration.Configs
         protected EndpointConfig Endpoint(PropertyInfo propertyInfo)
         {
             var book = LawBook.GetOrAddSubBook(propertyInfo.Name, b => b.AddEndpointLaws(propertyInfo)).Result;
-            return new EndpointConfig(book, TypeEncoding, Serializer, Transports);
+            return new EndpointConfig(book, TypeEncoding, Serializer, Transports, Provider);
         }
         
         internal TransportProvider Transports { get; }
@@ -43,7 +43,7 @@ namespace Astral.Configuration.Configs
 
     public class ServiceConfig<T> : ServiceConfig
     {
-        internal ServiceConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transportProvider) : base(lawBook, typeEncoding, serializer, transportProvider)
+        internal ServiceConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transportProvider, IServiceProvider provider) : base(lawBook, typeEncoding, serializer, transportProvider, provider)
         {
         }
 

@@ -17,18 +17,23 @@ namespace Astral.DependencyInjection
         }
 
         public static IServiceCollection AddBus<TBus, TInterface>(this IServiceCollection serviceCollection,
-            BusBuilder builder, Func<ILoggerFactory, BusConfig, TBus> factory)
-            where TInterface : class
+            Func<BusConfig, TBus> factory, string systemName,  Action<BusBuilder> configure)
+            where TInterface : class, IBus
             where TBus : Bus, TInterface
         {
-            return serviceCollection.AddSingleton<TInterface, TBus>(sp =>
-                builder.Build(sp, factory));
+            return 
+                serviceCollection.AddSingleton<TInterface, TBus>(sp =>
+                {
+                    var builder = new BusBuilder(sp, systemName);
+                    configure(builder);
+                    var config = builder.Build();
+                    return factory(config);
+                });
+            
         }
 
-        public static IServiceCollection AddBus(this IServiceCollection serviceCollection,
-            BusBuilder builder) 
-        {
-            return serviceCollection.AddSingleton(builder.Build);
-        }
+        public static IServiceCollection AddBus(this IServiceCollection serviceCollection, string systemName,
+            Action<BusBuilder> configure)
+            => AddBus<Bus, IBus>(serviceCollection, config => new Bus(config), systemName, configure);
     }
 }

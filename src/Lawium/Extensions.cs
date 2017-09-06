@@ -1,5 +1,5 @@
 ﻿using System;
-using CsFun;
+using FunEx;
 
 
 namespace Lawium

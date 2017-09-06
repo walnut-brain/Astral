@@ -1,11 +1,12 @@
-﻿using Lawium;
+﻿using System;
+using Lawium;
 using Microsoft.Extensions.Logging;
 
 namespace Astral.Configuration.Builders
 {
     public abstract class EndpointBuilder : BuilderBase
     {
-        protected EndpointBuilder(ILoggerFactory loggerFactory, LawBookBuilder bookBuilder) : base(loggerFactory,
+        protected EndpointBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider,
             bookBuilder)
         {
         }

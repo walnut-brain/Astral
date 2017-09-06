@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Astral.Payloads.DataContracts;
-using CsFun;
+using FunEx;
 using Xunit;
 
 namespace AstralTests.Payloads.DataContracts

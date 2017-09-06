@@ -4,14 +4,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using CsFun;
+using FunEx;
 
 
 namespace Astral.Payloads.DataContracts
 {
     public static partial class Contract
     {
-        public static ComplexTypeToContract ArrayLikeTypeMapper =
+        public static readonly ComplexTypeToContract ArrayLikeTypeMapper =
             (type, resolver) =>
             {
                 var elementType = TryGetElementType(type);
@@ -22,19 +22,19 @@ namespace Astral.Payloads.DataContracts
                     .Map(p => $"{p}[]");
             };
 
-        public static TypeToContract AttributeTypeMapper =
+        public static readonly TypeToContract AttributeTypeMapper =
             type =>
             {
                 var attr = type.GetCustomAttribute<ContractAttribute>();
                 if (attr != null)
-                    return attr.Name.ToSuccess();
-                return new TypeToContractException(type).ToFail<string>();
+                    return attr.Name;
+                return new TypeToContractException(type);
             };
 
         public static ComplexTypeToContract DefaultTypeMapper(WellKnownTypes wellKnownTypes) =>
             WellKnownTypeMapper(wellKnownTypes).Fallback(ArrayLikeTypeMapper).Fallback(AttributeTypeMapper);
 
-        public static ComplexContractToType ArrayContractMapper =
+        public static readonly ComplexContractToType ArrayContractMapper =
             (contract, awaited, resolver) =>
             {
                 if (!contract.EndsWith("[]")) return new ContractToTypeException(contract).ToFail<Type>();
@@ -48,7 +48,7 @@ namespace Astral.Payloads.DataContracts
                 return resolver(elementName, elementTypes).Map(p => p.MakeArrayType());
             };
 
-        public static ComplexContractToType AttributeContractMapper =
+        public static readonly ComplexContractToType AttributeContractMapper =
             (contract, awaited, resolver) =>
             {
                 return awaited.SelectMany(
@@ -63,7 +63,7 @@ namespace Astral.Payloads.DataContracts
                                 var method = at.GetMethod(known.MethodName);
                                 return (IEnumerable<Type>) method.Invoke(null, new object[0]);
                             }).ToImmutableList();
-                        return resolver(contract, nt).Map(ImmutableList.Create).IfFail(_ => ImmutableList<Type>.Empty);
+                        return resolver(contract, nt).Map(ImmutableList.Create).RecoverTo(ImmutableList<Type>.Empty);
                     }).FirstOrNone().ToResult(new ContractToTypeException(contract));
 
                 bool CheckSubtype(Type t)
@@ -82,10 +82,10 @@ namespace Astral.Payloads.DataContracts
             type =>
             {
                 if (knowns.IsUnit(type))
-                    return WellKnownTypes.UnitCode.ToSuccess();
+                    return WellKnownTypes.UnitCode;
                 if (knowns.TryGetCode(type, out var code))
-                    return code.ToSuccess();
-                return new TypeToContractException(type).ToFail<string>();
+                    return code;
+                return new TypeToContractException(type);
             };
 
 
@@ -93,10 +93,10 @@ namespace Astral.Payloads.DataContracts
             (contract, awaited) =>
             {
                 if (contract == WellKnownTypes.UnitCode)
-                    return knowns.DefaultUnitType.ToSuccess();
+                    return knowns.DefaultUnitType;
                 if (knowns.TryGetType(contract, out var type))
-                    return type.ToSuccess();
-                return new ContractToTypeException(contract).ToFail<Type>();
+                    return type;
+                return new ContractToTypeException(contract);
             };
 
 

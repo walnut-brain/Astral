@@ -43,16 +43,20 @@ namespace SampleApp
                 .WriteTo.LiterateConsole()
                 .CreateLogger();
 
+
             var services = new ServiceCollection()
                 .AddLogging()
-                .AddSingleton<FakeTranport>();
-            services.AddAstral();
-            var builder = new BusBuilder("service");
-            builder
-                .AddTransport(new FakeTranport())    
-                .Service<ISampleService>().Endpoint(p => p.AwesomeEvent).MessageTtl(TimeSpan.FromSeconds(60));
+                .AddSingleton<FakeTranport>()
+                .AddAstral()
+                .AddBus("Test", cfg =>
+                    {
+                        cfg.AddTransport<FakeTranport>();
+                        cfg.Service<ISampleService>().Endpoint(p => p.AwesomeEvent)
+                            .MessageTtl(TimeSpan.FromSeconds(60));
 
-            services.AddBus(builder);
+                    });
+
+
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
             using (var container = containerBuilder.Build())

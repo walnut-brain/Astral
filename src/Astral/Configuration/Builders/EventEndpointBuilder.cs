@@ -1,11 +1,12 @@
-﻿using Lawium;
+﻿using System;
+using Lawium;
 using Microsoft.Extensions.Logging;
 
 namespace Astral.Configuration.Builders
 {
     public class EventEndpointBuilder<TEvent> : EndpointBuilder
     {
-        internal EventEndpointBuilder(ILoggerFactory loggerFactory, LawBookBuilder bookBuilder) : base(loggerFactory,
+        internal EventEndpointBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider,
             bookBuilder)
         {
         }

@@ -7,38 +7,14 @@ using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Payloads;
 using Astral.Transport;
-using CsFun;
+using FunEx;
 using Microsoft.Extensions.Logging;
 
 namespace Astral.Internals
 {
     internal static class Operations
     {
-        internal static Task PublishEventAsync<TEvent>(ILogger logger, EndpointConfig config,
-            ContentType contentType,
-            PreparePublish<TEvent> preparePublish,
-            TEvent @event, EventPublishOptions options = null, CancellationToken token = default(CancellationToken))
-        {
-            Task Publish()
-            {
-                
-                var serialized = Payload
-                    .ToPayload(@event, 
-                        new ToPayloadOptions<byte[]>(contentType, config.TypeEncoding.ToContract, config.Serializer.Serialize))
-                    .Unwrap();
-
-                var poptions = new PublishOptions(
-                    options?.EventTtl ?? config.AsTry<MessageTtl>().Map(p => p.Value).IfFail(_ => Timeout.InfiniteTimeSpan),
-                    ResponseTo.None, null);
-
-                var prepared = preparePublish(config, poptions);
-
-                return prepared(new Lazy<TEvent>(() => @event), serialized, token);
-            }
-
-            return logger.LogActivity(Publish, "event {service} {endpoint}", config.ServiceType,
-                config.PropertyInfo.Name);
-        }
+        
 
         internal static IDisposable ListenEvent<TEvent>(ILogger logger, EndpointConfig config,
             RawMessageSubscribe  subscribe, 
@@ -50,7 +26,7 @@ namespace Astral.Internals
 
             IDisposable Listen()
             {
-                var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().IfFail(_=> new DefaultExceptionPolicy());
+                var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().RecoverTo(new DefaultExceptionPolicy());
                                 
 
                 return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);

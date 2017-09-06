@@ -4,13 +4,19 @@ using Astral.Data;
 
 namespace Astral.Deliveries
 {
-    public abstract class OnDeliverySuccess
+    /// <summary>
+    /// What to do when delivery was success sended
+    /// </summary>
+    public abstract class DeliveryOnSuccess
     {
-        private OnDeliverySuccess()
+        private DeliveryOnSuccess()
         {
         }
 
-        internal class DeleteType : OnDeliverySuccess
+        /// <summary>
+        /// Delete alternative
+        /// </summary>
+        internal class DeleteType : DeliveryOnSuccess
         {
             protected bool Equals(DeleteType other) => true;
             
@@ -27,9 +33,12 @@ namespace Astral.Deliveries
 
         }
 
-        internal class ArchiveType : OnDeliverySuccess
+        /// <summary>
+        /// Archive alternative
+        /// </summary>
+        internal class ArchiveType : DeliveryOnSuccess
         {
-            public ArchiveType(TimeSpan deleteAfter)
+            internal ArchiveType(TimeSpan deleteAfter)
             {
                 DeleteAfter = deleteAfter;
             }
@@ -56,9 +65,12 @@ namespace Astral.Deliveries
             
         }
 
-        internal class RedeliveryType : OnDeliverySuccess
+        /// <summary>
+        /// Redelivery alternative
+        /// </summary>
+        internal class RedeliveryType : DeliveryOnSuccess
         {
-            public RedeliveryType(TimeSpan redeliveryAfter)
+            internal RedeliveryType(TimeSpan redeliveryAfter)
             {
                 RedeliveryAfter = redeliveryAfter;
             }
@@ -87,12 +99,37 @@ namespace Astral.Deliveries
 
         
         
+        /// <summary>
+        /// Delete delivery after send
+        /// </summary>
+        public static DeliveryOnSuccess Delete = new DeleteType();
+        /// <summary>
+        /// Archive delivery in store
+        /// </summary>
+        /// <param name="deleteAt">when to delete archive</param>
+        /// <returns></returns>
+        public static DeliveryOnSuccess Archive(DateTimeOffset deleteAt) => new ArchiveType(deleteAt - DateTimeOffset.Now);
 
-        public static OnDeliverySuccess Delete = new DeleteType();
-        public static OnDeliverySuccess Archive(DateTimeOffset deleteAt) => new ArchiveType(deleteAt - DateTimeOffset.Now);
-        public static OnDeliverySuccess Archive(TimeSpan after) => new ArchiveType(after);
-        public static OnDeliverySuccess Redelivery(DateTimeOffset redeliveryAt) => new RedeliveryType(redeliveryAt - DateTimeOffset.Now);
-        public static OnDeliverySuccess Redelivery(TimeSpan after) => new RedeliveryType(after);
+        /// <summary>
+        /// Archive delivery in store
+        /// </summary>
+        /// <param name="after">delete after period</param>
+        /// <returns></returns>
+        public static DeliveryOnSuccess Archive(TimeSpan after) => new ArchiveType(after);
+
+        /// <summary>
+        /// Resend delivery
+        /// </summary>
+        /// <param name="redeliveryAt">send at</param>
+        /// <returns></returns>
+        public static DeliveryOnSuccess Redelivery(DateTimeOffset redeliveryAt) => new RedeliveryType(redeliveryAt - DateTimeOffset.Now);
+
+        /// <summary>
+        /// Resend delivery
+        /// </summary>
+        /// <param name="after">send after period</param>
+        /// <returns></returns>
+        public static DeliveryOnSuccess Redelivery(TimeSpan after) => new RedeliveryType(after);
         
     }
 }

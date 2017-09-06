@@ -6,7 +6,7 @@ using Astral.Payloads.Serialization;
 using Newtonsoft.Json;
 using Xunit;
 using System;
-using CsFun;
+using FunEx;
 
 namespace AstralTests.Payloads
 {
@@ -44,6 +44,26 @@ namespace AstralTests.Payloads
             var test = default(ValueTuple);
             
             var payload = Payload.ToPayload(test, toPayOpt).Unwrap();
+            var res = Payload.FromPayload(payload, fromPayOpt).As<ValueTuple>().Unwrap();
+            
+            Assert.Equal(test.GetType(), res.GetType());
+            
+
+        }
+        
+        [Fact]
+        public void ValueTupleTextDefaultTest()
+        {
+            var toPayOpt = new ToPayloadOptions<string>(new ContentType("text/json"),
+                Contract.DefaultTypeMapper(WellKnownTypes.Default).Loopback(),
+                Serialization.JsonTextSerializeProvider(new JsonSerializerSettings()));
+            var fromPayOpt = new FromPayloadOptions<string>(Contract.DefaultContractMapper(WellKnownTypes.Default).Loopback(),
+                Serialization.JsonTextDeserializeProvider(new JsonSerializerSettings()));
+            var test = default(ValueTuple);
+            
+            var payload = Payload.ToPayload(test, toPayOpt).Unwrap();
+            Assert.Equal("unit", payload.TypeCode);
+            Assert.Equal("{}", payload.Data);
             var res = Payload.FromPayload(payload, fromPayOpt).As<ValueTuple>().Unwrap();
             
             Assert.Equal(test.GetType(), res.GetType());

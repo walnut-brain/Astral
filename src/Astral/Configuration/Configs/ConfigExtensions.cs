@@ -1,5 +1,5 @@
 using Astral.Exceptions;
-using CsFun;
+using FunEx;
 
 namespace Astral.Configuration.Configs
 {

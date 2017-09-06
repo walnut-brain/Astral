@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Mime;
-using CsFun;
+using FunEx;
 
 namespace Astral.Payloads
 {

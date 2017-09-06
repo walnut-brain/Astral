@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Reflection;
+using FunEx;
 
 namespace Astral
 {
@@ -28,5 +30,6 @@ namespace Astral
             return types.Any(p =>
                 string.Compare(contentType.MediaType, p, StringComparison.InvariantCultureIgnoreCase) == 0);
         }
+
     }
 }

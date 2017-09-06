@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
-namespace CsFun
+namespace FunEx
 {
     public struct Option<T>
     {
         private readonly T _value;
 
-        public Option(T value)
+        internal Option(T value) : this()
         {
             if (!Equals(value, null))
             {
@@ -38,6 +39,11 @@ namespace CsFun
 
         public static implicit operator Option<T>(OptionNone none)
             => default(Option<T>);
+        
+        public static implicit operator Option<T>(T value) => new Option<T>(value);
+
+        public Option<TResult> OfType<TResult>()
+            => this.Bind(p => p is TResult ? ((TResult) (object) p).ToOption() : Option.None);
 
         public bool Equals(Option<T> other)
         {
@@ -71,7 +77,7 @@ namespace CsFun
 
     public struct OptionNone
     {
-        public static readonly OptionNone None = new OptionNone(); 
+        public static readonly OptionNone None = default(OptionNone); 
     }
 
     public static class Option
@@ -89,6 +95,12 @@ namespace CsFun
 
         public static T IfNone<T>(this Option<T> source, Func<T> onNone)
             => source.Match(p => p, onNone);
+
+        public static T IfNone<T>(this Option<T> source, T onNone)
+            => source.Match(p => p, () => onNone);
+
+        public static T IfNoneDefault<T>(this Option<T> source)
+            => source.Match(p => p, () => default(T));
 
         public static void IfNone<T>(this Option<T> source, Action onNone)
             => source.Match(_ => { }, onNone);
@@ -110,7 +122,7 @@ namespace CsFun
         public static Result<T> ToResult<T>(this Option<T> source, Exception ex = null)
         {
             ex = ex ?? new NoResultException();
-            return source.Match(p => p.ToSuccess(), () => new NoResultException().ToFail<T>());
+            return source.Match(p => p.ToOk(), () => ex);
         }
 
         public static Option<TValue> TryGetValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)

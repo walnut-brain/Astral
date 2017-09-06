@@ -8,8 +8,4 @@ namespace Astral.Transport
     {
         PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, PublishOptions options);
     }
-
-    public interface IRpcTransport
-    {
-    }
 }

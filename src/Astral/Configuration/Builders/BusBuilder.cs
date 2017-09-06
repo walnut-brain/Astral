@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
@@ -9,6 +10,7 @@ using Astral.Exceptions;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
 using Astral.Transport;
+using Astral.Utils;
 using Lawium;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,13 +34,12 @@ namespace Astral.Configuration.Builders
 
         
 
-        private readonly Dictionary<(string Tag, bool IsFull), (bool NeedIoc, bool Owned, bool Precreated, Func<IServiceProvider, IRpcTransport> Factory)>
-            _transports = new Dictionary<(string, bool), (bool, bool, bool, Func<IServiceProvider, IRpcTransport>)>();
-        
-        
-        
-        public BusBuilder(string systemName, ILoggerFactory loggerFactory = null) : base(
-            loggerFactory, new LawBookBuilder(loggerFactory))
+        private readonly Dictionary<(string Tag, bool IsFull), DisposableValue<IRpcTransport>>
+            _transports = new Dictionary<(string Tag, bool IsFull), DisposableValue<IRpcTransport>>();
+
+
+        internal BusBuilder(IServiceProvider provider, string systemName) : base(
+            provider, new LawBookBuilder(provider.GetService<ILoggerFactory>()))
         {
             if (systemName == null) throw new ArgumentNullException(nameof(systemName));
             BookBuilder.RegisterLaw(Law.Axiom(new SystemName(systemName)));
@@ -65,68 +66,104 @@ namespace Astral.Configuration.Builders
         private void CleanUpTransport(string tag, bool isFull)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
-            if(_transports.TryGetValue((tag, isFull), out var current))
-                if(current.Owned && current.Precreated)
-                    if(current.Factory(null) is IDisposable d) d.Dispose();  
+            if (_transports.TryGetValue((tag, isFull), out var current))
+            {
+                current.Dispose();
+                _transports.Remove((tag, isFull));
+            }
         }
         
-        public BusBuilder AddRpcTransport(IRpcTransport transport, string tag = null)
+        /// <summary>
+        /// Add rpc transport as instance
+        /// </summary>
+        /// <param name="transport">transport</param>
+        /// <param name="tag">transport tag, null for default</param>
+        /// <param name="isOwned">bus control lifetime transport instance</param>
+        /// <returns>self</returns>
+        public BusBuilder AddRpcTransport(IRpcTransport transport, string tag = null, bool isOwned  = true)
         {
-            tag = NormalizeTag(tag);
+            tag = ConfigUtils.NormalizeTag(tag);
             CleanUpTransport(tag, false);
-            _transports[(tag, false)] = (false, true, true, _ => transport);
+            _transports[(tag, false)] = new DisposableValue<IRpcTransport>(transport, isOwned);
             return this;
         }
 
-        public BusBuilder AddRpcTransport(Func<IRpcTransport> transportFactory, string tag = null)
+        /// <summary>
+        /// Add rpc transport as factory
+        /// </summary>
+        /// <param name="transportFactory">transportFactory</param>
+        /// <param name="tag">transport tag, null for default</param>
+        /// <param name="isOwned">bus control lifetime transport instance</param>
+        /// <returns>self</returns>
+        public BusBuilder AddRpcTransport(Func<IRpcTransport> transportFactory, string tag = null, bool isOwned = true)
         {
-            tag = NormalizeTag(tag);
+            tag = ConfigUtils.NormalizeTag(tag);
             CleanUpTransport(tag, false);
-            _transports[(tag, false)] = (false, true, false, _ => transportFactory()); 
+            _transports[(tag, false)] = new DisposableValue<IRpcTransport>(new Lazy<IRpcTransport>(transportFactory), isOwned); 
             return this;
         }
 
+        /// <summary>
+        /// Add rpc transport from IoC
+        /// </summary>
+        /// <typeparam name="T">type to resolve from IoC</typeparam>
+        /// <param name="tag">trnasport tag, null for default</param>
+        /// <returns>self</returns>
         public BusBuilder AddRpcTransport<T>(string tag = null)
             where T : IRpcTransport
-            => AddRpcTransport(p => p.GetRequiredService<T>(), false, tag);
-
-        public BusBuilder AddRpcTransport(Func<IServiceProvider, IRpcTransport> transportFactory, bool owned = false, string tag = null)
         {
-            tag = NormalizeTag(tag);
+            tag = ConfigUtils.NormalizeTag(tag);
             CleanUpTransport(tag, false);
-            _transports[(tag, false)] = (true, owned, false, transportFactory);
-            return this;
-        }
-        
-        public BusBuilder AddTransport(ITransport transport, string tag = null)
-        {
-            tag = NormalizeTag(tag);
-            CleanUpTransport(tag, true);
-            _transports[(tag, true)] = (false, true, true, _ => transport);
+            _transports[(tag, false)] = new DisposableValue<IRpcTransport>(new Lazy<IRpcTransport>(() => ServiceProvider.GetRequiredService<T>()), false);
             return this;
         }
 
-        public BusBuilder AddTransport(Func<ITransport> transportFactory, string tag = null)
+
+        /// <summary>
+        /// Add full transport as instance
+        /// </summary>
+        /// <param name="transport">transport</param>
+        /// <param name="tag">transport tag, null for default</param>
+        /// <param name="isOwned">bus control lifetime transport instance</param>
+        /// <returns>self</returns>
+        public BusBuilder AddTransport(ITransport transport, string tag = null, bool isOwned = true)
         {
-            tag = NormalizeTag(tag);
-            CleanUpTransport(tag, true);
-            _transports[(tag, true)] = (false, true, false, _ => transportFactory()); 
+            tag = ConfigUtils.NormalizeTag(tag);
+            CleanUpTransport(tag, false);
+            _transports[(tag, false)] = new DisposableValue<IRpcTransport>(transport, isOwned);
             return this;
         }
 
+        /// <summary>
+        /// Add full transport as factory
+        /// </summary>
+        /// <param name="transportFactory">transportFactory</param>
+        /// <param name="tag">transport tag, null for default</param>
+        /// <param name="isOwned">bus control lifetime transport instance</param>
+        /// <returns>self</returns>
+        public BusBuilder AddTransport(Func<ITransport> transportFactory, string tag = null, bool isOwned = true)
+        {
+            tag = ConfigUtils.NormalizeTag(tag);
+            CleanUpTransport(tag, false);
+            _transports[(tag, false)] = new DisposableValue<IRpcTransport>(new Lazy<IRpcTransport>(transportFactory), isOwned);
+            return this;
+        }
+
+        /// <summary>
+        /// Add full transport from IoC
+        /// </summary>
+        /// <typeparam name="T">type to resolve from IoC</typeparam>
+        /// <param name="tag">trnasport tag, null for default</param>
+        /// <returns>self</returns>
         public BusBuilder AddTransport<T>(string tag = null)
             where T : ITransport
-            => AddTransport(p => p.GetRequiredService<T>(), false, tag);
-
-        public BusBuilder AddTransport(Func<IServiceProvider, ITransport> transportFactory, bool owned = false, string tag = null)
         {
-            tag = NormalizeTag(tag);
-            CleanUpTransport(tag, true);
-            _transports[(tag, true)] = (false, owned, false, transportFactory); 
+            tag = ConfigUtils.NormalizeTag(tag);
+            CleanUpTransport(tag, false);
+            _transports[(tag, false)] = new DisposableValue<IRpcTransport>(new Lazy<IRpcTransport>(() => ServiceProvider.GetRequiredService<T>()), false);
             return this;
         }
 
-        public bool RequireIoc => _transports.Values.Any(p => p.NeedIoc);
 
         public ServiceBuilder<TService> Service<TService>()
         {
@@ -134,44 +171,17 @@ namespace Astral.Configuration.Builders
             if (!type.IsInterface)
                 throw new ArgumentException($"{type} must be interface");
             var builder = BookBuilder.GetSubBookBuilder(type, b => b.AddServiceLaws(type));
-            return new ServiceBuilder<TService>(LoggerFactory, builder);
+            return new ServiceBuilder<TService>(ServiceProvider, builder);
         }
 
-        public IBus Build(IServiceProvider serviceProvider = null)
+        internal BusConfig Build()
         {
-            return Build(serviceProvider, (lf, cfg) => new Bus(lf, cfg));
-        }
-
-        public TBus Build<TBus>(IServiceProvider serviceProvider,
-            Func<ILoggerFactory, BusConfig, TBus> busFactory)
-            where TBus : Bus
-           
-        {
-            if(RequireIoc && serviceProvider == null)
-                throw new InvalidConfigurationException("Bus required ioc for work");
             if(_transports.Count == 0)
                 throw new InvalidConfigurationException("No transport configured");
             BookBuilder.RegisterLaw(Law.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
 
-            TransportProvider transportProvider;
-            if (serviceProvider != null)
-            {
-                var scope = serviceProvider.CreateScope();
-                var ip = scope.ServiceProvider;
-                transportProvider = new TransportProvider(scope, 
-                    _transports.ToDictionary(p => p.Key, p => (p.Value.Owned, p.Value.Precreated, new Lazy<IRpcTransport>(() => p.Value.Factory(ip), LazyThreadSafetyMode.ExecutionAndPublication))));
-            }
-            else
-                transportProvider = new TransportProvider(Disposable.Empty, 
-                    _transports.ToDictionary(p => p.Key, p => (p.Value.Owned, p.Value.Precreated, new Lazy<IRpcTransport>(() => p.Value.Factory(null), LazyThreadSafetyMode.ExecutionAndPublication))));
-            return busFactory(serviceProvider?.GetService<ILoggerFactory>() ?? BookBuilder.LoggerFactory , new BusConfig(BookBuilder.Build(),
-                _typeEncoding(_wellKnownTypes), _serializer, 
-                transportProvider));
-        }
-
-        internal static string NormalizeTag(string tag)
-        {
-            return string.IsNullOrWhiteSpace(tag) ? "" : tag;
+            var transportProvider = new TransportProvider(new ReadOnlyDictionary<(string, bool), DisposableValue<IRpcTransport>>(_transports));
+            return new BusConfig(BookBuilder.Build(), _typeEncoding(_wellKnownTypes), _serializer, transportProvider, ServiceProvider);
         }
     }
 }

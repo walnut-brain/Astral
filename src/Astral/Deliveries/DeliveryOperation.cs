@@ -1,29 +1,49 @@
 ﻿using System;
 using System.Security.Permissions;
+using Astral.Configuration.Settings;
 using Astral.Contracts;
 
 namespace Astral.Deliveries
 {
     public abstract class DeliveryOperation
     {
-        public SystemName System { get; }
-        public TransportTag Transport { get; }
-        public OperationName Operation { get; }
-
-        public class Send : DeliveryOperation
+        private DeliveryOperation()
         {
-            
         }
 
-        public class SendWithReply : DeliveryOperation
+        public class SendType : DeliveryOperation
+        { 
+            internal SendType()
+            {
+            }
+        }
+
+        public class SendWithReplyType : DeliveryOperation
         {
+            internal SendWithReplyType(DeliveryReplyTo replyTo) 
+            {
+                ReplyTo = replyTo;
+            }
+
             public DeliveryReplyTo ReplyTo { get; }
         }
 
-        public class Reply : DeliveryOperation
+        public class ReplyType : DeliveryOperation
         {
+            internal ReplyType(DeliveryReplyTo replyTo, string requestCorrelationId) 
+            {
+                ReplyTo = replyTo;
+                RequestCorrelationId = requestCorrelationId;
+            }
+
             public DeliveryReplyTo ReplyTo { get; }    
             public string RequestCorrelationId { get; }
         }
+
+        public static readonly DeliveryOperation Send = new SendType();
+        public static DeliveryOperation SendWithReply(DeliveryReplyTo replyTo) => new SendWithReplyType(replyTo);
+
+        public static DeliveryOperation Reply(DeliveryReplyTo replyTo, string requestCorrelationId)
+            => new ReplyType(replyTo, requestCorrelationId);
     }
 }

@@ -13,7 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Astral.Core\Astral.Core.csproj" />
     <ProjectReference Include="..\Lawium\Lawium.csproj" />
-    <ProjectReference Include="..\CsFun\CsFun.csproj" />
+    <ProjectReference Include="..\FunEx\FunEx.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyInjection\" />

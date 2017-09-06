@@ -95,9 +95,9 @@ namespace Astral.Transport
             
         }
         
-        public static ResponseTo System = new SystemClass();
+        public static readonly ResponseTo System = new SystemClass();
         public static ResponseTo Named(string name) => new NamedClass(name);
-        public static ResponseTo Instance = new InstanceClass();
-        public static ResponseTo None = new NoneClass();
+        public static readonly ResponseTo Instance = new InstanceClass();
+        public static readonly ResponseTo None = new NoneClass();
     }
 }

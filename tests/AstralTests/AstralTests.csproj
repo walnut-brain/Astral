@@ -76,12 +76,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Payloads\ChieldTestContract.cs" />
-    <Compile Include="Payloads\DataContracts\ToContract.cs" />
-    <Compile Include="Payloads\DataContracts\ToType.cs" />
-    <Compile Include="Payloads\PayloadTests.cs" />
-    <Compile Include="Payloads\SerializationTests.cs" />
-    <Compile Include="Payloads\TestContract.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -94,9 +88,9 @@
       <Project>{7875a996-54b0-473a-afb6-893ef2b02463}</Project>
       <Name>Astral</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\CsFun\CsFun.csproj">
-      <Project>{3c5e75bd-7f85-475d-b759-7ceec6214047}</Project>
-      <Name>CsFun</Name>
+    <ProjectReference Include="..\..\src\FunEx\FunEx.csproj">
+      <Project>{9134073c-9241-4c02-82ba-508b9cd9e400}</Project>
+      <Name>FunEx</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Lawium\Lawium.csproj">
       <Project>{c476ad2f-5a76-44a4-b40c-507bf1a216e5}</Project>

@@ -14,28 +14,7 @@ namespace Astral
     /// </summary>
     public static class BusServiceExtensions
     {
-        /// <summary>
-        ///     Publish event asynchronius
-        /// </summary>
-        /// <param name="service">bus service to publish</param>
-        /// <param name="selector">event selector expression</param>
-        /// <param name="event">published event</param>
-        /// <param name="options">publicashion options</param>
-        /// <typeparam name="TService">service type</typeparam>
-        /// <typeparam name="TTransport">transport type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>awaitable task</returns>
-        public static Task PublishAsync<TService, TEvent>(this BusService<TService> service,
-            Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
-            EventPublishOptions options = null, CancellationToken token = default(CancellationToken)) where TService : class
-        {
-            var endpointConfig = service.Config.Endpoint(selector);
-            return Operations.PublishEventAsync(service.Logger, endpointConfig,
-                endpointConfig.ContentType,
-                endpointConfig.Transport.PreparePublish<TEvent>,
-                @event,
-                options, token);
-        }
+        
 
 
         /// <summary>

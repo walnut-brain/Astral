@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CsFun;
+using FunEx;
 using Microsoft.Extensions.Logging;
 
 namespace Lawium
