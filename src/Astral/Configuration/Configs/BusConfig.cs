@@ -1,21 +1,25 @@
 using System;
-using System.Linq;
-using System.Reflection;
-using Astral.Configuration.Settings;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
 using Lawium;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.Configuration.Configs
 {
     public class BusConfig : ConfigBase, IDisposable
     {
-
-        internal BusConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transportProvider, IServiceProvider provider) : base(lawBook, provider)
+        internal BusConfig(LawBook lawBook, 
+            TypeEncoding typeEncoding, 
+            Serializer<byte[]> serializer, 
+            TransportProvider transportProvider, 
+            IServiceProvider serviceProvider) : base(lawBook, p =>
         {
-            Transports = transportProvider;
-            TypeEncoding = typeEncoding;
-            Serializer = serializer;
+            if (p == typeof(TypeEncoding)) return typeEncoding;
+            if (p == typeof(Serializer<byte[]>)) return serializer;
+            if (p == typeof(TransportProvider)) return transportProvider;
+            return serviceProvider.GetService(p);
+        })
+        {
         }
 
         public ServiceConfig<TService> Service<TService>()
@@ -30,17 +34,12 @@ namespace Astral.Configuration.Configs
             var book = LawBook
                 .GetOrAddSubBook(serviceType, b => b.AddServiceLaws(serviceType)).Result;
             var cfgType = typeof(ServiceConfig<>).MakeGenericType(serviceType);
-            return (ServiceConfig) Activator.CreateInstance(cfgType, book, TypeEncoding, Serializer, Transports);
+            return (ServiceConfig) Activator.CreateInstance(cfgType, this);
         }
         
-        public TypeEncoding TypeEncoding { get; }
-        public Serializer<byte[]> Serializer { get; }
-        
-        internal TransportProvider Transports { get; }
-
         public void Dispose()
         {
-            Transports.Dispose();
+            this.GetService<TransportProvider>().Dispose();
         }
     }
 }

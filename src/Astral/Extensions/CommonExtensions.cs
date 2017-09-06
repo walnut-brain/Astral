@@ -31,5 +31,8 @@ namespace Astral
                 string.Compare(contentType.MediaType, p, StringComparison.InvariantCultureIgnoreCase) == 0);
         }
 
+        /*public static Option<T> TryGet<T>(this IServiceProvider provider)
+            => provider.GetService(typeof(T)).ToOption().OfType<T>();*/
+
     }
 }

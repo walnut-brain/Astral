@@ -8,20 +8,14 @@ using Astral.Payloads.Serialization;
 using Astral.Transport;
 using FunEx;
 using Lawium;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.Configuration.Configs
 {
     public class EndpointConfig : ConfigBase
     {
-        public TypeEncoding TypeEncoding { get; }
-        public Serializer<byte[]> Serializer { get; }
-        internal TransportProvider Transports { get; }
-
-        internal EndpointConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transports, IServiceProvider provider) : base(lawBook, provider)
+        internal EndpointConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider.GetService)
         {
-            TypeEncoding = typeEncoding;
-            Serializer = serializer;
-            Transports = transports;
         }
 
         public Type ServiceType => this.Get<ServiceType>().Value;
@@ -39,7 +33,7 @@ namespace Astral.Configuration.Configs
                 var tag = selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null));
                 var contentType = selector.Map(p => p.Item2).OrElse(() => TryGet<SerailizationContentType>().Map(p => p.Value))
                     .Unwrap(new InvalidConfigurationException($"For {ServiceType}  {PropertyInfo.Name} not setted content type of transport"));
-                return (Transports.GetTransport(tag).Unwrap(), tag, contentType);
+                return (this.GetService<TransportProvider>().GetTransport(tag).Unwrap(), tag, contentType);
 
             }
         }
@@ -51,7 +45,7 @@ namespace Astral.Configuration.Configs
                 var tag = selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null));
                 var contentType = selector.Map(p => p.Item2).OrElse(() => TryGet<SerailizationContentType>().Map(p => p.Value))
                     .Unwrap(new InvalidConfigurationException($"For {ServiceType}  {PropertyInfo.Name} not setted content type of transport {tag}"));
-                return (Transports.GetRpcTransport(tag).Unwrap(), tag, contentType);
+                return (this.GetService<TransportProvider>().GetRpcTransport(tag).Unwrap(), tag, contentType);
 
             }
         }

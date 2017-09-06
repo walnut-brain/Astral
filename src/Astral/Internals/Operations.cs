@@ -15,7 +15,7 @@ namespace Astral.Internals
     internal static class Operations
     {
         
-
+        /*
         internal static IDisposable ListenEvent<TEvent>(ILogger logger, EndpointConfig config,
             RawMessageSubscribe  subscribe, 
             IEventListener<TEvent> eventListener,
@@ -50,7 +50,7 @@ namespace Astral.Internals
             }
         }
 
-        /*
+
         public static Action EnqueueManual<TStore, TEvent>(ILogger logger, IDeliveryDataService<TStore> dataService,
             EndpointConfig config, PreparePublish<TEvent> preparePublish, TEvent @event, DeliveryManager<TStore> manager,
             EventPublishOptions options = null)

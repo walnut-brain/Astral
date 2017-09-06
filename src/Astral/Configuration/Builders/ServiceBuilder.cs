@@ -9,14 +9,14 @@ namespace Astral.Configuration.Builders
 {
     public abstract class ServiceBuilder : BuilderBase
     {
-        protected ServiceBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider, bookBuilder)
+        protected ServiceBuilder(LawBookBuilder bookBuilder) : base(bookBuilder)
         {
         }
     }
 
     public class ServiceBuilder<TService> : ServiceBuilder
     {
-        internal ServiceBuilder(IServiceProvider provider, LawBookBuilder bookBuilder) : base(provider, bookBuilder)
+        internal ServiceBuilder(LawBookBuilder bookBuilder) : base(bookBuilder)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Astral.Configuration.Builders
             var propertyInfo = selector.GetProperty();
             var builder = BookBuilder.GetSubBookBuilder(propertyInfo.Name,
                 b => b.AddEndpointLaws(propertyInfo));
-            return new EventEndpointBuilder<TEvent>(ServiceProvider, builder);
+            return new EventEndpointBuilder<TEvent>(builder);
         }
 
         public CallEndpointBuilder<TArgs> Endpoint<TArgs>(Expression<Func<TService, ICall<TArgs>>> selector)
@@ -33,7 +33,7 @@ namespace Astral.Configuration.Builders
             var propertyInfo = selector.GetProperty();
             var builder = BookBuilder.GetSubBookBuilder(propertyInfo.Name,
                 b => b.AddEndpointLaws(propertyInfo));
-            return new CallEndpointBuilder<TArgs>(ServiceProvider, builder);
+            return new CallEndpointBuilder<TArgs>(builder);
         }
 
         public CallEndpointBuilder<TArgs, TResult> Endpoint<TArgs, TResult>(
@@ -42,7 +42,7 @@ namespace Astral.Configuration.Builders
             var propertyInfo = selector.GetProperty();
             var builder = BookBuilder.GetSubBookBuilder(propertyInfo.Name,
                 b => b.AddEndpointLaws(propertyInfo));
-            return new CallEndpointBuilder<TArgs, TResult>(ServiceProvider, builder);
+            return new CallEndpointBuilder<TArgs, TResult>(builder);
         }
     }
 }

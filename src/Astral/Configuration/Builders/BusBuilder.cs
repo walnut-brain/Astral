@@ -24,25 +24,19 @@ namespace Astral.Configuration.Builders
         private WellKnownTypes _wellKnownTypes = WellKnownTypes.Default;
         private Func<WellKnownTypes, TypeEncoding> _typeEncoding = TypeEncoding.Default;
 
-        private Serializer<byte[]> _serializer = new Serializer<byte[]>(Serialization.JsonRawSerializeProvider(new JsonSerializerSettings
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
-        }), Serialization.JsonRawDeserializeProvider(new JsonSerializerSettings
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
-        }));
+        private Serializer<byte[]> _serializer = Serializer.JsonRaw;
 
-        
+        private IServiceProvider ServiceProvider { get; }
 
         private readonly Dictionary<(string Tag, bool IsFull), DisposableValue<IRpcTransport>>
             _transports = new Dictionary<(string Tag, bool IsFull), DisposableValue<IRpcTransport>>();
 
 
-        internal BusBuilder(IServiceProvider provider, string systemName) : base(
-            provider, new LawBookBuilder(provider.GetService<ILoggerFactory>()))
+        internal BusBuilder(IServiceProvider provider, string systemName) : base(new LawBookBuilder(provider.GetService<ILoggerFactory>()))
         {
             if (systemName == null) throw new ArgumentNullException(nameof(systemName));
             BookBuilder.RegisterLaw(Law.Axiom(new SystemName(systemName)));
+            ServiceProvider = provider;
         }
 
         public BusBuilder SetWellKnownTypes(WellKnownTypes wellKnownTypes)
@@ -171,7 +165,7 @@ namespace Astral.Configuration.Builders
             if (!type.IsInterface)
                 throw new ArgumentException($"{type} must be interface");
             var builder = BookBuilder.GetSubBookBuilder(type, b => b.AddServiceLaws(type));
-            return new ServiceBuilder<TService>(ServiceProvider, builder);
+            return new ServiceBuilder<TService>(builder);
         }
 
         internal BusConfig Build()

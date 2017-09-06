@@ -10,17 +10,14 @@ namespace Astral.Configuration.Builders
     /// </summary>
     public abstract class BuilderBase
     {
-        protected IServiceProvider ServiceProvider { get; }
+        
 
         /// <summary>
         ///     constructor
         /// </summary>
-        /// <param name="serviceProvider">service provider</param>
         /// <param name="bookBuilder">law builder to use</param>
-        protected BuilderBase(IServiceProvider serviceProvider, LawBookBuilder bookBuilder)
+        protected BuilderBase(LawBookBuilder bookBuilder)
         {
-            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            LoggerFactory = serviceProvider.GetService<ILoggerFactory>() ?? bookBuilder.LoggerFactory;
             Logger = LoggerFactory.CreateLogger(GetType());
             BookBuilder = bookBuilder;
         }
@@ -28,7 +25,7 @@ namespace Astral.Configuration.Builders
         /// <summary>
         ///     logger factory
         /// </summary>
-        public ILoggerFactory LoggerFactory { get; }
+        public ILoggerFactory LoggerFactory => BookBuilder.LoggerFactory;
 
         /// <summary>
         ///     logger
@@ -44,9 +41,6 @@ namespace Astral.Configuration.Builders
         ///     add law to configuration
         /// </summary>
         /// <param name="law">law</param>
-        public void AddLaw(Law law)
-        {
-            BookBuilder.RegisterLaw(law);
-        }
+        public void AddLaw(Law law) => BookBuilder.RegisterLaw(law);
     }
 }

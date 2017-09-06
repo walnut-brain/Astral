@@ -11,14 +11,8 @@ namespace Astral.Configuration.Configs
 {
     public abstract class ServiceConfig : ConfigBase
     {
-        public TypeEncoding TypeEncoding { get; }
-        public Serializer<byte[]> Serializer { get; }
-
-        internal ServiceConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transports, IServiceProvider provider) : base(lawBook, provider)
+        internal ServiceConfig(LawBook lawBook, IServiceProvider provider) : base(lawBook, provider.GetService)
         {
-            TypeEncoding = typeEncoding;
-            Serializer = serializer;
-            Transports = transports;
         }
 
         public Type ServiceType => this.Get<ServiceType>().Value;
@@ -35,15 +29,14 @@ namespace Astral.Configuration.Configs
         protected EndpointConfig Endpoint(PropertyInfo propertyInfo)
         {
             var book = LawBook.GetOrAddSubBook(propertyInfo.Name, b => b.AddEndpointLaws(propertyInfo)).Result;
-            return new EndpointConfig(book, TypeEncoding, Serializer, Transports, Provider);
+            return new EndpointConfig(book, this);
         }
         
-        internal TransportProvider Transports { get; }
     }
 
     public class ServiceConfig<T> : ServiceConfig
     {
-        internal ServiceConfig(LawBook lawBook, TypeEncoding typeEncoding, Serializer<byte[]> serializer, TransportProvider transportProvider, IServiceProvider provider) : base(lawBook, typeEncoding, serializer, transportProvider, provider)
+        internal ServiceConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
         {
         }
 

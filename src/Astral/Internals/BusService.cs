@@ -9,6 +9,8 @@ using Astral.Contracts;
 using Astral.Data;
 using Astral.Deliveries;
 using Astral.Payloads;
+using Astral.Payloads.DataContracts;
+using Astral.Payloads.Serialization;
 using Astral.Transport;
 using FunEx;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,13 +48,13 @@ namespace Astral.Internals
         {
             var endpointConfig = Config.Endpoint(selector);
             var (transport, tag, contentType) = endpointConfig.Transport;
-            var deliveryManager = Config.Provider.GetRequiredService<BoundDeliveryManager<TStore>>();
+            var deliveryManager = Config.GetRequiredService<BoundDeliveryManager<TStore>>();
             var messageTtl = options?.MessageTtl ??
                              endpointConfig.TryGet<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
             var afterCommit = (options?.AfterCommit).ToOption()
                 .OrElse(() => endpointConfig.TryGet<AfterCommitDelivery>().Map(p => p.Value))
                 .IfNone(DeliveryAfterCommit.Send(DeliveryOnSuccess.Delete));
-            var toPayloadOptions = new ToPayloadOptions<byte[]>(contentType, endpointConfig.TypeEncoding.ToContract, endpointConfig.Serializer.Serialize);
+            var toPayloadOptions = GetToPayloadOptions(contentType, endpointConfig);
 
 
             var poptions = new PublishOptions(messageTtl, ResponseTo.None, null);
@@ -72,9 +74,7 @@ namespace Astral.Internals
             {
 
                 var serialized = Payload
-                    .ToPayload(@event,
-                        new ToPayloadOptions<byte[]>(contentType, config.TypeEncoding.ToContract,
-                            config.Serializer.Serialize))
+                    .ToPayload(@event, GetToPayloadOptions(contentType, config))
                     .Unwrap();
 
                 var poptions = new PublishOptions(
@@ -89,5 +89,11 @@ namespace Astral.Internals
             return Logger.LogActivity(Publish, "event {service} {endpoint}", config.ServiceType,
                 config.PropertyInfo.Name);
         }
+
+        private ToPayloadOptions<byte[]> GetToPayloadOptions(ContentType contentType, EndpointConfig config)
+            => new ToPayloadOptions<byte[]>(
+                contentType,
+                config.GetService<TypeEncoding>().ToContract,
+                config.GetService<Serializer<byte[]>>().Serialize);
     }
 }
