@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Xml.Linq;
 using FunEx;
 
 namespace Astral.Payloads.DataContracts
@@ -14,6 +15,30 @@ namespace Astral.Payloads.DataContracts
             }
 
             return Make;
+        }
+
+        public static Func<Func<Type, Result<string>>, Func<Type, Result<string>>> Lift(
+            Func<Type, Result<string>> lifting) => _ => lifting;
+
+        public static Func<Func<Type, Result<string>>, Func<Type, Result<string>>> Fallback(
+            this Func<Func<Type, Result<string>>, Func<Type, Result<string>>> source,
+            Func<Func<Type, Result<string>>, Func<Type, Result<string>>> fallback)
+            => p => (t => source(p)(t).OrElse(() => source(p)(t)));
+
+        public static Func<Type, Result<string>> Loopback(Func<Func<Type, Result<string>>, Func<Type, Result<string>>> source)
+        {
+            Result<string> Make(Type type)
+            {
+                Result<string> Checked(Type tt)
+                {
+                    if (tt == type)
+                        return new RecursiveResolutionException(tt);
+                    return Make(tt);
+
+                }
+                    
+                return source(Checked)(type);
+            }
         }
 
         public static TypeToContract Fallback(this TypeToContract source, TypeToContract fallback)
