@@ -6,7 +6,7 @@ namespace Astral.Configuration.Builders
 {
     public class EventEndpointBuilder<TEvent> : EndpointBuilder
     {
-        internal EventEndpointBuilder(LawBookBuilder bookBuilder) : base(bookBuilder)
+        internal EventEndpointBuilder(LawBookBuilder<Fact> bookBuilder) : base(bookBuilder)
         {
         }
     }

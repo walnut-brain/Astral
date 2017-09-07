@@ -11,7 +11,7 @@ namespace Astral.Configuration.Configs
 {
     public abstract class ServiceConfig : ConfigBase
     {
-        internal ServiceConfig(LawBook lawBook, IServiceProvider provider) : base(lawBook, provider.GetService)
+        internal ServiceConfig(LawBook<Fact> lawBook, IServiceProvider provider) : base(lawBook, provider.GetService)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Astral.Configuration.Configs
 
     public class ServiceConfig<T> : ServiceConfig
     {
-        internal ServiceConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
+        internal ServiceConfig(LawBook<Fact> lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
         {
         }
 

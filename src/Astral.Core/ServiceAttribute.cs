@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Reflection;
+using Astral.Configuration;
 using Astral.Configuration.Settings;
 
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Interface)]
-    public class ServiceAttribute : Attribute, IAstralAttribute
+    public class ServiceAttribute : Attribute, IConfigAttribute
     {
         public ServiceAttribute(string name)
         {
@@ -14,7 +15,7 @@ namespace Astral
 
         public string Name { get; }
 
-        public (Type, object) GetConfigElement(MemberInfo applyedTo)
-            => (typeof(ServiceName), new ServiceName(Name));
+        public Fact[] GetConfigElements(MemberInfo applyedTo)
+            => new Fact[] {new ServiceName(Name)};
     }
 }

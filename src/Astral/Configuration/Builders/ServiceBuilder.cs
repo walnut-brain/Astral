@@ -9,14 +9,14 @@ namespace Astral.Configuration.Builders
 {
     public abstract class ServiceBuilder : BuilderBase
     {
-        protected ServiceBuilder(LawBookBuilder bookBuilder) : base(bookBuilder)
+        protected ServiceBuilder(LawBookBuilder<Fact> bookBuilder) : base(bookBuilder)
         {
         }
     }
 
     public class ServiceBuilder<TService> : ServiceBuilder
     {
-        internal ServiceBuilder(LawBookBuilder bookBuilder) : base(bookBuilder)
+        internal ServiceBuilder(LawBookBuilder<Fact> bookBuilder) : base(bookBuilder)
         {
         }
 

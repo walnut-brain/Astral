@@ -32,10 +32,10 @@ namespace Astral.Configuration.Builders
             _transports = new Dictionary<(string Tag, bool IsFull), DisposableValue<IRpcTransport>>();
 
 
-        internal BusBuilder(IServiceProvider provider, string systemName) : base(new LawBookBuilder(provider.GetService<ILoggerFactory>()))
+        internal BusBuilder(IServiceProvider provider, string systemName) : base(new LawBookBuilder<Fact>(provider.GetService<ILoggerFactory>()))
         {
             if (systemName == null) throw new ArgumentNullException(nameof(systemName));
-            BookBuilder.RegisterLaw(Law.Axiom(new SystemName(systemName)));
+            BookBuilder.RegisterLaw(Law<Fact>.Axiom(new SystemName(systemName)));
             ServiceProvider = provider;
         }
 
@@ -172,7 +172,7 @@ namespace Astral.Configuration.Builders
         {
             if(_transports.Count == 0)
                 throw new InvalidConfigurationException("No transport configured");
-            BookBuilder.RegisterLaw(Law.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
+            BookBuilder.RegisterLaw(Law<Fact>.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
 
             var transportProvider = new TransportProvider(new ReadOnlyDictionary<(string, bool), DisposableValue<IRpcTransport>>(_transports));
             return new BusConfig(BookBuilder.Build(), _typeEncoding(_wellKnownTypes), _serializer, transportProvider, ServiceProvider);

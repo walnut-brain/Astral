@@ -9,7 +9,7 @@ using FunEx;
 
 namespace Lawium
 {
-	public partial class Law
+	public partial class Law<T>
     {
 <# 
 	for(var i = 1; i < 8; i++)
@@ -19,7 +19,7 @@ namespace Lawium
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law Create<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><# for(var i1 = 1; i1 <= j; i1++) {#>TO<#=i1 < j ? $"{i1}, " : $"{i1}" #><#}#>>(string name, Func<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><#
+		public static Law<T> Create<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><# for(var i1 = 1; i1 <= j; i1++) {#>TO<#=i1 < j ? $"{i1}, " : $"{i1}" #><#}#>>(string name, Func<<# for(var i1 = 1; i1 <= i; i1++) {#>TI<#=i1#>, <#}#><#
 		    if (j == 1)
 		    {
 		        #>TO1<#
@@ -30,7 +30,12 @@ namespace Lawium
 		    }
 		
 		
-		#>> execute)
+		#>> execute)<# for(var i1 = 1; i1 <= i; i1++) {#>
+		    
+		    where TI<#=i1#> : T<#}#><# for(var i1 = 1; i1 <= j; i1++) {#>
+		    
+		    where TO<#=i1#> : T<#}#>
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -56,7 +61,7 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(<#for(var k = 1; k < i; k++) {#>typeof(TI<#=k#>), <# } #>typeof(TI<#=i#>));
 			var outArr = ImmutableArray.Create(<#for(var k = 1; k < j; k++) {#>typeof(TO<#=k#>), <# } #>typeof(TO<#=j#>));
 
-			return new Law(name, inArr, outArr, Calc);
+			return new Law<T>(name, inArr, outArr, Calc);
 		}
 
 <#

@@ -3,11 +3,20 @@ using System.Collections.Generic;
 
 namespace Astral
 {
+
+    /// <summary>
+    /// Base class for typed law axioms
+    /// </summary>
+    public abstract class Fact
+    {
+        internal Fact() {}
+    }
+    
     /// <summary>
     /// Implementation of base class for typed Law values
     /// </summary>
     /// <typeparam name="T">type of value</typeparam>
-    public abstract class Fact<T> 
+    public abstract class Fact<T> : Fact 
     {
         /// <summary>
         /// constructor

@@ -11,20 +11,20 @@ namespace Astral.Configuration.Configs
     {
         private readonly Func<Type, object> _provider;
 
-        public ConfigBase(LawBook lawBook, Func<Type, object> provider)
+        public ConfigBase(LawBook<Fact> lawBook, Func<Type, object> provider)
         {
             _provider = provider;
             LawBook = lawBook;
             Logger = LoggerFactory.CreateLogger(GetType());
         }
 
-        protected LawBook LawBook { get; }
+        protected LawBook<Fact> LawBook { get; }
         public ILoggerFactory LoggerFactory => LawBook.LoggerFactory;
         protected ILogger Logger { get; }
 
         public object GetService(Type serviceType) => _provider(serviceType);
 
-        public Option<T> TryGet<T>()
+        public Option<T> TryGet<T>() where T : Fact
         {
             return LawBook.TryGet<T>();
         }

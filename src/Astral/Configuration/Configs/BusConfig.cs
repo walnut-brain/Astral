@@ -8,7 +8,7 @@ namespace Astral.Configuration.Configs
 {
     public class BusConfig : ConfigBase, IDisposable
     {
-        internal BusConfig(LawBook lawBook, 
+        internal BusConfig(LawBook<Fact> lawBook, 
             TypeEncoding typeEncoding, 
             Serializer<byte[]> serializer, 
             TransportProvider transportProvider, 

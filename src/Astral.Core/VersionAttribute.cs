@@ -1,11 +1,12 @@
 using System;
 using System.Reflection;
+using Astral.Configuration;
 using Astral.Configuration.Settings;
 
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
-    public class VersionAttribute : Attribute, IAstralAttribute
+    public class VersionAttribute : Attribute, IConfigAttribute
     {
         public VersionAttribute(string version)
         {
@@ -14,10 +15,10 @@ namespace Astral
 
         public Version Version { get; }
 
-        public (Type, object) GetConfigElement(MemberInfo applyedTo)
+        public Fact[] GetConfigElements(MemberInfo applyedTo)
         {
             if (applyedTo is TypeInfo ti && ti.IsInterface)
-                return (typeof(ServiceVersion), new ServiceVersion(Version));
+                return new Fact[] { new ServiceVersion(Version) };
             throw new NotImplementedException();
         }
     }

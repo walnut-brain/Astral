@@ -10,20 +10,20 @@ namespace Lawium
     /// <summary>
     /// Result of law inference
     /// </summary>
-    public class LawBook
+    public class LawBook<T>
     {
         private readonly string _path;
-        private readonly IReadOnlyCollection<Law> _laws;
-        private readonly IReadOnlyDictionary<Type, object> _facts;
-        private readonly Dictionary<object, Task<LawBook>> _subBooks = new Dictionary<object, Task<LawBook>>();
+        private readonly IReadOnlyCollection<Law<T>> _laws;
+        private readonly IReadOnlyDictionary<Type, T> _facts;
+        private readonly Dictionary<object, Task<LawBook<T>>> _subBooks = new Dictionary<object, Task<LawBook<T>>>();
         private readonly ReaderWriterLockSlim _locker = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         internal LawBook(
             ILoggerFactory loggerFactory,
             string path, 
-            IReadOnlyCollection<Law> laws, 
-            IReadOnlyDictionary<Type, object> facts,
-            IReadOnlyDictionary<object, LawBook> subBooks)
+            IReadOnlyCollection<Law<T>> laws, 
+            IReadOnlyDictionary<Type, T> facts,
+            IReadOnlyDictionary<object, LawBook<T>> subBooks)
         {
             LoggerFactory = loggerFactory;
             _path = path;
@@ -46,8 +46,38 @@ namespace Lawium
         /// </summary>
         /// <param name="type">key type</param>
         /// <returns>Some value or none</returns>
-        public Option<object> TryGet(Type type)
+        public Option<T> TryGet(Type type)
             => _facts.TryGetValue(type);
+        
+        /// <summary>
+        /// Try get value from LawBook
+        /// </summary>
+        /// <typeparam name="TKey">key type</typeparam>
+        /// <returns>Some with value when available, else None</returns>
+        public Option<TKey> TryGet<TKey>()
+            where TKey : T
+            => TryGet(typeof(TKey)).OfType<TKey>();
+        
+        /// <summary>
+        /// Try get value from LawBook
+        /// </summary>
+        /// <typeparam name="TKey">key type</typeparam>
+        /// <param name="value">value or default(T)</param>
+        /// <returns>true if found</returns>
+        public bool TryGet<TKey>(out TKey value)
+            where TKey : T
+        {
+            var result = TryGet<TKey>().Match(p => (true, p), () => (false, default(TKey)));
+            value = result.Item2;
+            return result.Item1;
+        }
+        
+        /// <summary>
+        /// Get value from book or throw
+        /// </summary>
+        /// <typeparam name="TKey">key type</typeparam>
+        /// <returns>value</returns>
+        public TKey Get<TKey>() where TKey : T => TryGet<TKey>().Unwrap();
 
         /// <summary>
         /// Dynamic add chield law book
@@ -55,7 +85,7 @@ namespace Lawium
         /// <param name="key">chield book key</param>
         /// <param name="onBuild">on build parameters</param>
         /// <returns>awaitable result of build law book</returns>
-        public Task<LawBook> GetOrAddSubBook(object key, Action<LawBookBuilder> onBuild = null)
+        public Task<LawBook<T>> GetOrAddSubBook(object key, Action<LawBookBuilder<T>> onBuild = null)
         {
             onBuild = onBuild ?? (_ => {});
             
@@ -74,7 +104,7 @@ namespace Lawium
             {
                 if (_subBooks.TryGetValue(key, out var task))
                     return task;
-                var builder = new LawBookBuilder(LoggerFactory, () => _laws, _path + "/" + key);
+                var builder = new LawBookBuilder<T>(LoggerFactory, () => _laws, _path + "/" + key);
                 onBuild(builder);
                 task = Task.Factory.StartNew(() => builder.Build(), TaskCreationOptions.LongRunning);
                 _subBooks.Add(key, task);

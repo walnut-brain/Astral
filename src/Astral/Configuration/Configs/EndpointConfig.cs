@@ -14,14 +14,14 @@ namespace Astral.Configuration.Configs
 {
     public class EndpointConfig : ConfigBase
     {
-        internal EndpointConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider.GetService)
+        internal EndpointConfig(LawBook<Fact> lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider.GetService)
         {
         }
 
         public Type ServiceType => this.Get<ServiceType>().Value;
         public string ServiceName => this.Get<ServiceName>().Value;
         public PropertyInfo PropertyInfo => this.Get<EndpointMember>().Value;
-        public EndpointType EndpointType => this.Get<EndpointType>();
+        public EndpointType EndpointType => this.Get<EndpointKind>().Value;
         public Type MessageType => this.Get<MessageType>().Value;
         public string EndpointName => this.Get<EndpointName>().Value;
 

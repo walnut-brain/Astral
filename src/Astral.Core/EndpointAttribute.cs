@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using Astral.Configuration;
 using Astral.Configuration.Settings;
+using Astral.Schema;
 
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class EndpointAttribute : Attribute, IAstralAttribute
+    public class EndpointAttribute : Attribute, IConfigAttribute
     {
         public EndpointAttribute(string name)
         {
@@ -14,8 +16,7 @@ namespace Astral
 
         public string Name { get; }
 
-        public (Type, object) GetConfigElement(MemberInfo applyedTo)
-            => (typeof(EndpointName), new EndpointName(Name));
-
+        public Fact[] GetConfigElements(MemberInfo applyedTo)
+            => new Fact[] {  new EndpointName(Name) };
     }
 }

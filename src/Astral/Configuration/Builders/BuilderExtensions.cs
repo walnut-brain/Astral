@@ -14,7 +14,7 @@ namespace Astral.Configuration.Builders
         public static TBuilder CleanSameKeyDelivery<TBuilder>(this TBuilder builder, bool clean)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new CleanSameKeyDelivery(clean)));
+            builder.AddLaw(Law<Fact>.Axiom(new CleanSameKeyDelivery(clean)));
             return builder;
         }
 
@@ -23,32 +23,32 @@ namespace Astral.Configuration.Builders
         public static TBuilder DeliveryExceptionPolicy<TBuilder>(this TBuilder builder, Policy policy)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom<DeliveryExceptionPolicy>(new DeliveryExceptionPolicy(policy)));
+            builder.AddLaw(Law<Fact>.Axiom(new DeliveryExceptionPolicy(policy)));
             return builder;
         }
 
         public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, AfterCommitDelivery action)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new AfterCommitDelivery(action)));
+            builder.AddLaw(Law<Fact>.Axiom(new AfterCommitDelivery(action)));
             return builder;
         }
 
         public static BusBuilder MessageKeyExtractor<TEvent>(this BusBuilder builder, Func<TEvent, string> extractKey)
         {
-            builder.AddLaw(Law.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
+            builder.AddLaw(Law<Fact>.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
             return builder;
         }
 
         public static ServiceBuilder MessageKeyExtractor<TEvent>(this ServiceBuilder builder, Func<TEvent, string> extractKey)
         {
-            builder.AddLaw(Law.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
+            builder.AddLaw(Law<Fact>.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
             return builder;
         }
 
         public static EventEndpointBuilder<TEvent> MessageKeyExtractor<TEvent>(this EventEndpointBuilder<TEvent> builder, Func<TEvent, string> extractKey)
         {
-            builder.AddLaw(Law.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
+            builder.AddLaw(Law<Fact>.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
             return builder;
         }
 
@@ -56,7 +56,7 @@ namespace Astral.Configuration.Builders
         public static TBuilder MessageTtl<TBuilder>(this TBuilder builder, TimeSpan ttl)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new MessageTtl(ttl)));
+            builder.AddLaw(Law<Fact>.Axiom(new MessageTtl(ttl)));
             return builder;
         }
 
@@ -70,7 +70,7 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-        public static TBuilder AddLaws<TBuilder>(this TBuilder builder, IEnumerable<Law> laws)
+        public static TBuilder AddLaws<TBuilder>(this TBuilder builder, IEnumerable<Law<Fact>> laws)
             where TBuilder : BuilderBase
         {
             foreach (var law in laws)

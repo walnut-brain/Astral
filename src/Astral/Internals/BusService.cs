@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Net.Mime;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
@@ -62,7 +63,9 @@ namespace Astral.Internals
 
 
             var poptions = new PublishOptions(messageTtl, ResponseTo.None, null);
-            var key = endpointConfig.TryGet<IMessageKeyExtractor<TEvent>>().Map(p => p.ExtractKey(@event))
+            var key = endpointConfig.TryGet<MessageKeyExtractor<TEvent>>()
+                .Map(p => p.Value)
+                .Map(p => p(@event))
                 .OrElse(() => (@event as IKeyProvider).ToOption().Map(p => p.Key))
                 .Filter(_ => endpointConfig.TryGet<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true));
 
@@ -118,14 +121,14 @@ namespace Astral.Internals
 
             IDisposable Listen()
             {
-                var exceptionPolicy = config.AsTry<IReciveExceptionPolicy>().RecoverTo(new DefaultExceptionPolicy());
+                var exceptionPolicy = config.AsTry<RecieveExceptionPolicy>().Map(p => p.Value).RecoverTo(p => CommonLaws.DefaultExceptionPolicy(p));
 
 
                 return subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);
             }
 
             async Task<Acknowledge> Listener(
-                Payload<byte[]> msg, EventContext ctx, CancellationToken token, IReciveExceptionPolicy exceptionPolicy)
+                Payload<byte[]> msg, EventContext ctx, CancellationToken token, Func<Exception, Acknowledge> exceptionPolicy)
             {
                 async Task<Acknowledge> Receive()
                 {
@@ -137,7 +140,7 @@ namespace Astral.Internals
 
                 return await Receive()
                     .LogResult(logger, "recive event {service} {endpoint}", config.ServiceType, config.PropertyInfo)
-                    .CorrectError(exceptionPolicy.WhenException);
+                    .CorrectError(exceptionPolicy);
             }
         }
 
