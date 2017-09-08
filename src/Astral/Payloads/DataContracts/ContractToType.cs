@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using FunEx;
+using FunEx.Monads;
 
 namespace Astral.Payloads.DataContracts
 {

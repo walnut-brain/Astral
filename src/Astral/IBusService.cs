@@ -48,6 +48,19 @@ namespace Astral
         /// <returns>dispose to unlisten</returns>
         IDisposable Listen<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector,
             IEventListener<TEvent> eventListener, EventListenOptions options = null);
+
+        /// <summary>
+        /// Deliver command
+        /// </summary>
+        /// <param name="store">store instance</param>
+        /// <param name="selector">command selector</param>
+        /// <param name="command">command</param>
+        /// <param name="options">delivery options</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable delivery guid</returns>
+        Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<T, ICall<TCommand>>> selector, TCommand command, DeliveryOptions options = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
     }
 
     public interface IBusService

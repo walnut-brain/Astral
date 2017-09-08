@@ -1,23 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using FunEx;
+using FunEx.Monads;
+using FunEx.TypeClasses;
 
 namespace Astral.Payloads.DataContracts
 {
     public static partial class Contract
     {
-        public static TypeToContract Loopback(this ComplexTypeToContract source)
-        {
-            Result<string> Make(Type type)
-            {
-                return source(type, t => t == type ? new RecursiveResolutionException(type).ToFail<string>() : Make(t));
-            }
-
-            return Make;
-        }
-
-        public static Func<Func<Type, Result<string>>, Func<Type, Result<string>>> Lift(
+        
+        public static Func<Func<Type, Option<string>>, Func<Type, Result<string>>> Lift(
             Func<Type, Result<string>> lifting) => _ => lifting;
 
         public static Func<Func<Type, Result<string>>, Func<Type, Result<string>>> Fallback(
@@ -39,7 +35,22 @@ namespace Astral.Payloads.DataContracts
                     
                 return source(Checked)(type);
             }
+
+            return Make;
         }
+        
+        
+        public static TypeToContract Loopback(this ComplexTypeToContract source)
+        {
+            Result<string> Make(Type type)
+            {
+                return source(type, t => t == type ? new RecursiveResolutionException(type).ToFail<string>() : Make(t));
+            }
+
+            return Make;
+        }
+
+        
 
         public static TypeToContract Fallback(this TypeToContract source, TypeToContract fallback)
         {

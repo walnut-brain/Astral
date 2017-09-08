@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Xunit;
 using System;
 using FunEx;
+using FunEx.Monads;
 
 namespace AstralTests.Payloads
 {

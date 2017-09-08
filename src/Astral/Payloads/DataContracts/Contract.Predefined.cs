@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using FunEx;
+using FunEx.Monads;
 
 
 namespace Astral.Payloads.DataContracts

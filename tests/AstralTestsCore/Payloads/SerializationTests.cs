@@ -3,6 +3,7 @@ using System.Net.Mime;
 using System.Text;
 using Astral;
 using FunEx;
+using FunEx.Monads;
 using Newtonsoft.Json;
 using Xunit;
 

@@ -1,5 +1,6 @@
 using Astral.Exceptions;
 using FunEx;
+using FunEx.Monads;
 
 namespace Astral.Configuration.Configs
 {

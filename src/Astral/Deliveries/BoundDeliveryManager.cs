@@ -9,6 +9,7 @@ using Astral.Data;
 using Astral.Payloads;
 using Astral.Transport;
 using FunEx;
+using FunEx.Monads;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Astral.Deliveries
@@ -38,14 +39,14 @@ namespace Astral.Deliveries
         }
 
 
-        public async Task<Guid> Prepare<T>(TStore store, T message, DeliveryPoint point, DeliveryOperation operation, TimeSpan messageTtl, DeliveryAfterCommit deliveryAfterCommit,
+        public async Task Prepare<T>(TStore store, T message, Guid deliveryId, DeliveryPoint point, DeliveryOperation operation, TimeSpan messageTtl, DeliveryAfterCommit deliveryAfterCommit,
             PayloadSender<T> sender, ToPayloadOptions<byte[]> toPayloadOptions, Option<string> key)
         {
             var service = store.DeliveryService;
             using (var work = store.BeginWork())
             {
                 key.IfSome(p => service.RemoveByKey(point.Service, point.Endpoint, p));
-                var (guid, payload) = await service.NewDelivery(message?.GetType() ?? typeof(T), message, point, operation,
+                var payload = await service.NewDelivery(message?.GetType() ?? typeof(T), message, deliveryId, point, operation,
                     messageTtl, _sponsor,
                     deliveryAfterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero :_leaseInterval + _leaseInterval);
                 switch (deliveryAfterCommit)
@@ -53,13 +54,12 @@ namespace Astral.Deliveries
                     case DeliveryAfterCommit.NoOpType _:
                         break;
                     case DeliveryAfterCommit.SendType send:
-                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(guid, payload, new Lazy<T>(() => message), send.DeliveryOnSuccess, sender, toPayloadOptions, true).Wait());
+                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(deliveryId, payload, new Lazy<T>(() => message), send.DeliveryOnSuccess, sender, toPayloadOptions, true).Wait());
                         break;
                     default:
                         throw new ArgumentOutOfRangeException($"Unknown {nameof(DeliveryAfterCommit)} - {deliveryAfterCommit}");
                 }
                 work.Commit();
-                return guid;
             }
             
         }

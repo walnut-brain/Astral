@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
-namespace FunEx
+namespace FunEx.Monads
 {
     public struct Option<T>
     {
@@ -73,6 +72,9 @@ namespace FunEx
         {
             return !left.Equals(right);
         }
+
+        public override string ToString()
+            => Match(p => $"Some({p})", () => "None");
     }
 
     public struct OptionNone
@@ -92,6 +94,22 @@ namespace FunEx
 
         public static Option<T> OrElse<T>(this Option<T> source, Func<Option<T>> fallback)
             => source.Match(p => p.ToOption(), fallback);
+
+        public static Func<Option<TResult>> Combine<TSource, TResult>(
+            this Func<Option<TSource>> f1, Func<TSource, Option<TResult>> f2)
+            => () => f1().Bind(f2);
+        
+        public static Func<TSource, Option<TResult>> Combine<TSource, TMiddle, TResult>(
+            this Func<TSource, Option<TMiddle>> f1, Func<TMiddle, Option<TResult>> f2)
+            => source => f1(source).Bind(f2);
+
+        public static Func<Option<T>> Fallback<T>(this Func<Option<T>> f1, Func<Option<T>> f2)
+            => () => f1().OrElse(f2);
+
+        public static Func<T, Option<TResult>> Fallback<T, TResult>(this Func<T, Option<TResult>> f1,
+            Func<T, Option<TResult>> f2)
+            => source => f1(source).OrElse(() => f2(source));
+            
 
         public static T IfNone<T>(this Option<T> source, Func<T> onNone)
             => source.Match(p => p, onNone);
@@ -124,6 +142,9 @@ namespace FunEx
             ex = ex ?? new NoResultException();
             return source.Match(p => p.ToOk(), () => ex);
         }
+        
+         
+        
 
         public static Option<TValue> TryGetValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
         {

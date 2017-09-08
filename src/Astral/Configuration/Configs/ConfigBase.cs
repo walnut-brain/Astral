@@ -2,6 +2,7 @@
 using System.Data.SqlTypes;
 using Astral.Configuration.Settings;
 using FunEx;
+using FunEx.Monads;
 using Lawium;
 using Microsoft.Extensions.Logging;
 

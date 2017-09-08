@@ -6,6 +6,7 @@ using Astral.Exceptions;
 using Astral.Transport;
 using Astral.Utils;
 using FunEx;
+using FunEx.Monads;
 
 namespace Astral.Configuration.Configs
 {

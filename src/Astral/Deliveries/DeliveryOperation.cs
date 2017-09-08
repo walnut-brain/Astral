@@ -2,6 +2,7 @@
 using System.Security.Permissions;
 using Astral.Configuration.Settings;
 using Astral.Contracts;
+using Astral.Transport;
 
 namespace Astral.Deliveries
 {
@@ -10,12 +11,16 @@ namespace Astral.Deliveries
         private DeliveryOperation()
         {
         }
+        
+        public abstract ResponseTo ResponseTo { get; } 
 
         public class SendType : DeliveryOperation
         { 
             internal SendType()
             {
             }
+
+            public override ResponseTo ResponseTo => ResponseTo.None;
         }
 
         public class SendWithReplyType : DeliveryOperation
@@ -26,6 +31,22 @@ namespace Astral.Deliveries
             }
 
             public DeliveryReplyTo ReplyTo { get; }
+
+            public override ResponseTo ResponseTo
+            {
+                get
+                {
+                    switch (ReplyTo)
+                    {
+                        case DeliveryReplyTo.SubsystemType subsystem:
+                            return ResponseTo.Named(subsystem.Name);
+                        case DeliveryReplyTo.SystemType system:
+                            return ResponseTo.System;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+            }
         }
 
         public class ReplyType : DeliveryOperation
@@ -38,6 +59,8 @@ namespace Astral.Deliveries
 
             public DeliveryReplyTo ReplyTo { get; }    
             public string RequestCorrelationId { get; }
+
+            public override ResponseTo ResponseTo => ResponseTo.None;
         }
 
         public static readonly DeliveryOperation Send = new SendType();
@@ -45,5 +68,7 @@ namespace Astral.Deliveries
 
         public static DeliveryOperation Reply(DeliveryReplyTo replyTo, string requestCorrelationId)
             => new ReplyType(replyTo, requestCorrelationId);
+        
+        
     }
 }

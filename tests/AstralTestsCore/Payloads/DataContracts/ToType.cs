@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Astral.Payloads.DataContracts;
 using FunEx;
+using FunEx.Monads;
 using Xunit;
 
 namespace AstralTests.Payloads.DataContracts

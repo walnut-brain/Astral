@@ -8,7 +8,7 @@ namespace Astral.Deliveries
 {
     public interface IDeliveryDataService<TStore>
     {
-         Task<(Guid, Payload)> NewDelivery(Type type, object message, DeliveryPoint point, DeliveryOperation operation,
+         Task<Payload> NewDelivery(Type type, object message, Guid deliveryId, DeliveryPoint point, DeliveryOperation operation,
             TimeSpan messageTtl, string sponsor, TimeSpan leaseInterval);
 
         Task CleanSponsorLeases(string sponsor);

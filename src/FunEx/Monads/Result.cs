@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FunEx
+namespace FunEx.Monads
 {
     public struct Result<T> : IEquatable<Result<T>>
     {
@@ -146,6 +146,21 @@ namespace FunEx
             => source.Match(
                 p => p, 
                 ex1 => Try(fallback).Unwrap(ex1));
+        
+        public static Func<Result<TResult>> Combine<TSource, TResult>(
+            this Func<Result<TSource>> f1, Func<TSource, Result<TResult>> f2)
+            => () => f1().Bind(f2);
+        
+        public static Func<TSource, Result<TResult>> Combine<TSource, TMiddle, TResult>(
+            this Func<TSource, Result<TMiddle>> f1, Func<TMiddle, Result<TResult>> f2)
+            => source => f1(source).Bind(f2);
+
+        public static Func<Result<T>> Fallback<T>(this Func<Result<T>> f1, Func<Result<T>> f2)
+            => () => f1().OrElse(f2);
+
+        public static Func<T, Result<TResult>> Fallback<T, TResult>(this Func<T, Result<TResult>> f1,
+            Func<T, Result<TResult>> f2)
+            => source => f1(source).OrElse(() => f2(source));
 
         public static Result<TResult> BiBind<T, TResult>(this Result<T> source, Func<T, Result<TResult>> bindSuccess,
             Func<Exception, Result<TResult>> bindFail)
