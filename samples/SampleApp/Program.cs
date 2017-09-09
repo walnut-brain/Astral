@@ -3,7 +3,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Astral;
 using Astral.Configuration.Builders;
-using Astral.Configuration.Configs;
 using Astral.DependencyInjection;
 using Astral.Payloads;
 using Astral.Transport;
@@ -21,12 +20,12 @@ namespace SampleApp
         {
         }
 
-        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, PublishOptions options)
+        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointSpecification specification, PublishOptions options)
         {
             throw new NotImplementedException();
         }
 
-        public IDisposable Subscribe(EndpointConfig config, RawMessageHandler handler, EventListenOptions options)
+        public IDisposable Subscribe(EndpointSpecification specification, RawMessageHandler handler, EventListenOptions options)
         {
             throw new NotImplementedException();
         }

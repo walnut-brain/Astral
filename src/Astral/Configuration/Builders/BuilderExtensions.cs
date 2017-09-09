@@ -65,7 +65,7 @@ namespace Astral.Configuration.Builders
             where TBuilder : BuilderBase
         {
             jsettings = jsettings ?? new JsonSerializerSettings();
-            builder.SetSerializer(new Serializer<byte[]>(Serialization.JsonRawSerializeProvider(jsettings),
+            builder.SetSerializer(new Serialization<byte[]>(Serialization.JsonRawSerializeProvider(jsettings),
                 Serialization.JsonRawDeserializeProvider(jsettings)));
             return builder;
         }

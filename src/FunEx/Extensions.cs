@@ -50,5 +50,8 @@ namespace FunEx
                     }
             }
         }
+
+        public static Option<T> TryGetService<T>(this IServiceProvider provider)
+            => provider.GetService(typeof(T)).ToOption().OfType<T>();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net.Mime;
 using FunEx;
 using FunEx.Monads;
@@ -23,39 +24,39 @@ namespace Astral.Payloads.Serialization
             Func<object, Result<T>> serialize)
         {
             return ct => support(ct) ? 
-                ImmutableList.Create(Serialize(o => serialize(o).Map(r => (ct, r)))) : ImmutableList<Serialize<T>>.Empty;
+                Serialize(o => serialize(o).Map(r => (ct, r))).AsEnumerable() : Enumerable.Empty<Serialize<T>>();
         }
 
         public static SerializeProvider<T> SerializeProvider<T>(Func<ContentType, bool> support,
             Func<ContentType, object, Result<T>> serialize)
         {
             return ct => support(ct) ? 
-                ImmutableList.Create(Serialize(o => serialize(ct, o).Map(r => (ct, r)))) : ImmutableList<Serialize<T>>.Empty;
+                Serialize(o => serialize(ct, o).Map(r => (ct, r))).AsEnumerable() : Enumerable.Empty<Serialize<T>>();
         }
 
         public static DeserializeProvider<T> DeserializeProvider<T>(Func<ContentType, bool> support,
             Deserialize<T> deserialize)
         {
             return ct => ct.Map(support).IfNone(() => true) ? 
-                ImmutableList.Create(deserialize) : ImmutableList<Deserialize<T>>.Empty;
+                deserialize.AsEnumerable() : Enumerable.Empty<Deserialize<T>>();
         }
 
         public static DeserializeProvider<T> DeserializeProvider<T>(Func<ContentType, bool> support,
             Func<Option<ContentType>, Deserialize<T>> deserialize)
         {
             return ct => ct.Map(support).IfNone(() => true) ? 
-                ImmutableList.Create(deserialize(ct)) : ImmutableList<Deserialize<T>>.Empty;
+                deserialize(ct).AsEnumerable() : Enumerable.Empty<Deserialize<T>>();
         }
 
         public static SerializeProvider<T> Combine<T>(this SerializeProvider<T> provider, SerializeProvider<T> other)
         {
-            return ct => provider(ct).AddRange(other(ct));
+            return ct => provider(ct).Union(other(ct));
         }
 
         public static DeserializeProvider<T> Combine<T>(this DeserializeProvider<T> provider,
             DeserializeProvider<T> other)
         {
-            return ct => provider(ct).AddRange(other(ct));
+            return ct => provider(ct).Union(other(ct));
         }
     }
 }

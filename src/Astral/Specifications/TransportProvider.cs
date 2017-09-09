@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
-using Astral.Configuration.Builders;
+using Astral.Configuration;
 using Astral.Exceptions;
 using Astral.Transport;
 using Astral.Utils;
-using FunEx;
 using FunEx.Monads;
 
-namespace Astral.Configuration.Configs
+namespace Astral.Specifications
 {
     internal class TransportProvider : IDisposable
     {

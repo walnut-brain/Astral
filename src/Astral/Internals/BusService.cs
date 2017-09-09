@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
-using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Contracts;
 using Astral.Data;
@@ -13,6 +12,7 @@ using Astral.Deliveries;
 using Astral.Payloads;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
+using Astral.Specifications;
 using Astral.Transport;
 using FunEx;
 using FunEx.Monads;
@@ -26,13 +26,13 @@ namespace Astral.Internals
 
     {
 
-        internal BusService(ServiceConfig<TService> config)
+        internal BusService(ServiceSpecification<TService> specification)
         {
-            Config = config;
-            Logger = config.LoggerFactory.CreateLogger<BusService<TService>>();
+            Specification = specification;
+            Logger = specification.LoggerFactory.CreateLogger<BusService<TService>>();
         }
 
-        internal ServiceConfig<TService> Config { get; }
+        internal ServiceSpecification<TService> Specification { get; }
 
         public ILogger Logger { get; }
 
@@ -40,9 +40,9 @@ namespace Astral.Internals
         public Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null, CancellationToken token = default(CancellationToken))
         {
-            var config = Config.Endpoint(selector);
+            var config = Specification.Endpoint(selector);
             var publishOptions = new PublishOptions(
-                    options?.EventTtl ?? config.TryGet<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan),
+                    options?.EventTtl ?? config.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan),
                     ResponseTo.None, null);
             return PublishMessageAsync(config, @event, publishOptions, token);
         }
@@ -53,19 +53,19 @@ namespace Astral.Internals
             TEvent @event, DeliveryOptions options = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
-            var endpoint = Config.Endpoint(selector);
+            var endpoint = Specification.Endpoint(selector);
             return await DeliverMessage(store, @event, endpoint, options, DeliveryOperation.Send);
         }
 
         /// <inheritdoc />
         public IDisposable Listen<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector,
             IEventListener<TEvent> eventListener, EventListenOptions options = null) 
-            => ListenEvent(Logger, Config.Endpoint(selector), eventListener, options);
+            => ListenEvent(Logger, Specification.Endpoint(selector), eventListener, options);
 
         public Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<TService, ICall<TCommand>>> selector, TCommand command, DeliveryOptions options = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
-            var config = Config.Endpoint(selector);
+            var config = Specification.Endpoint(selector);
 
             return DeliverMessage(store, command, config, options,
                 DeliveryOperation.SendWithReply(options?.ReplyTo ?? DeliveryReplyTo.System));
@@ -73,29 +73,29 @@ namespace Astral.Internals
         
         
         
-        private Task PublishMessageAsync<TEvent>(EndpointConfig config, TEvent @event, PublishOptions options, CancellationToken token)
+        private Task PublishMessageAsync<TEvent>(EndpointSpecification specification, TEvent @event, PublishOptions options, CancellationToken token)
         {
             Task Publish()
             {
-                var serialized = config.Transport.ToPayload(@event).Unwrap();
-                var prepared = config.Transport.Transport.PreparePublish<TEvent>(config, options);
+                var serialized = specification.Transport.ToPayload(@event).Unwrap();
+                var prepared = specification.Transport.Provider.PreparePublish<TEvent>(specification, options);
                 return prepared(new Lazy<TEvent>(() => @event), serialized, token);
             }
 
-            return Logger.LogActivity(Publish, "event {service} {endpoint}", config.ServiceType,
-                config.PropertyInfo.Name);
+            return Logger.LogActivity(Publish, "event {service} {endpoint}", specification.ServiceType,
+                specification.PropertyInfo.Name);
         }
         
         private async Task<Guid> DeliverMessage<TStore, TEvent>(TStore store,
-            TEvent @event, EndpointConfig config, DeliveryOptions options,  DeliveryOperation operation)
+            TEvent @event, EndpointSpecification specification, DeliveryOptions options,  DeliveryOperation operation)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
-            var deliveryManager = Config.GetRequiredService<BoundDeliveryManager<TStore>>();
+            var deliveryManager = Specification.GetRequiredService<BoundDeliveryManager<TStore>>();
             var messageTtl = options?.MessageTtl ??
-                             config.TryGet<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
+                             specification.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
             var afterCommit = options?.AfterCommit ??
-                              config
-                                  .TryGet<AfterCommitDelivery>()
+                              specification
+                                  .TryGetService<AfterCommitDelivery>()
                                   .Map(p => p.Value)
                                   .IfNone(DeliveryAfterCommit.Send(DeliveryOnSuccess.Delete));
 
@@ -103,17 +103,17 @@ namespace Astral.Internals
             
             var poptions = new PublishOptions(messageTtl, 
                 operation.ResponseTo, deliveryId);
-            var key = config.TryGet<MessageKeyExtractor<TEvent>>()
+            var key = specification.TryGetService<MessageKeyExtractor<TEvent>>()
                 .Map(p => p.Value)
                 .Map(p => p(@event))
                 .OrElse(() => (@event as IKeyProvider).ToOption().Map(p => p.Key))
-                .Filter(_ => config.TryGet<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true));
+                .Filter(_ => specification.TryGetService<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true));
 
-            var prepared = config.Transport.Transport.PreparePublish<TEvent>(config, poptions);
+            var prepared = specification.Transport.Provider.PreparePublish<TEvent>(specification, poptions);
             await deliveryManager.Prepare(store, @event, deliveryId,
-                new DeliveryPoint(config.SystemName, config.Transport.TransportTag, config.ServiceName,
-                    config.EndpointName),
-                operation, messageTtl, afterCommit, prepared, config.Transport.ToPayloadOptions, key);
+                new DeliveryPoint(specification.SystemName, specification.Transport.Tag, specification.ServiceName,
+                    specification.EndpointName),
+                operation, messageTtl, afterCommit, prepared, specification.Transport.ToPayloadOptions, key);
             return deliveryId;
         }
 
@@ -121,19 +121,19 @@ namespace Astral.Internals
         
 
 
-        private IDisposable ListenEvent<TEvent>(ILogger logger, EndpointConfig config,
+        private IDisposable ListenEvent<TEvent>(ILogger logger, EndpointSpecification specification,
             IEventListener<TEvent> eventListener,
             EventListenOptions options)
         {
-            return logger.LogActivity(Listen, "listen {service} {endpoint}", config.ServiceType,
-                config.PropertyInfo.Name);
+            return logger.LogActivity(Listen, "listen {service} {endpoint}", specification.ServiceType,
+                specification.PropertyInfo.Name);
 
             IDisposable Listen()
             {
-                var exceptionPolicy = config.AsTry<RecieveExceptionPolicy>().Map(p => p.Value).RecoverTo(p => CommonLaws.DefaultExceptionPolicy(p));
+                var exceptionPolicy = specification.AsTry<RecieveExceptionPolicy>().Map(p => p.Value).RecoverTo(p => CommonLaws.DefaultExceptionPolicy(p));
 
 
-                return config.Transport.Transport.Subscribe(config, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);
+                return specification.Transport.Provider.Subscribe(specification, (msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy), options);
             }
 
             async Task<Acknowledge> Listener(
@@ -141,14 +141,14 @@ namespace Astral.Internals
             {
                 async Task<Acknowledge> Receive()
                 {
-                    var obj = config.Transport.FromPayload(msg).As<TEvent>().Unwrap();
+                    var obj = specification.Transport.FromPayload(msg).As<TEvent>().Unwrap();
 
                     await eventListener.Handle(obj, ctx, token);
                     return Acknowledge.Ack;
                 }
 
                 return await Receive()
-                    .LogResult(logger, "recive event {service} {endpoint}", config.ServiceType, config.PropertyInfo)
+                    .LogResult(logger, "recive event {service} {endpoint}", specification.ServiceType, specification.PropertyInfo)
                     .CorrectError(exceptionPolicy);
             }
         }

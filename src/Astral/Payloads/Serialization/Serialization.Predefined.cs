@@ -3,6 +3,7 @@ using System.Text;
 using FunEx;
 using FunEx.Monads;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Astral.Payloads.Serialization
 {
@@ -48,5 +49,23 @@ namespace Astral.Payloads.Serialization
             var encoding = Encoding.GetEncoding(encodingName);
             return encoding.GetString(data);
         }
+        
+        public static Serialization<byte[]> JsonRaw =
+            new Serialization<byte[]>(JsonRawSerializeProvider(new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }), JsonRawDeserializeProvider(new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }));
+        
+        public static Serialization<string> JsonText =
+            new Serialization<string>(JsonTextSerializeProvider(new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }), JsonTextDeserializeProvider(new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }));
     }
 }

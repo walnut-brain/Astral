@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
-using Astral.Configuration.Configs;
 using Astral.Configuration.Settings;
 using Astral.Exceptions;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
+using Astral.Specifications;
 using Astral.Transport;
 using Astral.Utils;
 using Lawium;
@@ -23,7 +23,7 @@ namespace Astral.Configuration.Builders
     {
         private TypeEncoding _typeEncoding = TypeEncoding.Default;
 
-        private Serializer<byte[]> _serializer = Serializer.JsonRaw;
+        private Serialization<byte[]> _serialization = Serialization.JsonRaw;
 
         private IServiceProvider ServiceProvider { get; }
 
@@ -40,13 +40,13 @@ namespace Astral.Configuration.Builders
 
         public BusBuilder SetTypeEncoding(TypeEncoding encodingProvider)
         {
-            _typeEncoding = encodingProvider ?? Payloads.DataContracts.TypeEncoding.Default;
+            _typeEncoding = encodingProvider ?? TypeEncoding.Default;
             return this;
         }
 
-        public BusBuilder SetSerializer(Serializer<byte[]> serializer)
+        public BusBuilder SetSerializer(Serialization<byte[]> serialization)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _serialization = serialization ?? throw new ArgumentNullException(nameof(serialization));
             return this;
         }
 
@@ -161,14 +161,14 @@ namespace Astral.Configuration.Builders
             return new ServiceBuilder<TService>(builder);
         }
 
-        internal BusConfig Build()
+        internal BusSpecification Build()
         {
             if(_transports.Count == 0)
                 throw new InvalidConfigurationException("No transport configured");
             BookBuilder.RegisterLaw(Law<Fact>.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
 
             var transportProvider = new TransportProvider(new ReadOnlyDictionary<(string, bool), DisposableValue<IRpcTransport>>(_transports));
-            return new BusConfig(BookBuilder.Build(), _typeEncoding, _serializer, transportProvider, ServiceProvider);
+            return new BusSpecification(BookBuilder.Build(), _typeEncoding, _serialization, transportProvider, ServiceProvider);
         }
     }
 }

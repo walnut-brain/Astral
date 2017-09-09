@@ -1,9 +1,9 @@
 ﻿using System;
-using Astral.Configuration.Configs;
+using Astral.Specifications;
 
 namespace Astral.Transport
 {
-    public delegate IDisposable RawMessageSubscribe(EndpointConfig config, RawMessageHandler handler,
+    public delegate IDisposable RawMessageSubscribe(EndpointSpecification specification, RawMessageHandler handler,
         EventListenOptions options);
 
 }

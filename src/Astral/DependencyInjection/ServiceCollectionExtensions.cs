@@ -1,7 +1,7 @@
 ﻿using System;
 using Astral.Configuration.Builders;
-using Astral.Configuration.Configs;
 using Astral.Deliveries;
+using Astral.Specifications;
 using Astral.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,7 +17,7 @@ namespace Astral.DependencyInjection
         }
 
         public static IServiceCollection AddBus<TBus, TInterface>(this IServiceCollection serviceCollection,
-            Func<BusConfig, TBus> factory, string systemName,  Action<BusBuilder> configure)
+            Func<BusSpecification, TBus> factory, string systemName,  Action<BusBuilder> configure)
             where TInterface : class, IBus
             where TBus : Bus, TInterface
         {
