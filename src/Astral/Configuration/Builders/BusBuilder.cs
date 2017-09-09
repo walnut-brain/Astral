@@ -21,8 +21,7 @@ namespace Astral.Configuration.Builders
 {
     public class BusBuilder : BuilderBase
     {
-        private WellKnownTypes _wellKnownTypes = WellKnownTypes.Default;
-        private Func<WellKnownTypes, TypeEncoding> _typeEncoding = TypeEncoding.Default;
+        private TypeEncoding _typeEncoding = TypeEncoding.Default;
 
         private Serializer<byte[]> _serializer = Serializer.JsonRaw;
 
@@ -39,13 +38,7 @@ namespace Astral.Configuration.Builders
             ServiceProvider = provider;
         }
 
-        public BusBuilder SetWellKnownTypes(WellKnownTypes wellKnownTypes)
-        {
-            _wellKnownTypes = wellKnownTypes ?? WellKnownTypes.Default;
-            return this;
-        }
-
-        public BusBuilder SetTypeEncoding(Func<WellKnownTypes, TypeEncoding> encodingProvider)
+        public BusBuilder SetTypeEncoding(TypeEncoding encodingProvider)
         {
             _typeEncoding = encodingProvider ?? Payloads.DataContracts.TypeEncoding.Default;
             return this;
@@ -175,7 +168,7 @@ namespace Astral.Configuration.Builders
             BookBuilder.RegisterLaw(Law<Fact>.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
 
             var transportProvider = new TransportProvider(new ReadOnlyDictionary<(string, bool), DisposableValue<IRpcTransport>>(_transports));
-            return new BusConfig(BookBuilder.Build(), _typeEncoding(_wellKnownTypes), _serializer, transportProvider, ServiceProvider);
+            return new BusConfig(BookBuilder.Build(), _typeEncoding, _serializer, transportProvider, ServiceProvider);
         }
     }
 }

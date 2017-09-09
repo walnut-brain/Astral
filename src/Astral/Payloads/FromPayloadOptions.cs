@@ -6,13 +6,13 @@ namespace Astral.Payloads
 {
     public class FromPayloadOptions<TFormat>
     {
-        public FromPayloadOptions(ContractToType toType, DeserializeProvider<TFormat> deserializeProvider)
+        public FromPayloadOptions(Decode toType, DeserializeProvider<TFormat> deserializeProvider)
         {
             ToType = toType ?? throw new ArgumentNullException(nameof(toType));
             DeserializeProvider = deserializeProvider ?? throw new ArgumentNullException(nameof(deserializeProvider));
         }
 
-        public ContractToType ToType { get; }
+        public Decode ToType { get; }
         public DeserializeProvider<TFormat> DeserializeProvider { get; }
     }
 }

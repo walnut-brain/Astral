@@ -1,14 +1,14 @@
 ﻿namespace Astral.Payloads.DataContracts
 {
-    public class ContractToTypeException : ContractResolutionException
+    public class TypeDecoderException : TypeEncodingException
     {
-        public ContractToTypeException(string contract)
+        public TypeDecoderException(string contract)
             : base($"Cannot determine type for contract {contract}")
         {
             Contract = contract;
         }
 
-        public ContractToTypeException(string contract, string message)
+        public TypeDecoderException(string contract, string message)
             : base(message)
         {
             Contract = contract;

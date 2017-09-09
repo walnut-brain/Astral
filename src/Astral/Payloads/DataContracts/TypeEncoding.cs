@@ -1,18 +1,44 @@
-﻿namespace Astral.Payloads.DataContracts
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FunEx.Monads;
+
+namespace Astral.Payloads.DataContracts
 {
     public class TypeEncoding
     {
-        public TypeEncoding(TypeToContract toContract, ContractToType toType)
+        public TypeEncoding(Encode encode, Decode decode)
         {
-            ToContract = toContract;
-            ToType = toType;
+            Encode = encode;
+            Decode = decode;
         }
 
-        public TypeToContract ToContract { get; }
-        public ContractToType ToType { get; }
+        public Encode Encode { get; }
+        public Decode Decode { get; }
+
+
+        public static readonly TypeEncoding Default =
+            new TypeEncoding(
+                TypeEncoder.Default.Loopback(),
+                TypeDecoder.Default.Loopback());
+
         
-        public static TypeEncoding Default(WellKnownTypes wellKnownTypes = null) =>
-            new TypeEncoding(Contract.DefaultTypeMapper(wellKnownTypes ?? WellKnownTypes.Default).Loopback(), Contract.DefaultContractMapper(wellKnownTypes).Loopback());
-            
+
+
+        internal static Option<Type> TryGetElementType(Type arrayLikeType)
+        {
+            if (arrayLikeType.IsArray)
+            {
+                var elementType = arrayLikeType.GetElementType();
+                return elementType.ToOption();
+            }
+            var enumIntf = arrayLikeType.GetInterfaces()
+                .FirstOrDefault(p => p.IsGenericType && p.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            if (enumIntf == null) return Option.None;
+            {
+                var elementType = enumIntf.GetGenericArguments()[0];
+                return elementType.ToOption();
+            }
+        }
     }
 }

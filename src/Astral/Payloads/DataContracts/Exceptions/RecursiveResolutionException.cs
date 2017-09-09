@@ -2,7 +2,7 @@
 
 namespace Astral.Payloads.DataContracts
 {
-    public class RecursiveResolutionException : ContractResolutionException
+    public class RecursiveResolutionException : TypeEncodingException
     {
         public RecursiveResolutionException(string contract)
             : base($"Recursive resolution of contract {contract}")

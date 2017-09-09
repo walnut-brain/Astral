@@ -8,6 +8,7 @@ using Astral.Payloads.Serialization;
 using Astral.Transport;
 using FunEx.Monads;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Astral.Configuration.Configs
 {
@@ -30,19 +31,19 @@ namespace Astral.Configuration.Configs
         public ContentType ContentType { get; }
         
         public ToPayloadOptions<byte[]> ToPayloadOptions => new ToPayloadOptions<byte[]>(ContentType,
-            _config.GetService<TypeEncoding>().ToContract,
+            _config.GetService<TypeEncoding>().Encode,
             _config.GetService<Serializer<byte[]>>().Serialize);
 
         private FromPayloadOptions<byte[]> FromPayloadOptions
             => new FromPayloadOptions<byte[]>(
-                _config.GetService<TypeEncoding>().ToType,
+                _config.GetService<TypeEncoding>().Decode,
                 _config.GetService<Serializer<byte[]>>().Deserialize);
         
         public Result<Payload<byte[]>> ToPayload(Type type, object obj)
-            => Payload.ToPayload(type, obj, ToPayloadOptions);
+            => Payload.ToPayload(_config.LoggerFactory.CreateLogger<Payload>(), type, obj, ToPayloadOptions);
 
         public Payload.IFromPayload FromPayload(Payload<byte[]> payload)
-            => Payload.FromPayload(payload, FromPayloadOptions);
+            => Payload.FromPayload(_config.LoggerFactory.CreateLogger<Payload>(),  payload, FromPayloadOptions);
         
 
         public Result<Payload<byte[]>> ToPayload<T>(T obj) => ToPayload(obj?.GetType() ?? typeof(T), obj);

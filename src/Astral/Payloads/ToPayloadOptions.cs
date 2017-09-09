@@ -7,7 +7,7 @@ namespace Astral.Payloads
 {
     public class ToPayloadOptions<TFormat>
     {
-        public ToPayloadOptions(ContentType contentType, TypeToContract toContact, SerializeProvider<TFormat> serializeProvider)
+        public ToPayloadOptions(ContentType contentType, Encode toContact, SerializeProvider<TFormat> serializeProvider)
         {
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             ToContact = toContact ?? throw new ArgumentNullException(nameof(toContact));
@@ -15,7 +15,7 @@ namespace Astral.Payloads
         }
 
         public ContentType ContentType { get; }
-        public TypeToContract ToContact { get; }
+        public Encode ToContact { get; }
         public SerializeProvider<TFormat> SerializeProvider { get; }
     }
 }

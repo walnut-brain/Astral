@@ -11,6 +11,7 @@ using Astral.Transport;
 using FunEx;
 using FunEx.Monads;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Astral.Deliveries
 {
@@ -26,6 +27,7 @@ namespace Astral.Deliveries
 
         private readonly IServiceProvider _provider;
         private readonly Task _renewLoop;
+        private ILogger<BoundDeliveryManager<TStore>> _logger;
 
 
         public BoundDeliveryManager(IServiceProvider provider, TimeSpan leaseInterval)
@@ -35,7 +37,7 @@ namespace Astral.Deliveries
             _sponsor = $"{Environment.MachineName}-{Guid.NewGuid()}";
             _dispose = new CancellationDisposable();
             _renewLoop = Loop(_dispose.Token);
-
+            _logger = provider.GetService<ILogger<BoundDeliveryManager<TStore>>>();
         }
 
 
@@ -85,11 +87,11 @@ namespace Astral.Deliveries
                     }
                     catch
                     {
-                        rawPayload = Payload.ToPayload(message.Value, toPayloadOptions).Unwrap();
+                        rawPayload = Payload.ToPayload(_logger, message.Value, toPayloadOptions).Unwrap();
                     }
                     break;
                 default:
-                    rawPayload = Payload.ToPayload(message.Value, toPayloadOptions).Unwrap();
+                    rawPayload = Payload.ToPayload(_logger, message.Value, toPayloadOptions).Unwrap();
                     break;
             }
 
