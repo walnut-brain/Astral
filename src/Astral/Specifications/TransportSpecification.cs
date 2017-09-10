@@ -2,6 +2,7 @@
 using System.Net.Mime;
 using Astral.Configuration;
 using Astral.Configuration.Settings;
+using Astral.Deliveries;
 using Astral.Exceptions;
 using Astral.Payloads;
 using Astral.Payloads.DataContracts;
@@ -14,9 +15,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Astral.Specifications
 {
-    internal class TransportSpecification
+    internal class TransportSpecification : IDeliverySpecification
     {
         private readonly EndpointSpecification _specification;
+        private string _system;
+        private string _transportTag;
+        private string _service;
+        private string _endpoint;
+        private Encode _typeEncoder;
+        private SerializeProvider<byte[]> _serializeProvider;
 
         public TransportSpecification(EndpointSpecification specification)
         {
@@ -32,22 +39,35 @@ namespace Astral.Specifications
         public string Tag { get; }
         public ContentType ContentType { get; }
         
-        public ToPayloadOptions<byte[]> ToPayloadOptions => new ToPayloadOptions<byte[]>(ContentType,
+        public PayloadEncode<byte[]> PayloadEncode => new PayloadEncode<byte[]>(ContentType,
             _specification.GetService<TypeEncoding>().Encode,
             _specification.GetService<Serialization<byte[]>>().Serialize);
 
-        private FromPayloadOptions<byte[]> FromPayloadOptions
-            => new FromPayloadOptions<byte[]>(
+        private PayloadDecode<byte[]> PayloadDecode
+            => new PayloadDecode<byte[]>(
                 _specification.GetService<TypeEncoding>().Decode,
                 _specification.GetService<Serialization<byte[]>>().Deserialize);
         
         public Result<Payload<byte[]>> ToPayload(Type type, object obj)
-            => Payload.ToPayload(_specification.LoggerFactory.CreateLogger<Payload>(), type, obj, ToPayloadOptions);
+            => Payload.ToPayload(_specification.LoggerFactory.CreateLogger<Payload>(), type, obj, PayloadEncode);
 
         public Payload.IFromPayload FromPayload(Payload<byte[]> payload)
-            => Payload.FromPayload(_specification.LoggerFactory.CreateLogger<Payload>(),  payload, FromPayloadOptions);
+            => Payload.FromPayload(_specification.LoggerFactory.CreateLogger<Payload>(),  payload, PayloadDecode);
         
 
         public Result<Payload<byte[]>> ToPayload<T>(T obj) => ToPayload(obj?.GetType() ?? typeof(T), obj);
+
+        string IDeliverySpecification.System => _specification.SystemName;
+
+        string IDeliverySpecification.TransportTag => Tag;
+
+        string IDeliverySpecification.Service => _specification.ServiceName;
+
+        string IDeliverySpecification.Endpoint => _specification.EndpointName;
+
+        Encode IDeliverySpecification.TypeEncoder => _specification.GetService<TypeEncoding>().Encode;
+
+        SerializeProvider<byte[]> IDeliverySpecification.SerializeProvider =>
+            _specification.GetService<Serialization<byte[]>>().Serialize; 
     }
 }

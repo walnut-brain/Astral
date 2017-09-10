@@ -111,9 +111,8 @@ namespace Astral.Internals
 
             var prepared = specification.Transport.Provider.PreparePublish<TEvent>(specification, poptions);
             await deliveryManager.Prepare(store, @event, deliveryId,
-                new DeliveryPoint(specification.SystemName, specification.Transport.Tag, specification.ServiceName,
-                    specification.EndpointName),
-                operation, messageTtl, afterCommit, prepared, specification.Transport.ToPayloadOptions, key);
+                specification.Transport,new DeliveryParams(operation, afterCommit, messageTtl),
+                prepared, key);
             return deliveryId;
         }
 

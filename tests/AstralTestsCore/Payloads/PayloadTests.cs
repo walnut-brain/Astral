@@ -29,10 +29,10 @@ namespace AstralTests.Payloads
         [Fact]
         public void ComplexTypeMustWork()
         {
-            var toPayOpt = new ToPayloadOptions<byte[]>(new ContentType("text/json; charset=utf-8"),
+            var toPayOpt = new PayloadEncode<byte[]>(new ContentType("text/json; charset=utf-8"),
                 TypeEncoding.Default.Encode,
                 Serialization.JsonRawSerializeProvider(new JsonSerializerSettings()));
-            var fromPayOpt = new FromPayloadOptions<byte[]>(TypeEncoding.Default.Decode,
+            var fromPayOpt = new PayloadDecode<byte[]>(TypeEncoding.Default.Decode,
                 Serialization.JsonRawDeserializeProvider(new JsonSerializerSettings()));
             var test = new TestContract[]
             {
@@ -50,10 +50,10 @@ namespace AstralTests.Payloads
         [Fact]
         public void ValueTupleMustWork()
         {
-            var toPayOpt = new ToPayloadOptions<byte[]>(new ContentType("text/json; charset=utf-8"),
+            var toPayOpt = new PayloadEncode<byte[]>(new ContentType("text/json; charset=utf-8"),
                 TypeEncoding.Default.Encode,
                 Serialization.JsonRawSerializeProvider(new JsonSerializerSettings()));
-            var fromPayOpt = new FromPayloadOptions<byte[]>(TypeEncoding.Default.Decode,
+            var fromPayOpt = new PayloadDecode<byte[]>(TypeEncoding.Default.Decode,
                 Serialization.JsonRawDeserializeProvider(new JsonSerializerSettings()));
             var test = default(ValueTuple);
             
@@ -68,10 +68,10 @@ namespace AstralTests.Payloads
         [Fact]
         public void ValueTupleToTextMustWork()
         {
-            var toPayOpt = new ToPayloadOptions<string>(new ContentType("text/json"),
+            var toPayOpt = new PayloadEncode<string>(new ContentType("text/json"),
                 TypeEncoding.Default.Encode,
                 Serialization.JsonTextSerializeProvider(new JsonSerializerSettings()));
-            var fromPayOpt = new FromPayloadOptions<string>(TypeEncoding.Default.Decode,
+            var fromPayOpt = new PayloadDecode<string>(TypeEncoding.Default.Decode,
                 Serialization.JsonTextDeserializeProvider(new JsonSerializerSettings()));
             var test = default(ValueTuple);
             

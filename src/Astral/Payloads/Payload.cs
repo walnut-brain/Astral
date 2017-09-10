@@ -38,36 +38,36 @@ namespace Astral.Payloads
         public abstract Type Format { get; }
         public abstract object Value { get; }
 
-        public static Result<Payload<TFormat>> ToPayload<TFormat>(ILogger logger, Type type, object obj, ToPayloadOptions<TFormat> toPayloadOptions)
+        public static Result<Payload<TFormat>> ToPayload<TFormat>(ILogger logger, Type type, object obj, PayloadEncode<TFormat> payloadEncode)
         {
             type = obj?.GetType() ?? type;
             return
-                toPayloadOptions.ToContact(logger, type)
+                payloadEncode.ToContact(logger, type)
                     .ToResult(new TypeEncoderException(type))
                     .Bind(contract =>
-                        toPayloadOptions.SerializeProvider(toPayloadOptions.ContentType)
+                        payloadEncode.SerializeProvider(payloadEncode.ContentType)
                             .FirstOrNone()
-                            .ToResult(new UnknownContentTypeException($"Unknown content type {toPayloadOptions.ContentType}"))
+                            .ToResult(new UnknownContentTypeException($"Unknown content type {payloadEncode.ContentType}"))
                             .Bind(p => p(obj))
                             .Map(data => new Payload<TFormat>(contract, data.Item1, data.Item2)));
         }
 
-        public static Result<Payload<TFormat>> ToPayload<T, TFormat>(ILogger logger, T obj, ToPayloadOptions<TFormat> toPayloadOptions) 
-            => ToPayload(logger, typeof(T), obj, toPayloadOptions);
+        public static Result<Payload<TFormat>> ToPayload<T, TFormat>(ILogger logger, T obj, PayloadEncode<TFormat> payloadEncode) 
+            => ToPayload(logger, typeof(T), obj, payloadEncode);
 
 
-        public static Result<object> FromPayload<TFormat>(ILogger logger, Payload<TFormat> payload, ImmutableList<Type> awaited, FromPayloadOptions<TFormat> fromPayloadOptions)
+        public static Result<object> FromPayload<TFormat>(ILogger logger, Payload<TFormat> payload, ImmutableList<Type> awaited, PayloadDecode<TFormat> payloadDecode)
         {
             var typ = string.IsNullOrWhiteSpace(payload.TypeCode)
                 ? awaited.FirstOrNone()
-                : fromPayloadOptions.ToType(logger, payload.TypeCode, awaited);
+                : payloadDecode.ToType(logger, payload.TypeCode, awaited);
 
             return typ
                 .ToResult(new TypeDecoderException(payload.TypeCode))
                 .Bind(type =>
                 {
                     var contentType = payload.ContentType?.ToString();
-                    return fromPayloadOptions.DeserializeProvider(
+                    return payloadDecode.DeserializeProvider(
                             payload.ContentType.ToOption())
                         .Select(d => d(type, payload.Data))
                         .FirstOrError(new UnknownContentTypeException($"Unknown content type {contentType}"));
@@ -80,8 +80,8 @@ namespace Astral.Payloads
             Result<T> As<T>();
         }
 
-        public static IFromPayload FromPayload<TFormat>(ILogger logger, Payload<TFormat> payload, FromPayloadOptions<TFormat> fromPayloadOptions)
-            => new FromPayloadDelegated(p => FromPayload(logger, payload, p, fromPayloadOptions));
+        public static IFromPayload FromPayload<TFormat>(ILogger logger, Payload<TFormat> payload, PayloadDecode<TFormat> payloadDecode)
+            => new FromPayloadDelegated(p => FromPayload(logger, payload, p, payloadDecode));
 
 
 

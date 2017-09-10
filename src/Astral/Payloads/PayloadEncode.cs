@@ -5,9 +5,9 @@ using Astral.Payloads.Serialization;
 
 namespace Astral.Payloads
 {
-    public class ToPayloadOptions<TFormat>
+    public class PayloadEncode<TFormat>
     {
-        public ToPayloadOptions(ContentType contentType, Encode toContact, SerializeProvider<TFormat> serializeProvider)
+        public PayloadEncode(ContentType contentType, Encode toContact, SerializeProvider<TFormat> serializeProvider)
         {
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             ToContact = toContact ?? throw new ArgumentNullException(nameof(toContact));

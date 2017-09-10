@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunEx", "src\FunEx\FunEx.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstralTestsCore", "tests\AstralTestsCore\AstralTestsCore.csproj", "{38D8A170-AEFD-4F46-A91E-251F7D61F875}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Autofac.Astral", "src\Autofac.Astral\Autofac.Astral.csproj", "{43C21DD2-7ECA-4294-AA9F-30E21646EDCA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{38D8A170-AEFD-4F46-A91E-251F7D61F875}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38D8A170-AEFD-4F46-A91E-251F7D61F875}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38D8A170-AEFD-4F46-A91E-251F7D61F875}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43C21DD2-7ECA-4294-AA9F-30E21646EDCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43C21DD2-7ECA-4294-AA9F-30E21646EDCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43C21DD2-7ECA-4294-AA9F-30E21646EDCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43C21DD2-7ECA-4294-AA9F-30E21646EDCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{7875A996-54B0-473A-AFB6-893EF2B02463} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{9134073C-9241-4C02-82BA-508B9CD9E400} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{38D8A170-AEFD-4F46-A91E-251F7D61F875} = {1A2A4CA1-5FC7-48F5-B019-3415E9042ECA}
+		{43C21DD2-7ECA-4294-AA9F-30E21646EDCA} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}

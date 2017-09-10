@@ -4,9 +4,9 @@ using Astral.Payloads.Serialization;
 
 namespace Astral.Payloads
 {
-    public class FromPayloadOptions<TFormat>
+    public class PayloadDecode<TFormat>
     {
-        public FromPayloadOptions(Decode toType, DeserializeProvider<TFormat> deserializeProvider)
+        public PayloadDecode(Decode toType, DeserializeProvider<TFormat> deserializeProvider)
         {
             ToType = toType ?? throw new ArgumentNullException(nameof(toType));
             DeserializeProvider = deserializeProvider ?? throw new ArgumentNullException(nameof(deserializeProvider));

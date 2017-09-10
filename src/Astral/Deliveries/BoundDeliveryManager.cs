@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Astral.Deliveries
 {
-    public class BoundDeliveryManager<TStore>
+    internal class BoundDeliveryManager<TStore>
         where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
     {
         private readonly string _sponsor;
@@ -41,25 +41,26 @@ namespace Astral.Deliveries
         }
 
 
-        public async Task Prepare<T>(TStore store, T message, Guid deliveryId, DeliveryPoint point, DeliveryOperation operation, TimeSpan messageTtl, DeliveryAfterCommit deliveryAfterCommit,
-            PayloadSender<T> sender, ToPayloadOptions<byte[]> toPayloadOptions, Option<string> key)
+        public async Task Prepare<T>(TStore store, T message, Guid deliveryId, IDeliverySpecification specification, DeliveryParams parameters, 
+            PayloadSender<T> sender, Option<string> key)
         {
             var service = store.DeliveryService;
             using (var work = store.BeginWork())
             {
-                key.IfSome(p => service.RemoveByKey(point.Service, point.Endpoint, p));
-                var payload = await service.NewDelivery(message?.GetType() ?? typeof(T), message, deliveryId, point, operation,
-                    messageTtl, _sponsor,
-                    deliveryAfterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero :_leaseInterval + _leaseInterval);
-                switch (deliveryAfterCommit)
+                key.IfSome(p => service.RemoveByKey(specification.Service, specification.Endpoint, p));
+                var payload = await service.NewDelivery(message?.GetType() ?? typeof(T), message, deliveryId, specification, parameters.Operation,
+                    parameters.MessageTtl, _sponsor,
+                    parameters.AfterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero :_leaseInterval + _leaseInterval);
+                switch (parameters.AfterCommit)
                 {
                     case DeliveryAfterCommit.NoOpType _:
                         break;
                     case DeliveryAfterCommit.SendType send:
-                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(deliveryId, payload, new Lazy<T>(() => message), send.DeliveryOnSuccess, sender, toPayloadOptions, true).Wait());
+                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(deliveryId, payload, new Lazy<T>(() => message), send.DeliveryOnSuccess, sender, 
+                            new PayloadEncode<byte[]>(specification.ContentType, specification.TypeEncoder, specification.SerializeProvider), true).Wait());
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException($"Unknown {nameof(DeliveryAfterCommit)} - {deliveryAfterCommit}");
+                        throw new ArgumentOutOfRangeException($"Unknown {nameof(DeliveryAfterCommit)} - {parameters.AfterCommit}");
                 }
                 work.Commit();
             }
@@ -70,28 +71,28 @@ namespace Astral.Deliveries
 
 
         private async Task AddDelivery<T>(Guid deliveryId, Payload payload, Lazy<T> message, 
-            DeliveryOnSuccess deliveryOnSuccess, PayloadSender<T> sender, ToPayloadOptions<byte[]> toPayloadOptions, bool pickup)
+            DeliveryOnSuccess deliveryOnSuccess, PayloadSender<T> sender, PayloadEncode<byte[]> payloadEncode, bool pickup)
         {
             Payload<byte[]> rawPayload;
             switch (payload)
             {
-                case Payload<byte[]> pb when Equals(pb.ContentType, toPayloadOptions.ContentType):
+                case Payload<byte[]> pb when Equals(pb.ContentType, payloadEncode.ContentType):
                     rawPayload = pb;
                     break;
-                case Payload<string> ps when ps.ContentType.Name == toPayloadOptions.ContentType.Name:
-                    var encodingName = toPayloadOptions.ContentType.CharSet ?? Encoding.UTF8.WebName;
+                case Payload<string> ps when ps.ContentType.Name == payloadEncode.ContentType.Name:
+                    var encodingName = payloadEncode.ContentType.CharSet ?? Encoding.UTF8.WebName;
                     try
                     {
                         var encoding = Encoding.GetEncoding(encodingName);
-                        rawPayload = new Payload<byte[]>(ps.TypeCode, toPayloadOptions.ContentType, encoding.GetBytes(ps.Data));
+                        rawPayload = new Payload<byte[]>(ps.TypeCode, payloadEncode.ContentType, encoding.GetBytes(ps.Data));
                     }
                     catch
                     {
-                        rawPayload = Payload.ToPayload(_logger, message.Value, toPayloadOptions).Unwrap();
+                        rawPayload = Payload.ToPayload(_logger, message.Value, payloadEncode).Unwrap();
                     }
                     break;
                 default:
-                    rawPayload = Payload.ToPayload(_logger, message.Value, toPayloadOptions).Unwrap();
+                    rawPayload = Payload.ToPayload(_logger, message.Value, payloadEncode).Unwrap();
                     break;
             }
 
