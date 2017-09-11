@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Astral.Configuration.Settings;
 using Astral.Deliveries;
 using Astral.Payloads.Serialization;
+using FunEx.Monads;
 using Lawium;
 using Newtonsoft.Json;
 using Polly;
@@ -19,19 +20,20 @@ namespace Astral.Configuration.Builders
         }
 
         
-
-        public static TBuilder DeliveryExceptionPolicy<TBuilder>(this TBuilder builder, Policy policy)
+        public static TBuilder RequestDeliveryNoSend<TBuilder>(this TBuilder builder)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law<Fact>.Axiom(new DeliveryExceptionPolicy(policy)));
+            builder.AddLaw(Law<Fact>.Axiom(new RequestDeliveryPolicy(DeliveryAfterCommit.NoOp)));
             return builder;
+            
         }
-
-        public static TBuilder AfterDelivery<TBuilder>(this TBuilder builder, AfterCommitDelivery action)
+        
+        public static TBuilder RequestDeliveryOnSuccess<TBuilder>(this TBuilder builder, DeliveryOnSuccess onSuccess)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law<Fact>.Axiom(new AfterCommitDelivery(action)));
+            builder.AddLaw(Law<Fact>.Axiom(new RequestDeliveryPolicy(DeliveryAfterCommit.Send(onSuccess))));
             return builder;
+            
         }
 
         public static BusBuilder MessageKeyExtractor<TEvent>(this BusBuilder builder, Func<TEvent, string> extractKey)

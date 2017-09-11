@@ -36,8 +36,7 @@ namespace Astral.DependencyInjection
             Action<BusBuilder> configure)
             => AddBus<Bus, IBus>(serviceCollection, config => new Bus(config), systemName, configure);
 
-        public static IServiceProvider BuildServiceProvider(this IServiceCollection collection, IServiceProvider parent)
-            => collection.BuildServiceProvider();
+        
 
 
     }

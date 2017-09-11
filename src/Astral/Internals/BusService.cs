@@ -36,25 +36,60 @@ namespace Astral.Internals
 
         public ILogger Logger { get; }
 
+
+
+        #region Event
+
         /// <inheritdoc />
         public Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null, CancellationToken token = default(CancellationToken))
         {
             var config = Specification.Endpoint(selector);
             var publishOptions = new PublishOptions(
-                    options?.EventTtl ?? config.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan),
-                    ResponseTo.None, null);
+                options?.EventTtl ?? config.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan),
+                ResponseTo.None, null);
             return PublishMessageAsync(config, @event, publishOptions, token);
         }
 
+
         /// <inheritdoc />
-        public async Task<Guid> Deliver<TStore, TEvent>(TStore store,
+        public Task<Guid> Deliver<TStore, TEvent>(TStore store,
             Expression<Func<TService, IEvent<TEvent>>> selector,
-            TEvent @event, DeliveryOptions options = null)
+            TEvent @event, TimeSpan? messageTtl = null, DeliveryOnSuccess onSuccess = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            => Deliver(store, selector, @event, messageTtl, onSuccess.ToOption().Map(DeliveryAfterCommit.Send));
+
+        /// <inheritdoc />
+        public Task<Guid> SaveDelivery<TStore, TEvent>(TStore store,
+            Expression<Func<TService, IEvent<TEvent>>> selector,
+            TEvent @event, TimeSpan? messageTtl = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            => Deliver(store, selector, @event, messageTtl, DeliveryAfterCommit.NoOp);
+        
+        private async Task<Guid> Deliver<TStore, TEvent>(TStore store,
+            Expression<Func<TService, IEvent<TEvent>>> selector,
+            TEvent @event, TimeSpan? messageTtl, Option<DeliveryAfterCommit> afterCommit = default(Option<DeliveryAfterCommit>))
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
             var endpoint = Specification.Endpoint(selector);
-            return await DeliverMessage(store, @event, endpoint, options, DeliveryOperation.Send);
+            var deliveryCreateParams = new DeliveryCreateParams<TEvent>(
+                Guid.NewGuid(), null, endpoint.SystemName, endpoint.ServiceName, endpoint.EndpointName, 
+                endpoint.TryGetService<MessageKeyExtractor<TEvent>>()
+                    .Map(p => p.Value)
+                    .Map(p => p(@event))
+                    .OrElse(() => (@event as IKeyProvider).ToOption().Map(p => p.Key))
+                    .Filter(_ => endpoint.TryGetService<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true)).IfNoneDefault(),
+                null, null, @event, false);
+            var encoder = endpoint.Transport.PayloadEncode;
+            var msgTtl = messageTtl ??
+                         endpoint.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
+            var sender = endpoint.Transport.Provider.PreparePublish<TEvent>(endpoint,
+                new PublishOptions(msgTtl, ResponseTo.None, null));
+            return await DeliverMessage(store, deliveryCreateParams, sender, msgTtl,
+                 afterCommit
+                     .OrElse(() => endpoint.TryGetService<RequestDeliveryPolicy>().Map(p => p.Value))
+                     .IfNone(() => DeliveryAfterCommit.Send(DeliveryOnSuccess.Delete)),
+                encoder);
         }
 
         /// <inheritdoc />
@@ -62,13 +97,45 @@ namespace Astral.Internals
             IEventListener<TEvent> eventListener, EventListenOptions options = null) 
             => ListenEvent(Logger, Specification.Endpoint(selector), eventListener, options);
 
-        public Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<TService, ICall<TCommand>>> selector, TCommand command, DeliveryOptions options = null)
+        #endregion
+
+
+        public Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<TService, ICall<TCommand>>> selector,
+            TCommand command,
+            string target = null, TimeSpan? messageTtl = null, DeliveryOnSuccess onSuccess = null,
+            DeliveryReplyTo replyTo = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            => Deliver(store, selector, command, target, messageTtl, onSuccess.ToOption().Map(DeliveryAfterCommit.Send), replyTo);
+
+        public Task<Guid> SaveDelivery<TStore, TCommand>(TStore store,
+            Expression<Func<TService, ICall<TCommand>>> selector, TCommand command,
+            string target = null, TimeSpan? messageTtl = null, DeliveryReplyTo replyTo = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            => Deliver(store, selector, command, target, messageTtl, DeliveryAfterCommit.NoOp, replyTo);
+        
+        private Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<TService, ICall<TCommand>>> selector, TCommand command,
+            string target, TimeSpan? messageTtl, Option<DeliveryAfterCommit> afterCommit, DeliveryReplyTo replyTo)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
-            var config = Specification.Endpoint(selector);
-
-            return DeliverMessage(store, command, config, options,
-                DeliveryOperation.SendWithReply(options?.ReplyTo ?? DeliveryReplyTo.System));
+            var endpoint = Specification.Endpoint(selector);
+            var deliveryCreateParams = new DeliveryCreateParams<TCommand>(Guid.NewGuid(),
+                target ?? endpoint.GetRequiredService<ServiceOwner>().Value,
+                endpoint.SystemName, endpoint.ServiceName, endpoint.EndpointName,
+                endpoint.TryGetService<MessageKeyExtractor<TCommand>>()
+                    .Map(p => p.Value)
+                    .Map(p => p(command))
+                    .OrElse(() => (command as IKeyProvider).ToOption().Map(p => p.Key))
+                    .Filter(_ => endpoint.TryGetService<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true))
+                    .IfNoneDefault(),
+                replyTo ?? DeliveryReplyTo.System, null, command, false);
+            var encoder = endpoint.Transport.PayloadEncode;
+            var msgTtl = messageTtl ??
+                         endpoint.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
+            var sender = endpoint.Transport.Provider.PreparePublish<TCommand>(endpoint,
+                new PublishOptions(msgTtl, (replyTo ?? DeliveryReplyTo.System).ResponseTo, null));
+            return DeliverMessage(store, deliveryCreateParams, sender, msgTtl, afterCommit
+                .OrElse(() => endpoint.TryGetService<RequestDeliveryPolicy>().Map(p => p.Value))
+                .IfNone(() => DeliveryAfterCommit.Send(DeliveryOnSuccess.Delete)), encoder); 
         }
         
         
@@ -87,33 +154,16 @@ namespace Astral.Internals
         }
         
         private async Task<Guid> DeliverMessage<TStore, TEvent>(TStore store,
-            TEvent @event, EndpointSpecification specification, DeliveryOptions options,  DeliveryOperation operation)
+                DeliveryCreateParams<TEvent> parameters, 
+                PayloadSender<TEvent> sender, TimeSpan messageTtl, DeliveryAfterCommit afterCommit,
+                PayloadEncode<byte[]> payloadEncode)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
             var deliveryManager = Specification.GetRequiredService<BoundDeliveryManager<TStore>>();
-            var messageTtl = options?.MessageTtl ??
-                             specification.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
-            var afterCommit = options?.AfterCommit ??
-                              specification
-                                  .TryGetService<AfterCommitDelivery>()
-                                  .Map(p => p.Value)
-                                  .IfNone(DeliveryAfterCommit.Send(DeliveryOnSuccess.Delete));
-
-            var deliveryId = Guid.NewGuid();
             
-            var poptions = new PublishOptions(messageTtl, 
-                operation.ResponseTo, deliveryId);
-            var key = specification.TryGetService<MessageKeyExtractor<TEvent>>()
-                .Map(p => p.Value)
-                .Map(p => p(@event))
-                .OrElse(() => (@event as IKeyProvider).ToOption().Map(p => p.Key))
-                .Filter(_ => specification.TryGetService<CleanSameKeyDelivery>().Map(p => p.Value).IfNone(true));
-
-            var prepared = specification.Transport.Provider.PreparePublish<TEvent>(specification, poptions);
-            await deliveryManager.Prepare(store, @event, deliveryId,
-                specification.Transport,new DeliveryParams(operation, afterCommit, messageTtl),
-                prepared, key);
-            return deliveryId;
+            await deliveryManager.Prepare(store, parameters, sender, messageTtl, afterCommit, payloadEncode); 
+                
+            return parameters.DeliveryId;
         }
 
 

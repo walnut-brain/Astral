@@ -5,8 +5,10 @@ using Astral;
 using Astral.Configuration.Builders;
 using Astral.DependencyInjection;
 using Astral.Payloads;
+using Astral.Specifications;
 using Astral.Transport;
 using Autofac;
+using Autofac.Astral;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using SampleService;
@@ -58,6 +60,7 @@ namespace SampleApp
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
+            containerBuilder.AddAstral();
             using (var container = containerBuilder.Build())
             {
                 var bus = container.Resolve<Bus>();

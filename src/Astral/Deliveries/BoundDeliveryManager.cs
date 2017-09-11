@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Net.Mime;
 using System.Reactive.Disposables;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Data;
 using Astral.Payloads;
+using Astral.Payloads.DataContracts;
+using Astral.Payloads.Serialization;
+using Astral.Specifications;
 using Astral.Transport;
 using FunEx;
 using FunEx.Monads;
@@ -41,7 +45,36 @@ namespace Astral.Deliveries
         }
 
 
-        public async Task Prepare<T>(TStore store, T message, Guid deliveryId, IDeliverySpecification specification, DeliveryParams parameters, 
+        public async Task Prepare<T>(TStore store, DeliveryCreateParams<T> parameters, PayloadSender<T> sender,
+            TimeSpan messageTtl, DeliveryAfterCommit afterCommit, PayloadEncode<byte[]> payloadEncode)
+        {
+            if (store == null) throw new ArgumentNullException(nameof(store));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+            if (sender == null) throw new ArgumentNullException(nameof(sender));
+            if (afterCommit == null) throw new ArgumentNullException(nameof(afterCommit));
+            if (payloadEncode == null) throw new ArgumentNullException(nameof(payloadEncode));
+            var service = store.DeliveryService;
+            using (var work = store.BeginWork())
+            {
+                if (parameters.Key != null)
+                    await service.RemoveByKey(
+                        parameters.Target,
+                        parameters.Sender,
+                        parameters.Service,
+                        parameters.Endpoint,
+                        parameters.IsReply, parameters.Key);
+                var payload =
+                    await service.NewDelivery(parameters, messageTtl, _sponsor,
+                        afterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero : _leaseInterval + _leaseInterval);
+                if (afterCommit is DeliveryAfterCommit.SendType st)
+                    work.CommitEvents.Subscribe(_ => { }, () => AddDelivery(parameters.DeliveryId, payload,
+                        new Lazy<T>(() => parameters.Message),
+                        st.DeliveryOnSuccess, sender, payloadEncode, true).Wait());
+                work.Commit();
+            }
+        }
+        
+       /* public async Task Prepare<T>(TStore store, T message, Guid deliveryId, IDeliverySpecification specification, DeliveryParams parameters, 
             PayloadSender<T> sender, Option<string> key)
         {
             var service = store.DeliveryService;
@@ -65,7 +98,7 @@ namespace Astral.Deliveries
                 work.Commit();
             }
             
-        }
+        }*/
 
 
 

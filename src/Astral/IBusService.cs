@@ -23,19 +23,7 @@ namespace Astral
         Task PublishAsync<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector, TEvent @event,
             EventPublishOptions options = null, CancellationToken token = default(CancellationToken));
 
-        /// <summary>
-        /// Deliver event with bounded store
-        /// </summary>
-        /// <param name="store">store instance</param>
-        /// <param name="selector">event selector expression</param>
-        /// <param name="event">even to deliver</param>
-        /// <param name="options">delivery options</param>
-        /// <typeparam name="TStore">store type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>awaitable delivery guid</returns>
-        Task<Guid> Deliver<TStore, TEvent>(TStore store, Expression<Func<T, IEvent<TEvent>>> selector,
-            TEvent @event, DeliveryOptions options = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        
 
         /// <summary>
         ///     Listen event
@@ -49,17 +37,57 @@ namespace Astral
         IDisposable Listen<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector,
             IEventListener<TEvent> eventListener, EventListenOptions options = null);
 
+
+        /// <summary>
+        /// Save delivery event with bounded store, not send event
+        /// </summary>
+        /// <param name="store">store instance</param>
+        /// <param name="selector">event selector expression</param>
+        /// <param name="event">event to deliver</param>
+        /// <param name="messageTtl">event ttl</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TEvent">event type</typeparam>
+        /// <returns>awaitable delivery guid</returns>
+        Task<Guid> SaveDelivery<TStore, TEvent>(TStore store,
+            Expression<Func<T, IEvent<TEvent>>> selector,
+            TEvent @event, TimeSpan? messageTtl = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+
+
         /// <summary>
         /// Deliver command
         /// </summary>
         /// <param name="store">store instance</param>
         /// <param name="selector">command selector</param>
         /// <param name="command">command</param>
-        /// <param name="options">delivery options</param>
+        /// <param name="target">target system</param>
+        /// <param name="messageTtl">command ttl</param>
+        /// <param name="onSuccess">on success delivery </param>
+        /// <param name="replyTo">reply to mode</param>
         /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>awaitable delivery guid</returns>
-        Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<T, ICall<TCommand>>> selector, TCommand command, DeliveryOptions options = null)
+        Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<T, ICall<TCommand>>> selector,
+            TCommand command,
+            string target = null, TimeSpan? messageTtl = null, DeliveryOnSuccess onSuccess = null,
+            DeliveryReplyTo replyTo = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+
+        /// <summary>
+        /// Save delivery for command
+        /// </summary>
+        /// <param name="store">store instance</param>
+        /// <param name="selector">command selector</param>
+        /// <param name="command">command</param>
+        /// <param name="target">target system</param>
+        /// <param name="messageTtl">command ttl</param>
+        /// <param name="replyTo">reply to mode</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable delivery guid</returns>
+        Task<Guid> SaveDelivery<TStore, TCommand>(TStore store,
+            Expression<Func<T, ICall<TCommand>>> selector, TCommand command,
+            string target = null, TimeSpan? messageTtl = null, DeliveryReplyTo replyTo = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
     }
 
