@@ -89,6 +89,42 @@ namespace Astral
             Expression<Func<T, ICall<TCommand>>> selector, TCommand command,
             string target = null, TimeSpan? messageTtl = null, DeliveryReplyTo replyTo = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        
+        /// <summary>
+        /// Deliver command
+        /// </summary>
+        /// <param name="store">store instance</param>
+        /// <param name="selector">command selector</param>
+        /// <param name="command">command</param>
+        /// <param name="target">target system</param>
+        /// <param name="messageTtl">command ttl</param>
+        /// <param name="onSuccess">on success delivery </param>
+        /// <param name="replyTo">reply to mode</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable delivery guid</returns>
+        Task<Guid> Deliver<TStore, TRequest, TResponse>(TStore store, Expression<Func<T, ICall<TRequest, TResponse>>> selector,
+            TRequest request,
+            string target = null, TimeSpan? messageTtl = null, DeliveryOnSuccess onSuccess = null,
+            DeliveryReplyTo replyTo = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+
+        /// <summary>
+        /// Save delivery for command
+        /// </summary>
+        /// <param name="store">store instance</param>
+        /// <param name="selector">command selector</param>
+        /// <param name="command">command</param>
+        /// <param name="target">target system</param>
+        /// <param name="messageTtl">command ttl</param>
+        /// <param name="replyTo">reply to mode</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable delivery guid</returns>
+        Task<Guid> SaveDelivery<TStore, TRequest, TResponse>(TStore store,
+            Expression<Func<T, ICall<TRequest, TResponse>>> selector, TRequest command,
+            string target = null, TimeSpan? messageTtl = null, DeliveryReplyTo replyTo = null)
+            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
     }
 
     public interface IBusService

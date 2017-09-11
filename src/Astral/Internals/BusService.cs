@@ -105,23 +105,31 @@ namespace Astral.Internals
             string target = null, TimeSpan? messageTtl = null, DeliveryOnSuccess onSuccess = null,
             DeliveryReplyTo replyTo = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => Deliver(store, selector, command, target, messageTtl, onSuccess.ToOption().Map(DeliveryAfterCommit.Send), replyTo);
+            => Deliver(store, Specification.Endpoint(selector), command, target, messageTtl, onSuccess.ToOption().Map(DeliveryAfterCommit.Send), replyTo);
 
         public Task<Guid> SaveDelivery<TStore, TCommand>(TStore store,
             Expression<Func<TService, ICall<TCommand>>> selector, TCommand command,
             string target = null, TimeSpan? messageTtl = null, DeliveryReplyTo replyTo = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => Deliver(store, selector, command, target, messageTtl, DeliveryAfterCommit.NoOp, replyTo);
-        
-        private Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<TService, ICall<TCommand>>> selector, TCommand command,
+            => Deliver(store, Specification.Endpoint(selector), command, target, messageTtl, DeliveryAfterCommit.NoOp, replyTo);
+
+
+        public Task<Guid> Deliver<TStore, TRequest, TResponse>(TStore store, Expression<Func<TService, ICall<TRequest, TResponse>>> selector, TRequest request, string target = null,
+            TimeSpan? messageTtl = null, DeliveryOnSuccess onSuccess = null, DeliveryReplyTo replyTo = null) where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            => Deliver(store, Specification.Endpoint(selector), request, target, messageTtl, onSuccess.ToOption().Map(DeliveryAfterCommit.Send), replyTo);
+
+        public Task<Guid> SaveDelivery<TStore, TRequest, TResponse>(TStore store, Expression<Func<TService, ICall<TRequest, TResponse>>> selector, TRequest command,
+            string target = null, TimeSpan? messageTtl = null, DeliveryReplyTo replyTo = null) where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            => Deliver(store, Specification.Endpoint(selector), command, target, messageTtl, DeliveryAfterCommit.NoOp, replyTo);
+
+        private Task<Guid> Deliver<TStore, TRequest>(TStore store, EndpointSpecification endpoint, TRequest command,
             string target, TimeSpan? messageTtl, Option<DeliveryAfterCommit> afterCommit, DeliveryReplyTo replyTo)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
-            var endpoint = Specification.Endpoint(selector);
-            var deliveryCreateParams = new DeliveryCreateParams<TCommand>(Guid.NewGuid(),
+            var deliveryCreateParams = new DeliveryCreateParams<TRequest>(Guid.NewGuid(),
                 target ?? endpoint.GetRequiredService<ServiceOwner>().Value,
                 endpoint.SystemName, endpoint.ServiceName, endpoint.EndpointName,
-                endpoint.TryGetService<MessageKeyExtractor<TCommand>>()
+                endpoint.TryGetService<MessageKeyExtractor<TRequest>>()
                     .Map(p => p.Value)
                     .Map(p => p(command))
                     .OrElse(() => (command as IKeyProvider).ToOption().Map(p => p.Key))
@@ -131,11 +139,11 @@ namespace Astral.Internals
             var encoder = endpoint.Transport.PayloadEncode;
             var msgTtl = messageTtl ??
                          endpoint.TryGetService<MessageTtl>().Map(p => p.Value).IfNone(Timeout.InfiniteTimeSpan);
-            var sender = endpoint.Transport.Provider.PreparePublish<TCommand>(endpoint,
+            var sender = endpoint.Transport.Provider.PreparePublish<TRequest>(endpoint,
                 new PublishOptions(msgTtl, (replyTo ?? DeliveryReplyTo.System).ResponseTo, null));
             return DeliverMessage(store, deliveryCreateParams, sender, msgTtl, afterCommit
                 .OrElse(() => endpoint.TryGetService<RequestDeliveryPolicy>().Map(p => p.Value))
-                .IfNone(() => DeliveryAfterCommit.Send(DeliveryOnSuccess.Delete)), encoder); 
+                .IfNone(() => DeliveryAfterCommit.Send(DeliveryOnSuccess.Archive(Timeout.InfiniteTimeSpan))), encoder); 
         }
         
         
