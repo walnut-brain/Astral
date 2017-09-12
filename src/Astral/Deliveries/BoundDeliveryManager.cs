@@ -45,31 +45,28 @@ namespace Astral.Deliveries
         }
 
 
-        public async Task Prepare<T>(TStore store, DeliveryCreateParams<T> parameters, PayloadSender<T> sender,
-            TimeSpan messageTtl, DeliveryAfterCommit afterCommit, PayloadEncode<byte[]> payloadEncode)
+        public async Task Prepare<T>(
+            TStore store, 
+            EndpointConfig endpoint,
+            Guid deliveryId,
+            T message,
+            DeliveryReply reply,
+            PayloadSender<T> sender,
+            Option<DeliveryOnSuccess>  policy)
         {
             if (store == null) throw new ArgumentNullException(nameof(store));
-            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+            if (endpoint == null) throw new ArgumentNullException(nameof(endpoint));
             if (sender == null) throw new ArgumentNullException(nameof(sender));
-            if (afterCommit == null) throw new ArgumentNullException(nameof(afterCommit));
-            if (payloadEncode == null) throw new ArgumentNullException(nameof(payloadEncode));
             var service = store.DeliveryService;
             using (var work = store.BeginWork())
             {
-                if (parameters.Key != null)
-                    await service.RemoveByKey(
-                        parameters.Target,
-                        parameters.Sender,
-                        parameters.Service,
-                        parameters.Endpoint,
-                        parameters.IsReply, parameters.Key);
                 var payload =
-                    await service.NewDelivery(parameters, messageTtl, _sponsor,
-                        afterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero : _leaseInterval + _leaseInterval);
-                if (afterCommit is DeliveryAfterCommit.SendType st)
-                    work.CommitEvents.Subscribe(_ => { }, () => AddDelivery(parameters.DeliveryId, payload,
-                        new Lazy<T>(() => parameters.Message),
-                        st.DeliveryOnSuccess, sender, payloadEncode, true).Wait());
+                    await service.NewDelivery(endpoint, deliveryId, reply, message, _sponsor,
+                        policy.Map(_ => _leaseInterval + +_leaseInterval).IfNone(TimeSpan.Zero));
+                policy.IfSome(plc =>
+                    work.CommitEvents.Subscribe(_ => { }, () => AddDelivery(deliveryId, payload,
+                        new Lazy<T>(() => message),
+                        plc, sender, endpoint.PayloadEncode, true).Wait()));
                 work.Commit();
             }
         }
@@ -104,7 +101,7 @@ namespace Astral.Deliveries
 
 
         private async Task AddDelivery<T>(Guid deliveryId, Payload payload, Lazy<T> message, 
-            DeliveryOnSuccess deliveryOnSuccess, PayloadSender<T> sender, PayloadEncode<byte[]> payloadEncode, bool pickup)
+            DeliveryOnSuccess policy, PayloadSender<T> sender, PayloadEncode<byte[]> payloadEncode, bool pickup)
         {
             Payload<byte[]> rawPayload;
             switch (payload)
@@ -144,7 +141,7 @@ namespace Astral.Deliveries
 
             try
             {
-                await ContinueDoInLease(sender(message, rawPayload, compositeCancellation.Token), deliveryId, deliveryOnSuccess);
+                await ContinueDoInLease(sender(message, rawPayload, compositeCancellation.Token), deliveryId, policy);
             }
             finally
             {
@@ -158,37 +155,28 @@ namespace Astral.Deliveries
         private Task<bool> PickupLease(Guid deliveryId)
         {
             return DoInScope(async srv =>
-                await srv.TryUpdateLease(deliveryId, _sponsor, _leaseInterval + _leaseInterval, null));
+                await srv.TryPickupLease(deliveryId, _sponsor, _leaseInterval + _leaseInterval));
 
         }
 
-        private async Task ContinueDoInLease(Task task, Guid deliveryId, DeliveryOnSuccess behavior)
+        private async Task ContinueDoInLease(Task task, Guid deliveryId, DeliveryOnSuccess policy)
         {
             try
             {
                 await task;
                 await DoInScope(async p =>
                 {
-                    switch (behavior)
-                    {
-                        case DeliveryOnSuccess.ArchiveType archiveType:
-                            await p.TryUpdateLease(deliveryId, _sponsor, Timeout.InfiniteTimeSpan,
-                                archiveType.DeleteAfter);
-                            break;
-                        case DeliveryOnSuccess.DeleteType deleteType:
-                            await p.DeleteDelivery(deliveryId);
-                            break;
-                        case DeliveryOnSuccess.RedeliveryType redeliveryType:
-                            await p.TryUpdateLease(deliveryId, _sponsor, redeliveryType.RedeliveryAfter, null);
-                            break;
-                    }
+                    await policy.Match(() => p.DeleteDelivery(deliveryId),
+                        () => p.TryFreeLease(deliveryId, _sponsor, Timeout.InfiniteTimeSpan),
+                        ts => p.TryFreeLease(deliveryId, _sponsor, ts));
+                    
                 });
             }
             catch  
             {
                 if (_dispose.IsDisposed)
                     return;
-                await DoInScope(async p => await p.TryUpdateLease(deliveryId, _sponsor, TimeSpan.Zero, null));
+                await DoInScope(async p => await p.TryFreeLease(deliveryId, _sponsor, TimeSpan.Zero));
             }
         }
 
@@ -255,4 +243,6 @@ namespace Astral.Deliveries
         }
 
     }
+
+    
 }

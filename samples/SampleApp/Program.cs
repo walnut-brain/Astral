@@ -22,12 +22,12 @@ namespace SampleApp
         {
         }
 
-        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointSpecification specification, PublishOptions options)
+        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, PublishOptions options)
         {
             throw new NotImplementedException();
         }
 
-        public IDisposable Subscribe(EndpointSpecification specification, RawMessageHandler handler, EventListenOptions options)
+        public IDisposable Subscribe(ChannelConfig config, RawMessageHandler handler)
         {
             throw new NotImplementedException();
         }

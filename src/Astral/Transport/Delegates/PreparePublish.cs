@@ -5,6 +5,6 @@ using Astral.Specifications;
 
 namespace Astral.Transport
 {
-    public delegate PayloadSender<TEvent> PreparePublish<TEvent>(EndpointSpecification specification, PublishOptions options);
+    public delegate PayloadSender<TEvent> PreparePublish<TEvent>(EndpointConfig config, PublishOptions options);
 
 }

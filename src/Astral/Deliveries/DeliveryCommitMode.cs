@@ -2,28 +2,17 @@
 
 namespace Astral.Deliveries
 {
-    public abstract class DeliveryCommitMode
+    public struct DeliveryCommitMode
     {
-        private DeliveryCommitMode()
+        private readonly TimeSpan? _awaitPeriod;
+        
+        private DeliveryCommitMode(TimeSpan period)
         {
-            
-        }
-
-        public sealed class OptimisticType : DeliveryCommitMode
-        {
-            public TimeSpan AwaitPeriod { get; }
-            public OptimisticType(TimeSpan awaitPeriod) 
-            {
-                AwaitPeriod = awaitPeriod;
-            }
-        }
-        public sealed class PessimisticType : DeliveryCommitMode
-        {
-            
+            _awaitPeriod = period;
         }
 
         public static DeliveryCommitMode Optimistic(TimeSpan awaitPeriod)
-            => new OptimisticType(awaitPeriod);
-        public static DeliveryCommitMode Pessimistic = new PessimisticType();
+            => new DeliveryCommitMode(awaitPeriod);
+        public static readonly DeliveryCommitMode Pessimistic = default(DeliveryCommitMode);
     }
 }

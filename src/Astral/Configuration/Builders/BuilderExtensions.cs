@@ -12,57 +12,38 @@ namespace Astral.Configuration.Builders
 {
     public static class BuilderExtensions
     {
-        public static TBuilder CleanSameKeyDelivery<TBuilder>(this TBuilder builder, bool clean)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law<Fact>.Axiom(new CleanSameKeyDelivery(clean)));
-            return builder;
-        }
-
         
-        public static TBuilder RequestDeliveryNoSend<TBuilder>(this TBuilder builder)
+        
+        public static TBuilder DeliveryOnSuccess<TBuilder>(this TBuilder builder, DeliveryOnSuccess onSuccess)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law<Fact>.Axiom(new RequestDeliveryPolicy(DeliveryAfterCommit.NoOp)));
+            builder.AddLaw(Law<Fact>.Axiom(new DeliveryOnSuccessSetting(onSuccess)));
             return builder;
             
         }
         
-        public static TBuilder RequestDeliveryOnSuccess<TBuilder>(this TBuilder builder, DeliveryOnSuccess onSuccess)
-            where TBuilder : BuilderBase
-        {
-            builder.AddLaw(Law<Fact>.Axiom(new RequestDeliveryPolicy(DeliveryAfterCommit.Send(onSuccess))));
-            return builder;
-            
-        }
-
-        public static BusBuilder MessageKeyExtractor<TEvent>(this BusBuilder builder, Func<TEvent, string> extractKey)
-        {
-            builder.AddLaw(Law<Fact>.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
-            return builder;
-        }
-
-        public static ServiceBuilder MessageKeyExtractor<TEvent>(this ServiceBuilder builder, Func<TEvent, string> extractKey)
-        {
-            builder.AddLaw(Law<Fact>.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
-            return builder;
-        }
-
-        public static EventEndpointBuilder<TEvent> MessageKeyExtractor<TEvent>(this EventEndpointBuilder<TEvent> builder, Func<TEvent, string> extractKey)
-        {
-            builder.AddLaw(Law<Fact>.Axiom(new MessageKeyExtractor<TEvent>(extractKey)));
-            return builder;
-        }
-
 
         public static TBuilder MessageTtl<TBuilder>(this TBuilder builder, TimeSpan ttl)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law<Fact>.Axiom(new MessageTtl(ttl)));
+            builder.AddLaw(Law<Fact>.Axiom(new MessageTtlSetting(ttl)));
+            return builder;
+        }
+        
+        public static TBuilder MessageTtl<TBuilder, TMessage>(this TBuilder builder, Func<TMessage, TimeSpan> messageTtl)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law<Fact>.Axiom(new MessageTtlFactorySetting<TMessage>(messageTtl)));
             return builder;
         }
 
-
+        public static TBuilder DeliveryReplayTo<TBuilder>(this TBuilder builder, DeliveryReplyTo replayTo)
+            where TBuilder : BuilderBase
+        {
+            builder.AddLaw(Law<Fact>.Axiom(new DeliveryReplayToSetting(replayTo)));
+            return builder;
+        }
+        
         public static BusBuilder UseJsonSerializer<TBuilder>(this BusBuilder builder, JsonSerializerSettings jsettings = null)
             where TBuilder : BuilderBase
         {

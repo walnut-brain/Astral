@@ -3,22 +3,21 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Astral.Contracts;
 using Astral.Payloads;
+using Astral.Specifications;
 
 namespace Astral.Deliveries
 {
     public interface IDeliveryDataService<TStore>
     {
-         Task<Payload> NewDelivery(Type type, object message, Guid deliveryId, IDeliverySpecification specification, DeliveryOperation operation,
-            TimeSpan messageTtl, string sponsor, TimeSpan leaseInterval);
+         
 
-        Task<Payload> NewDelivery<T>(DeliveryCreateParams<T> createParams, TimeSpan messageTtl, string sponsor,
-            TimeSpan leaseInterval);
+        Task<Payload> NewDelivery<T>(EndpointConfig endpoint, Guid deliveryId, DeliveryReply reply, T message, string sponsor, TimeSpan leaseInterval);
         
         Task CleanSponsorLeases(string sponsor);
         Task<IEnumerable<Guid>> RenewLeases(string sponsor, TimeSpan leaseInterval);
-        Task<bool> TryUpdateLease(Guid deliveryId, string sponsor, TimeSpan leaseInterval, TimeSpan? messageTtl);
+        Task<bool> TryFreeLease(Guid deliveryId, string sponsor, TimeSpan leaseInterval);
         Task DeleteDelivery(Guid deliveryId);
-        Task RemoveByKey(string service, string endpoint, string key);
-        Task RemoveByKey(string target, string sender, string service, string endpoint, bool isReply, string key);
+
+        Task<bool> TryPickupLease(Guid deliveryId, string sponsor, TimeSpan leaseInterval);
     }
 }

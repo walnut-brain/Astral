@@ -17,7 +17,7 @@ namespace Astral.DependencyInjection
         }
 
         public static IServiceCollection AddBus<TBus, TInterface>(this IServiceCollection serviceCollection,
-            Func<BusSpecification, TBus> factory, string systemName,  Action<BusBuilder> configure)
+            Func<BusConfig, TBus> factory, string systemName,  Action<BusBuilder> configure)
             where TInterface : class, IBus
             where TBus : Bus, TInterface
         {

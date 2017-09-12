@@ -4,9 +4,9 @@ using Astral.Specifications;
 
 namespace Astral.Transport
 {
-    public interface ITransport : IRpcTransport
+    public interface ITransport 
     {
-        PayloadSender<TMessage> PreparePublish<TMessage>(EndpointSpecification specification, PublishOptions options);
-        IDisposable Subscribe(EndpointSpecification specification, RawMessageHandler handler, EventListenOptions options);
+        PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, PublishOptions options);
+        IDisposable Subscribe(ChannelConfig config, RawMessageHandler handler);
     }
 }
