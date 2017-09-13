@@ -13,6 +13,8 @@ namespace Astral
     public interface IBusService<T> : IBusService
         where T : class
     {
+        
+        
         /// <summary>
         ///     Publish event asynchronius
         /// </summary>
@@ -133,28 +135,75 @@ namespace Astral
             Expression<Func<T, ICall<TRequest, TResponse>>> selector, TRequest command, ChannelKind.IDeliveryReply replyTo = null)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
 
-        Task<Guid> DeliverReply<TStore, TCommand>(TStore store,
+        
+        /// <summary>
+        /// Deliver command reply
+        /// </summary>
+        /// <param name="store">delivery store</param>
+        /// <param name="selector">command selector</param>
+        /// <param name="replayTo">replay to</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable delivery id</returns>
+        Task<Guid> DeliverResponse<TStore, TCommand>(TStore store,
             Expression<Func<T, ICall<TCommand>>> selector, ChannelKind.ReplyChannelKind replayTo)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
 
+        /// <summary>
+        /// Send command
+        /// </summary>
+        /// <param name="selector">command selector</param>
+        /// <param name="command">command</param>
+        /// <param name="responseTo">response to</param>
+        /// <param name="cancellation">cancellation token</param>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable request id</returns>
         Task<Guid> Send<TCommand>(Expression<Func<T, ICall<TCommand>>> selector, TCommand command,
             ChannelKind.IDeliveryReply responseTo = null, CancellationToken cancellation = default(CancellationToken));
 
+        /// <summary>
+        /// Response to command
+        /// </summary>
+        /// <param name="selector">command selector</param>
+        /// <param name="replyTo">reply to</param>
+        /// <param name="cancellation">cancellation token</param>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>awaitable</returns>
         Task Response<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
-            ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken));
+            ChannelKind.ReplyChannelKind replyTo, CancellationToken cancellation = default(CancellationToken));
 
-        Task<Guid> DeliverReply<TStore, TRequest, TReplay>(TStore store,
-            Expression<Func<T, ICall<TRequest, TReplay>>> selector, TReplay replay,
-            ChannelKind.ReplyChannelKind replayTo)
+        /// <summary>
+        /// Deliverty call response
+        /// </summary>
+        /// <param name="store">delivery store</param>
+        /// <param name="selector">call selector</param>
+        /// <param name="response">response</param>
+        /// <param name="replyTo">reply to</param>
+        /// <typeparam name="TStore">store type</typeparam>
+        /// <typeparam name="TRequest">request type</typeparam>
+        /// <typeparam name="TResponse">response type</typeparam>
+        /// <returns></returns>
+        Task<Guid> DeliverResponse<TStore, TRequest, TResponse>(TStore store,
+            Expression<Func<T, ICall<TRequest, TResponse>>> selector, TResponse response,
+            ChannelKind.ReplyChannelKind replyTo)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
 
-        IDisposable ListenReply<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
+        /// <summary>
+        /// Listen response from command
+        /// </summary>
+        /// <param name="selector">command selector</param>
+        /// <param name="listener">response listener</param>
+        /// <param name="replyFrom">response channel</param>
+        /// <param name="configure">configure channel</param>
+        /// <typeparam name="TCommand">command type</typeparam>
+        /// <returns>dispose for unlisten</returns>
+        IDisposable ListenResponse<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
             IListener<Result<ValueTuple>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyTo = null, Action<ChannelBuilder> configure = null);
+            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null);
 
-        IDisposable ListenReply<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
+        IDisposable ListenResponse<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
             IListener<Result<TResponse>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyTo = null, Action<ChannelBuilder> configure = null);
+            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null);
 
         Task Response<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
             TResponse response, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken));

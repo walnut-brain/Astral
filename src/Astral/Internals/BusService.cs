@@ -126,11 +126,11 @@ namespace Astral.Internals
         }
         
         public async Task Response<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
-            ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken))
+            ChannelKind.ReplyChannelKind replyTo, CancellationToken cancellation = default(CancellationToken))
         {
-            if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
+            if (replyTo == null) throw new ArgumentNullException(nameof(replyTo));
             var endpoint = Config.Endpoint(selector);
-            var option = new PublishOptions(Timeout.InfiniteTimeSpan, replayTo, null);
+            var option = new PublishOptions(Timeout.InfiniteTimeSpan, replyTo, null);
             var payload = endpoint.ToPayload(default(ValueTuple)).Unwrap();
             var sender = endpoint.Transport.PreparePublish<ValueTuple>(endpoint, option);
             await sender(new Lazy<ValueTuple>(() => default(ValueTuple)), payload, cancellation);
@@ -173,7 +173,7 @@ namespace Astral.Internals
                                             .IfNone(ChannelKind.System)), Option.None);
         }
 
-        public Task<Guid> DeliverReply<TStore, TCommand>(TStore store,
+        public Task<Guid> DeliverResponse<TStore, TCommand>(TStore store,
             Expression<Func<TService, ICall<TCommand>>> selector,
             ChannelKind.ReplyChannelKind replayTo)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
@@ -195,12 +195,12 @@ namespace Astral.Internals
                 DeliveryOnSuccess.Delete);
         }
 
-        public IDisposable ListenReply<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
+        public IDisposable ListenResponse<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
             IListener<Result<ValueTuple>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyTo = null, Action<ChannelBuilder> configure = null)
+            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
-            var channel = endpoint.Channel((ChannelKind) replyTo ?? ChannelKind.System, true, configure ?? (_ => { }));
+            var channel = endpoint.Channel((ChannelKind) replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
             
             return Listen(channel, listener,
                 p =>
@@ -339,14 +339,14 @@ namespace Astral.Internals
                                             .IfNone(ChannelKind.System)), Option.None);
         }
 
-        public Task<Guid> DeliverReply<TStore, TRequest, TReplay>(TStore store,
-            Expression<Func<TService, ICall<TRequest, TReplay>>> selector, TReplay replay,
-            ChannelKind.ReplyChannelKind replayTo)
+        public Task<Guid> DeliverResponse<TStore, TRequest, TReplay>(TStore store,
+            Expression<Func<TService, ICall<TRequest, TReplay>>> selector, TReplay response,
+            ChannelKind.ReplyChannelKind replyTo)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, replay,
-                DeliveryReply.IsReply(replayTo),
+            return Deliverer(store, endpoint, response,
+                DeliveryReply.IsReply(replyTo),
                 DeliveryOnSuccess.Delete);
         }
         
@@ -361,12 +361,12 @@ namespace Astral.Internals
                 DeliveryOnSuccess.Delete);
         }
         
-        public IDisposable ListenReply<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
+        public IDisposable ListenResponse<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
             IListener<Result<TResponse>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyTo = null, Action<ChannelBuilder> configure = null)
+            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
-            var channel = endpoint.Channel((ChannelKind) replyTo ?? ChannelKind.System, true, configure ?? (_ => { }));
+            var channel = endpoint.Channel((ChannelKind) replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
             
             return Listen(channel, listener, p =>
             {
@@ -522,7 +522,7 @@ namespace Astral.Internals
                 var exceptionPolicy = config.Endpoint.AsTry<ExceptionToAcknowledgeSetting>().Map(p => p.Value).RecoverTo(p => CommonLaws.DefaultExceptionPolicy(p));
 
 
-                var (name, subscribable) = config.Endpoint.Transport.GetChannel(config);
+                var (_, subscribable) = config.Endpoint.Transport.GetChannel(config);
                 return subscribable((msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy));
             }
 

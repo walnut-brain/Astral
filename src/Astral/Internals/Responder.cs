@@ -28,7 +28,7 @@ namespace Astral.Internals
 
         public Task<Guid> Deliver<TStore>(TStore store)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverReply(store, _selector, _channel);
+            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverResponse(store, _selector, _channel);
 
         public Task<Guid> Deliver<TStore>(TStore store, RequestFault fault) 
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
@@ -56,7 +56,7 @@ namespace Astral.Internals
 
         public Task<Guid> Deliver<TStore>(TStore store, TResponse response)
             where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverReply(store, _selector, response, _channel);
+            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverResponse(store, _selector, response, _channel);
 
         public Task<Guid> Deliver<TStore>(TStore store, RequestFault fault) where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
             => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverFaultReply(store, _selector, fault, _channel);
