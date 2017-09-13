@@ -1,11 +1,14 @@
-﻿using Astral.Transport;
+﻿using System;
+using Astral.Transport;
 
 namespace Astral.Configuration.Settings
 {
-    public sealed class ResponseToSetting : Fact<ResponseTo>
+    public sealed class ResponseToSetting : Fact<ChannelKind>
     {
-        public ResponseToSetting(ResponseTo value) : base(value)
+        public ResponseToSetting(ChannelKind value) : base(value)
         {
+            if(!(value is ChannelKind.IResponseTo))
+                throw new ArgumentOutOfRangeException("Channel must be responsable");
         }
     }
 }

@@ -13,35 +13,22 @@ namespace Astral.Deliveries
         }
 
         private readonly Kind _kind;
-        private readonly Option<DeliveryReplyTo> _replyTo;
-        private readonly string _replyToEncoded;
-        private readonly string _replyOn;
+        private readonly ChannelKind _replyTo;
 
-        private DeliveryReply(DeliveryReplyTo replyTo)
+
+        private DeliveryReply(Kind kind, ChannelKind replyTo)
         {
-            _kind = Kind.WithReply;
+            _kind = kind;
             _replyTo = replyTo;
-            _replyToEncoded = null;
-            _replyOn = null;
         }
 
-        private DeliveryReply(string replyTo, string replyOn)
-        {
-            if (string.IsNullOrWhiteSpace(replyTo))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(replyTo));
-            if (string.IsNullOrWhiteSpace(replyOn))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(replyOn));
-            _kind = Kind.IsReply;
-            _replyTo = Option.None;
-            _replyToEncoded = replyTo;
-            _replyOn = replyOn;
-        }
 
         public static readonly DeliveryReply NoReply = default(DeliveryReply);
-        public static DeliveryReply WithReply(DeliveryReplyTo replyTo) => new DeliveryReply(replyTo);
-        public static DeliveryReply IsReply(string replyTo, string replyOn) => new DeliveryReply(replyTo, replyOn);
+        public static DeliveryReply WithReply(ChannelKind.IDeliveryReply replyTo)
+            => new DeliveryReply(Kind.WithReply, (ChannelKind) replyTo);
+        public static DeliveryReply IsReply(ChannelKind.ReplyChannelKind replyChannel) => new DeliveryReply(Kind.IsReply, replyChannel);
 
-        public void Match(Action noReply, Action<DeliveryReplyTo> withReply, Action<string, string> isReply)
+        public void Match(Action noReply, Action<ChannelKind.IDeliveryReply> withReply, Action<ChannelKind.ReplyChannelKind> isReply)
         {
             switch (_kind)
             {
@@ -49,26 +36,26 @@ namespace Astral.Deliveries
                     noReply();
                     break;
                 case Kind.WithReply:
-                    withReply(_replyTo.Unwrap());
+                    withReply((ChannelKind.IDeliveryReply) _replyTo);
                     break;
                 case Kind.IsReply:
-                    isReply(_replyToEncoded, _replyOn);
+                    isReply((ChannelKind.ReplyChannelKind) _replyTo);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
         
-        public T Match<T>(Func<T> noReply, Func<DeliveryReplyTo, T> withReply, Func<string, string, T> isReply)
+        public T Match<T>(Func<T> noReply, Func<ChannelKind.IDeliveryReply, T> withReply, Func<ChannelKind.ReplyChannelKind, T> isReply)
         {
             switch (_kind)
             {
                 case Kind.NoReply:
                     return noReply();
                 case Kind.WithReply:
-                    return withReply(_replyTo.Unwrap());
+                    return withReply((ChannelKind.IDeliveryReply) _replyTo);
                 case Kind.IsReply:
-                    return isReply(_replyToEncoded, _replyOn);
+                    return isReply((ChannelKind.ReplyChannelKind) _replyTo);
                 default:
                     throw new ArgumentOutOfRangeException();
             }

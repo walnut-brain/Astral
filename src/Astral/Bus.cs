@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reflection;
 using Astral.Internals;
@@ -13,11 +15,25 @@ namespace Astral
     {
         private readonly BusConfig _config;
         private readonly CompositeDisposable _disposable;
+        private readonly ConcurrentDictionary<Type, IBusService> _services = new ConcurrentDictionary<Type, IBusService>();
 
         public Bus(BusConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _disposable = new CompositeDisposable(config);
+            _disposable = new CompositeDisposable(config)
+            {
+                Disposable.Create(() =>
+                {
+                    while (!_services.IsEmpty)
+                    {
+                        var type = _services.Keys.FirstOrDefault();
+                        if (type == null)
+                            continue;
+                        if (_services.TryRemove(type, out var service))
+                            service.Dispose();
+                    }
+                })
+            };
         }
 
 
@@ -31,7 +47,7 @@ namespace Astral
         {
             if (_disposable.IsDisposed)
                 throw new ObjectDisposedException(GetType().Name);
-            return new BusService<TService>(_config.Service<TService>());
+            return (IBusService<TService>) _services.GetOrAdd(typeof(TService), _ => new BusService<TService>(_config.Service<TService>()));
         }
     }
 }

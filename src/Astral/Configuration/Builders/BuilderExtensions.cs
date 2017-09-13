@@ -37,8 +37,9 @@ namespace Astral.Configuration.Builders
             return builder;
         }
 
-        public static TBuilder DeliveryReplayTo<TBuilder>(this TBuilder builder, DeliveryReplyTo replayTo)
+        public static TBuilder DeliveryReplayTo<TBuilder, TChannel>(this TBuilder builder, TChannel replayTo)
             where TBuilder : BuilderBase
+            where TChannel : ChannelKind, ChannelKind.IDeliveryReply
         {
             builder.AddLaw(Law<Fact>.Axiom(new DeliveryReplayToSetting(replayTo)));
             return builder;

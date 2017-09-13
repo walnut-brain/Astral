@@ -72,6 +72,7 @@ namespace Astral.Payloads.DataContracts
         public static readonly EncodeComplex StringEncode = KnownType<string>("string");
         public static readonly EncodeComplex GuidEncode = KnownType<short>("uuid");
         
+        
         public static readonly EncodeComplex WellKnownTypesEncode =
             ValueTupleEncode
                 .Fallback(BoolEncode)

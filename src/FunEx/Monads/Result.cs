@@ -72,8 +72,7 @@ namespace FunEx.Monads
             => Recover(recoverer, _ => true);
 
         public Result<T> Recover(Func<Exception, T> recoverer) => Recover<Exception>(recoverer);
-            
-
+        
         #region Equality
 
         public bool Equals(Result<T> other)

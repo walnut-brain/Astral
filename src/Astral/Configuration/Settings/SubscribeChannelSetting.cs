@@ -2,9 +2,9 @@
 
 namespace Astral.Configuration.Settings
 {
-    public sealed class SubscribeChannelSetting : Fact<SubscribeChannel>
+    public sealed class SubscribeChannelSetting : Fact<ChannelKind>
     {
-        public SubscribeChannelSetting(SubscribeChannel value) : base(value)
+        public SubscribeChannelSetting(ChannelKind value) : base(value)
         {
         }
     }

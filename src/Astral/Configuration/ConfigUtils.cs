@@ -8,5 +8,7 @@ namespace Astral.Configuration
         {
             return String.IsNullOrWhiteSpace(tag) ? "" : tag;
         }
+
+        internal static ChannelKind.NamedChannelKind DefaultNamedChannel = ChannelKind.Named("<<<default>>>");
     }
 }

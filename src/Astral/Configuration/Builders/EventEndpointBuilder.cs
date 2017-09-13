@@ -11,9 +11,10 @@ namespace Astral.Configuration.Builders
         {
         }
 
-        public ChannelBuilder SystemChannel => ChannelBuilder(SubscribeChannel.System, false);
-        public ChannelBuilder InstanceChannel => ChannelBuilder(SubscribeChannel.Instance, false);
-        public ChannelBuilder DedicatedChannel => ChannelBuilder(SubscribeChannel.Dedicated, false);
-        public ChannelBuilder NamedBuilder(string name = "<<default>>") => ChannelBuilder(SubscribeChannel.Named(name), false);
+        public ChannelBuilder SystemChannel => ChannelBuilder(ChannelKind.System, false);
+        public ChannelBuilder InstanceChannel => ChannelBuilder(ChannelKind.Instance, false);
+        public ChannelBuilder DedicatedChannel => ChannelBuilder(ChannelKind.Dedicated, false);
+        public ChannelBuilder NamedBuilder(string name = null) => 
+            string.IsNullOrEmpty(name) ? ChannelBuilder(ConfigUtils.DefaultNamedChannel, false) : ChannelBuilder(ChannelKind.Named(name), false);
     }
 }

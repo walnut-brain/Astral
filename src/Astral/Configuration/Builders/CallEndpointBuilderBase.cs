@@ -11,16 +11,18 @@ namespace Astral.Configuration.Builders
         {
         }
         
-        public ChannelBuilder SystemChannel => ChannelBuilder(SubscribeChannel.System, false);
-        public ChannelBuilder InstanceChannel => ChannelBuilder(SubscribeChannel.Instance, false);
-        public ChannelBuilder DedicatedChannel => ChannelBuilder(SubscribeChannel.Dedicated, false);
-        public ChannelBuilder NamedBuilder(string name = "<<default>>") => ChannelBuilder(SubscribeChannel.Named(name), false);
+        public ChannelBuilder SystemChannel => ChannelBuilder(ChannelKind.System, false);
+        public ChannelBuilder InstanceChannel => ChannelBuilder(ChannelKind.Instance, false);
+        public ChannelBuilder DedicatedChannel => ChannelBuilder(ChannelKind.Dedicated, false);
+        public ChannelBuilder NamedBuilder(string name = null) => 
+            string.IsNullOrEmpty(name) ? ChannelBuilder(ConfigUtils.DefaultNamedChannel, false) : ChannelBuilder(ChannelKind.Named(name), false);
         
         
-        public ChannelBuilder ResponseSystemChannel => ChannelBuilder(SubscribeChannel.System, true);
-        public ChannelBuilder ResponseInstanceChannel => ChannelBuilder(SubscribeChannel.Instance, true);
-        public ChannelBuilder ResponseDedicatedChannel => ChannelBuilder(SubscribeChannel.Dedicated, true);
-        public ChannelBuilder ResponseNamedBuilder(string name = "<<default>>") => ChannelBuilder(SubscribeChannel.Named(name), true);
-        public ChannelBuilder ResponseRpcChannel => ChannelBuilder(SubscribeChannel.Rpc, true);
+        public ChannelBuilder ResponseSystemChannel => ChannelBuilder(ChannelKind.System, true);
+        public ChannelBuilder ResponseInstanceChannel => ChannelBuilder(ChannelKind.Instance, true);
+        public ChannelBuilder ResponseDedicatedChannel => ChannelBuilder(ChannelKind.Dedicated, true);
+        public ChannelBuilder ResponseNamedBuilder(string name = null) => 
+            string.IsNullOrEmpty(name) ? ChannelBuilder(ConfigUtils.DefaultNamedChannel, true) : ChannelBuilder(ChannelKind.Named(name), true);
+        public ChannelBuilder ResponseRpcChannel => ChannelBuilder(ChannelKind.Rpc, true);
     }
 }

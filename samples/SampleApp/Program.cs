@@ -27,7 +27,7 @@ namespace SampleApp
             throw new NotImplementedException();
         }
 
-        public IDisposable Subscribe(ChannelConfig config, RawMessageHandler handler)
+        public (string, Subscribable) GetChannel(ChannelConfig config)
         {
             throw new NotImplementedException();
         }

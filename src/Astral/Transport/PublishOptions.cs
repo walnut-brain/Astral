@@ -4,15 +4,15 @@ namespace Astral.Transport
 {
     public class PublishOptions
     {
-        public PublishOptions(TimeSpan messageTtl, ResponseTo responseTo, Guid? correlationId)
+        public PublishOptions(TimeSpan messageTtl, ChannelKind.IResponseTo responseTo, string correlationId)
         {
             MessageTtl = messageTtl;
-            ResponseTo = responseTo;
+            ResponseTo = (ChannelKind) responseTo;
             CorrelationId = correlationId;
         }
 
         public TimeSpan MessageTtl { get; }
-        public ResponseTo ResponseTo { get; }
-        public Guid? CorrelationId { get; }
+        public ChannelKind ResponseTo { get; }
+        public string CorrelationId { get; }
     }
 }

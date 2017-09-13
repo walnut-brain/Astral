@@ -2,9 +2,9 @@
 
 namespace Astral
 {
-    public class EventContext
+    public class ContextBase
     {
-        public EventContext(string sender)
+        public ContextBase(string sender)
         {
             Sender = sender;
         }

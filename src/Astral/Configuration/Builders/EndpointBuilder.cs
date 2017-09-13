@@ -12,19 +12,33 @@ namespace Astral.Configuration.Builders
         {
         }
 
-        protected ChannelBuilder ChannelBuilder(SubscribeChannel channel, bool isReponse)
+        protected ChannelBuilder ChannelBuilder(ChannelKind channelKind, bool isReponse)
         {
             LawBookBuilder<Fact> Simple()
-                =>  BookBuilder.GetSubBookBuilder((channel, isReponse), bld =>
+                =>  BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                     {
-                        bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channel)));
+                        bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channelKind)));
                         bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isReponse)));
                     });
             
 
-            return new ChannelBuilder(channel.Match(Simple, name =>
-                    BookBuilder.GetSubBookBuilder((SubscribeChannel.Named("<<default>>"), isReponse))
-                        .GetSubBookBuilder((channel, isReponse)), Simple, Simple, Simple));
+            return new ChannelBuilder(channelKind.Match(
+                Simple, 
+                name =>
+                    name == ConfigUtils.DefaultNamedChannel.Name 
+                        ? BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
+                        {
+                            bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isReponse)));
+                        })
+                        : BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
+                        {
+                            bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isReponse)));
+                        }).GetSubBookBuilder(name, bld => bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channelKind)))),
+                Simple,
+                Simple,
+                Simple,
+                (a, b) => Simple(),
+                Simple));
         }
         
     }
