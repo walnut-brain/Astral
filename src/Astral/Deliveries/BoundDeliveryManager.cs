@@ -19,7 +19,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Astral.Deliveries
 {
-    internal class BoundDeliveryManager<TStore>
+    internal class BoundDeliveryManager<TStore> : IDisposable
     {
         private readonly string _sponsor;
         private readonly TimeSpan _leaseInterval;

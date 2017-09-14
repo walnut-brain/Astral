@@ -18,6 +18,7 @@ using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
 using Astral.Specifications;
 using Astral.Transport;
+using Astral.Utils;
 using FunEx;
 using FunEx.Monads;
 using Lawium;
@@ -31,7 +32,7 @@ namespace Astral.Internals
 
     {
 
-        private readonly ConcurrentDictionary<string, RpcSubscriber> _subscribers = new ConcurrentDictionary<string, RpcSubscriber>();
+        private readonly BlockedDisposableDictionary<string, RpcSubscriber> _subscribers = new BlockedDisposableDictionary<string, RpcSubscriber>();
         private readonly ICancelable _disposable;
         
         internal BusService(ServiceConfig<TService> config)
@@ -40,12 +41,7 @@ namespace Astral.Internals
             Logger = config.LoggerFactory.CreateLogger<BusService<TService>>();
             _disposable = new CompositeDisposable(Disposable.Create(() =>
             {
-                while (!_subscribers.IsEmpty)
-                {
-                    var key = _subscribers.Keys.FirstOrDefault();
-                    if(key != null && _subscribers.TryRemove(key, out var rpcSubscriber))
-                        rpcSubscriber.Dispose();
-                }
+               _subscribers.Dispose();
             }));
         }
 

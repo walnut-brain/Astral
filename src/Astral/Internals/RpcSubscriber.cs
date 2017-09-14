@@ -19,15 +19,14 @@ namespace Astral.Internals
         }
 
 
-        private async Task<Acknowledge> RawHandle(Payload<byte[]> payload, MessageContext context, CancellationToken token)
+        private Task<Acknowledge> RawHandle(Payload<byte[]> payload, MessageContext context, CancellationToken token)
         {
             if (_listeners.TryRemove(context.RequestId, out var handler))
-#pragma warning disable 4014
+            {
                 Task.Run(() => handler(payload, context));
-#pragma warning restore 4014
-                
-                
-            return Acknowledge.Nack;
+                return Task.FromResult(Acknowledge.Ack);
+            }
+            return Task.FromResult(Acknowledge.Nack);
         }
 
         public Task<Payload<byte[]>> AnswerAsync(string requestId, CancellationToken token)
