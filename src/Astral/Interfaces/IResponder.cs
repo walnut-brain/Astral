@@ -12,11 +12,9 @@ namespace Astral
         
         Task Send(RequestFault fault, CancellationToken token);
 
-        Task<Guid> Deliver<TStore>(TStore store, TResponse response)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
-        
-        Task<Guid> Deliver<TStore>(TStore store, RequestFault fault)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow, TResponse response);
+
+        Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow, RequestFault fault);
         
     }
 
@@ -26,10 +24,8 @@ namespace Astral
         
         Task Send(RequestFault fault, CancellationToken token);
 
-        Task<Guid> Deliver<TStore>(TStore store)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
-        
-        Task<Guid> Deliver<TStore>(TStore store, RequestFault fault)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow);
+
+        Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow, RequestFault fault);
     }
 }

@@ -10,36 +10,21 @@ namespace Astral
         private ChannelKind()
         {
         }
-        
-        public interface IEventChannel
-        {
-            
-        }
-        
-        public interface IDeliveryReply : IResponseTo
-        {
-            
-        }
-        
-        public interface IResponseTo
-        {
-            
-        }
 
         /// <summary>
         /// System channel - channel common to all subscribers by System Name
         /// </summary>
-        public static readonly SystemChannelKind System = new SystemChannelKind();
+        public static readonly SystemChannel System = new SystemChannel();
         
         /// <summary>
         /// Instance channel - channel specific for runned instance of bus
         /// </summary>
-        public static readonly InstanceChannelKind Instance = new InstanceChannelKind();
+        public static readonly InstanceChannel Instance = new InstanceChannel();
         
         /// <summary>
         /// Dedicated channel - channel per subscription  
         /// </summary>
-        public static readonly DedicatedChannelKind Dedicated = new DedicatedChannelKind();
+        public static readonly DedicatedChannel Dedicated = new DedicatedChannel();
         
         /// <summary>
         /// Rpc channel - channel specificaly designed to optimize rpc calls
@@ -59,37 +44,37 @@ namespace Astral
         /// <param name="replyTo">transport specific channel specification</param>
         /// <param name="requestId">request correlation id</param>
         /// <returns></returns>
-        public static ReplyChannelKind Reply(string replyTo, string requestId) => new ReplyChannelKind(replyTo, requestId);
+        public static ReplyChannel Reply(string replyTo, string requestId) => new ReplyChannel(replyTo, requestId);
         
         /// <summary>
         /// None channel
         /// </summary>
-        public static readonly NoneChannelKind None = new NoneChannelKind();
+        public static readonly NoneChannel None = new NoneChannel();
             
         public void Match(Action system, Action<string> named, Action instance, Action dedicated, Action rpc, Action<string, string> reply,
             Action none)
         {
             switch (this)
             {
-                case DedicatedChannelKind _:
+                case DedicatedChannel _:
                     dedicated();
                     break;
-                case InstanceChannelKind _:
+                case InstanceChannel _:
                     instance();
                     break;
                 case NamedChannelKind namedChannel:
                     named(namedChannel.Name);
                     break;
-                case NoneChannelKind _:
+                case NoneChannel _:
                     none();
                     break;
-                case ReplyChannelKind replyChannel:
+                case ReplyChannel replyChannel:
                     reply(replyChannel.ReplyTo, replyChannel.RequestId);
                     break;
                 case RpcChannelKind _:
                     rpc();
                     break;
-                case SystemChannelKind _:
+                case SystemChannel _:
                     system();
                     break;
                 default:
@@ -102,62 +87,79 @@ namespace Astral
         {
             switch (this)
             {
-                case DedicatedChannelKind _:
+                case DedicatedChannel _:
                     return dedicated();
-                case InstanceChannelKind _:
+                case InstanceChannel _:
                     return instance();
                 case NamedChannelKind namedChannel:
                     return named(namedChannel.Name);
-                case NoneChannelKind _:
+                case NoneChannel _:
                     return none();
-                case ReplyChannelKind replyChannel:
+                case ReplyChannel replyChannel:
                     return reply(replyChannel.ReplyTo, replyChannel.RequestId);                    
                 case RpcChannelKind _:
                     return rpc();
-                case SystemChannelKind _:
+                case SystemChannel _:
                     return system();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        } 
+        }
         
-        /// <summary>
-        /// System channel type
-        /// </summary>
-        public sealed class SystemChannelKind : ChannelKind, IEventChannel, IDeliveryReply, IResponseTo
+        public abstract class RespondableChannel : ChannelKind
         {
-            internal SystemChannelKind()
+            internal RespondableChannel()
             {
             }
-
-            private bool Equals(SystemChannelKind other) => true;
-
-            public override bool Equals(object obj)
+        }
+        
+        public abstract class DurableChannel : RespondableChannel
+        {
+            internal DurableChannel()
             {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                return obj is SystemChannelKind channel && Equals(channel);
             }
-
-            public override int GetHashCode() => GetType().GetHashCode();
         }
         
         /// <summary>
         /// System channel type
         /// </summary>
-        public sealed class NoneChannelKind : ChannelKind, IResponseTo
+        public sealed class SystemChannel : DurableChannel, IEventChannel
         {
-            internal NoneChannelKind()
+            internal SystemChannel()
             {
             }
 
-            private bool Equals(NoneChannelKind other) => true;
+            private bool Equals(SystemChannel other) => true;
 
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is NoneChannelKind channel && Equals(channel);
+                return obj is SystemChannel channel && Equals(channel);
+            }
+
+            public override int GetHashCode() => GetType().GetHashCode();
+        }
+
+
+        
+        
+        /// <summary>
+        /// System channel type
+        /// </summary>
+        public sealed class NoneChannel : RespondableChannel
+        {
+            internal NoneChannel()
+            {
+            }
+
+            private bool Equals(NoneChannel other) => true;
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                return obj is NoneChannel channel && Equals(channel);
             }
 
             public override int GetHashCode() => GetType().GetHashCode();
@@ -166,19 +168,19 @@ namespace Astral
         /// <summary>
         /// Instance channel type
         /// </summary>
-        public sealed class InstanceChannelKind : ChannelKind, IEventChannel, IResponseTo
+        public sealed class InstanceChannel : ChannelKind, IEventChannel
         {
-            internal InstanceChannelKind()
+            internal InstanceChannel()
             {
             }
 
-            private bool Equals(InstanceChannelKind other) => true;
+            private bool Equals(InstanceChannel other) => true;
 
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is InstanceChannelKind channel && Equals(channel);
+                return obj is InstanceChannel channel && Equals(channel);
             }
 
             public override int GetHashCode() => GetType().GetHashCode();
@@ -187,19 +189,19 @@ namespace Astral
         /// <summary>
         /// Dedicated channel type
         /// </summary>
-        public sealed class DedicatedChannelKind : ChannelKind, IEventChannel
+        public sealed class DedicatedChannel : ChannelKind, IEventChannel
         {
-            internal DedicatedChannelKind()
+            internal DedicatedChannel()
             {
             }
 
-            private bool Equals(DedicatedChannelKind other) => true;
+            private bool Equals(DedicatedChannel other) => true;
 
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is DedicatedChannelKind channel && Equals(channel);
+                return obj is DedicatedChannel channel && Equals(channel);
             }
 
             public override int GetHashCode() => GetType().GetHashCode();
@@ -208,7 +210,7 @@ namespace Astral
         /// <summary>
         /// Rpc channel type
         /// </summary>
-        public sealed class RpcChannelKind : ChannelKind, IResponseTo
+        public sealed class RpcChannelKind : RespondableChannel
         {
             internal RpcChannelKind()
             {
@@ -229,7 +231,7 @@ namespace Astral
         /// <summary>
         /// Named channel type
         /// </summary>
-        public sealed class NamedChannelKind : ChannelKind, IEventChannel, IDeliveryReply, IResponseTo
+        public sealed class NamedChannelKind : DurableChannel, IEventChannel
         {
             internal NamedChannelKind(string name)
             {
@@ -262,18 +264,18 @@ namespace Astral
         /// <summary>
         /// Direct channel type
         /// </summary>
-        public sealed class ReplyChannelKind : ChannelKind, IResponseTo
+        public sealed class ReplyChannel : RespondableChannel
         {
             public string ReplyTo { get; }
             public string RequestId { get; }
 
-            internal ReplyChannelKind(string replyTo, string requestId)
+            internal ReplyChannel(string replyTo, string requestId)
             {
                 ReplyTo = replyTo;
                 RequestId = requestId;
             }
 
-            private bool Equals(ReplyChannelKind other)
+            private bool Equals(ReplyChannel other)
             {
                 return string.Equals(ReplyTo, other.ReplyTo) && string.Equals(RequestId, other.RequestId);
             }
@@ -282,7 +284,7 @@ namespace Astral
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is ReplyChannelKind && Equals((ReplyChannelKind) obj);
+                return obj is ReplyChannel && Equals((ReplyChannel) obj);
             }
 
             public override int GetHashCode()

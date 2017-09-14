@@ -24,11 +24,11 @@ namespace Astral.Deliveries
 
 
         public static readonly DeliveryReply NoReply = default(DeliveryReply);
-        public static DeliveryReply WithReply(ChannelKind.IDeliveryReply replyTo)
-            => new DeliveryReply(Kind.WithReply, (ChannelKind) replyTo);
-        public static DeliveryReply IsReply(ChannelKind.ReplyChannelKind replyChannel) => new DeliveryReply(Kind.IsReply, replyChannel);
+        public static DeliveryReply WithReply(ChannelKind.DurableChannel replyTo)
+            => new DeliveryReply(Kind.WithReply, replyTo);
+        public static DeliveryReply IsReply(ChannelKind.ReplyChannel replyChannel) => new DeliveryReply(Kind.IsReply, replyChannel);
 
-        public void Match(Action noReply, Action<ChannelKind.IDeliveryReply> withReply, Action<ChannelKind.ReplyChannelKind> isReply)
+        public void Match(Action noReply, Action<ChannelKind.DurableChannel> withReply, Action<ChannelKind.ReplyChannel> isReply)
         {
             switch (_kind)
             {
@@ -36,26 +36,26 @@ namespace Astral.Deliveries
                     noReply();
                     break;
                 case Kind.WithReply:
-                    withReply((ChannelKind.IDeliveryReply) _replyTo);
+                    withReply((ChannelKind.DurableChannel) _replyTo);
                     break;
                 case Kind.IsReply:
-                    isReply((ChannelKind.ReplyChannelKind) _replyTo);
+                    isReply((ChannelKind.ReplyChannel) _replyTo);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
         
-        public T Match<T>(Func<T> noReply, Func<ChannelKind.IDeliveryReply, T> withReply, Func<ChannelKind.ReplyChannelKind, T> isReply)
+        public T Match<T>(Func<T> noReply, Func<ChannelKind.DurableChannel, T> withReply, Func<ChannelKind.ReplyChannel, T> isReply)
         {
             switch (_kind)
             {
                 case Kind.NoReply:
                     return noReply();
                 case Kind.WithReply:
-                    return withReply((ChannelKind.IDeliveryReply) _replyTo);
+                    return withReply((ChannelKind.DurableChannel) _replyTo);
                 case Kind.IsReply:
-                    return isReply((ChannelKind.ReplyChannelKind) _replyTo);
+                    return isReply((ChannelKind.ReplyChannel) _replyTo);
                 default:
                     throw new ArgumentOutOfRangeException();
             }

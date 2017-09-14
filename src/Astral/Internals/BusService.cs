@@ -67,40 +67,34 @@ namespace Astral.Internals
             CancellationToken token = default(CancellationToken))
         {
             var config = Config.Endpoint(selector);
-            var publishOptions = new PublishOptions(
-                config.TryGetService<MessageTtlSetting>().Map(p => p.Value)
-                    .OrElse(() => config.TryGetService<MessageTtlFactorySetting<TEvent>>().Map(p => p.Value(@event)))
-                    .IfNone(Timeout.InfiniteTimeSpan),
-                ChannelKind.None, null);
-            return PublishMessageAsync(config, @event, publishOptions, token);
+            
+            return PublishMessageAsync(config, @event, ChannelKind.None, token);
         }
 
 
-        public Task<Guid> Deliver<TStore, TEvent>(TStore store,
+        public Task<Guid> Deliver<TStore, TEvent>(IUnitOfWork<TStore> uow,
             Expression<Func<TService, IEvent<TEvent>>> selector,
             TEvent @event, DeliveryOnSuccess? onSuccess = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
             var endpoint = Config.Endpoint(selector);
             
-            return Deliverer(store, endpoint, @event, DeliveryReply.NoReply, 
+            return Deliverer(uow, endpoint, @event, DeliveryReply.NoReply, 
                 onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value).IfNone(DeliveryOnSuccess.Delete));
         }
 
-        public Task<Guid> Enqueue<TStore, TEvent>(TStore store,
+        public Task<Guid> Enqueue<TStore, TEvent>(IUnitOfWork<TStore> uow,
             Expression<Func<TService, IEvent<TEvent>>> selector,
             TEvent @event)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, @event, DeliveryReply.NoReply, Option.None);
+            return Deliverer(uow, endpoint, @event, DeliveryReply.NoReply, Option.None);
         }
 
 
         /// <inheritdoc />
         public IDisposable Listen<TEvent, TChannel>(Expression<Func<TService, IEvent<TEvent>>> selector,
             IListener<TEvent, EventContext> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null) 
-            where TChannel : ChannelKind, ChannelKind.IEventChannel 
+            where TChannel : ChannelKind, IEventChannel 
             => Listen(Config.Endpoint(selector).Channel((ChannelKind)channel ?? ChannelKind.System, false, configure ?? (_ => { })), 
                 eventListener, p => new EventContext(p.Sender));
 
@@ -109,53 +103,46 @@ namespace Astral.Internals
         #region ICall<>
 
         public async Task<Guid> Send<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector, TCommand command,
-            ChannelKind.IDeliveryReply responseTo = null, CancellationToken cancellation = default(CancellationToken))
+            ChannelKind.RespondableChannel responseTo = null, CancellationToken cancellation = default(CancellationToken))
         {
             var endpoint = Config.Endpoint(selector);
             responseTo = responseTo ??
-                         endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).OfType<ChannelKind.IDeliveryReply>().IfNone(ChannelKind.System);
-            var ttl = endpoint.TryGetService<MessageTtlSetting>().Map(p => p.Value)
-                .OrElse(() => endpoint.TryGetService<MessageTtlFactorySetting<TCommand>>().Map(p => p.Value(command)))
-                .IfNone(Timeout.InfiniteTimeSpan);
+                         endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).IfNone(ChannelKind.System);
+            
             var correlationId = Guid.NewGuid();
-            var option = new PublishOptions(ttl, responseTo, correlationId.ToString("D"));
             var payload = endpoint.ToPayload(command).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<TCommand>(endpoint, option);
-            await sender(new Lazy<TCommand>(() => command), payload, cancellation);
+            var sender = endpoint.Transport.PreparePublish<TCommand>(endpoint, responseTo);
+            await sender(new Lazy<TCommand>(() => command), payload, correlationId.ToString("D"), cancellation);
             return correlationId;
         }
         
         public async Task Response<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
-            ChannelKind.ReplyChannelKind replyTo, CancellationToken cancellation = default(CancellationToken))
+            ChannelKind.ReplyChannel replyTo, CancellationToken cancellation = default(CancellationToken))
         {
             if (replyTo == null) throw new ArgumentNullException(nameof(replyTo));
             var endpoint = Config.Endpoint(selector);
-            var option = new PublishOptions(Timeout.InfiniteTimeSpan, replyTo, null);
             var payload = endpoint.ToPayload(default(ValueTuple)).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<ValueTuple>(endpoint, option);
-            await sender(new Lazy<ValueTuple>(() => default(ValueTuple)), payload, cancellation);
+            var sender = endpoint.Transport.PreparePublish<ValueTuple>(endpoint, replyTo);
+            await sender(new Lazy<ValueTuple>(() => default(ValueTuple)), payload, replyTo.RequestId, cancellation);
         }
         
         public async Task ResponseFault<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
-            RequestFault fault, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken))
+            RequestFault fault, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken))
         {
             if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
             var endpoint = Config.Endpoint(selector);
-            var option = new PublishOptions(Timeout.InfiniteTimeSpan, replayTo, null);
             var payload = endpoint.ToPayload(fault).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, option);
-            await sender(new Lazy<RequestFault>(() => fault), payload, cancellation);
+            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, replayTo);
+            await sender(new Lazy<RequestFault>(() => fault), payload, replayTo.RequestId, cancellation);
         }
         
-        public Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<TService, ICall<TCommand>>> selector,
-            TCommand command, DeliveryOnSuccess? onSuccess = null, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore> 
+        public Task<Guid> Deliver<TStore, TCommand>(IUnitOfWork<TStore> uow, Expression<Func<TService, ICall<TCommand>>> selector,
+            TCommand command, DeliveryOnSuccess? onSuccess = null, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, command,
+            return Deliverer(uow, endpoint, command,
                 DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>()
                                             .Map(p => p.Value)
-                                            .OfType<ChannelKind.IDeliveryReply>()
                                             .IfNone(ChannelKind.System)),
                 onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value)
                     .IfNone(DeliveryOnSuccess.Archive));
@@ -163,44 +150,41 @@ namespace Astral.Internals
         
         
 
-        public Task<Guid> Enqueue<TStore, TCommand>(TStore store,
-            Expression<Func<TService, ICall<TCommand>>> selector, TCommand command, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+        public Task<Guid> Enqueue<TStore, TCommand>(IUnitOfWork<TStore> uow,
+            Expression<Func<TService, ICall<TCommand>>> selector, TCommand command, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, command,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).OfType<ChannelKind.IDeliveryReply>()
+            return Deliverer(uow, endpoint, command,
+                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value)
                                             .IfNone(ChannelKind.System)), Option.None);
         }
 
-        public Task<Guid> DeliverResponse<TStore, TCommand>(TStore store,
+        public Task<Guid> DeliverResponse<TStore, TCommand>(IUnitOfWork<TStore> uow,
             Expression<Func<TService, ICall<TCommand>>> selector,
-            ChannelKind.ReplyChannelKind replayTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            ChannelKind.ReplyChannel replayTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, default(ValueTuple),
+            return Deliverer(uow, endpoint, default(ValueTuple),
                 DeliveryReply.IsReply(replayTo),
                 DeliveryOnSuccess.Delete);
         }
         
-        public Task<Guid> DeliverFaultReply<TStore, TCommand>(TStore store,
+        public Task<Guid> DeliverFaultReply<TStore, TCommand>(IUnitOfWork<TStore> uow,
             Expression<Func<TService, ICall<TCommand>>> selector, RequestFault fault,
-            ChannelKind.ReplyChannelKind replayTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            ChannelKind.ReplyChannel replayTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, fault,
+            return Deliverer(uow, endpoint, fault,
                 DeliveryReply.IsReply(replayTo),
                 DeliveryOnSuccess.Delete);
         }
 
         public IDisposable ListenResponse<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
             IListener<Result<ValueTuple>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null)
+            ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
-            var channel = endpoint.Channel((ChannelKind) replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
+            var channel = endpoint.Channel(replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
             
             return Listen(channel, listener,
                 p =>
@@ -250,7 +234,7 @@ namespace Astral.Internals
                 var token = cancellationSource.Token;
                 var task = rpcSubscriber.AnswerAsync(requestId, token);
                 await endpoint.Transport.PreparePublish<TCommand>(endpoint,
-                    new PublishOptions(tout, ChannelKind.Rpc, requestId))(new Lazy<TCommand>(() => request),  req, token);
+                    ChannelKind.Rpc)(new Lazy<TCommand>(() => request),  req, requestId, token);
                 await task;
             }
         }
@@ -279,91 +263,80 @@ namespace Astral.Internals
         #region ICall<,>
         
         public async Task<Guid> Send<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector, TRequest command,
-            ChannelKind.IDeliveryReply responseTo = null, CancellationToken cancellation = default(CancellationToken))
+            ChannelKind.RespondableChannel responseTo = null, CancellationToken cancellation = default(CancellationToken))
         {
             var endpoint = Config.Endpoint(selector);
             responseTo = responseTo ??
-                         endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).OfType<ChannelKind.IDeliveryReply>().IfNone(ChannelKind.System);
-            var ttl = endpoint.TryGetService<MessageTtlSetting>().Map(p => p.Value)
-                .OrElse(() => endpoint.TryGetService<MessageTtlFactorySetting<TRequest>>().Map(p => p.Value(command)))
-                .IfNone(Timeout.InfiniteTimeSpan);
+                         endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).IfNone(ChannelKind.System);
             var correlationId = Guid.NewGuid();
-            var option = new PublishOptions(ttl, responseTo, correlationId.ToString("D"));
             var payload = endpoint.ToPayload(command).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<TRequest>(endpoint, option);
-            await sender(new Lazy<TRequest>(() => command), payload, cancellation);
+            var sender = endpoint.Transport.PreparePublish<TRequest>(endpoint, (ChannelKind) responseTo);
+            await sender(new Lazy<TRequest>(() => command), payload, correlationId.ToString("D"), cancellation);
             return correlationId;
         }
         
         public async Task Response<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
-            TResponse response, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken))
+            TResponse response, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken))
         {
             if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
             var endpoint = Config.Endpoint(selector);
-            var option = new PublishOptions(Timeout.InfiniteTimeSpan, replayTo, null);
             var payload = endpoint.ToPayload(response).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<TResponse>(endpoint, option);
-            await sender(new Lazy<TResponse>(() => response), payload, cancellation);
+            var sender = endpoint.Transport.PreparePublish<TResponse>(endpoint, replayTo);
+            await sender(new Lazy<TResponse>(() => response), payload, replayTo.RequestId, cancellation);
         }
         
         public async Task ResponseFault<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
-            RequestFault fault, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken))
+            RequestFault fault, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken))
         {
             if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
             var endpoint = Config.Endpoint(selector);
-            var option = new PublishOptions(Timeout.InfiniteTimeSpan, replayTo, null);
             var payload = endpoint.ToPayload(fault).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, option);
-            await sender(new Lazy<RequestFault>(() => fault), payload, cancellation);
+            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, replayTo);
+            await sender(new Lazy<RequestFault>(() => fault), payload, replayTo.RequestId, cancellation);
         }
         
-        public Task<Guid> Deliver<TStore, TRequest, TResponse>(TStore store, Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
-            TRequest command, DeliveryOnSuccess? onSuccess = null, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+        public Task<Guid> Deliver<TStore, TRequest, TResponse>(IUnitOfWork<TStore> uow, Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
+            TRequest command, DeliveryOnSuccess? onSuccess = null, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, command,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).OfType<ChannelKind.IDeliveryReply>()
+            return Deliverer(uow, endpoint, command,
+                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).OfType<ChannelKind.DurableChannel>()
                                             .IfNone(ChannelKind.System)),
                 onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value)
                     .IfNone(DeliveryOnSuccess.Archive));
         }
 
-        public Task<Guid> Enqueue<TStore, TRequest, TResponse>(TStore store,
-            Expression<Func<TService, ICall<TRequest, TResponse>>> selector, TRequest command, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+        public Task<Guid> Enqueue<TStore, TRequest, TResponse>(IUnitOfWork<TStore> uow,
+            Expression<Func<TService, ICall<TRequest, TResponse>>> selector, TRequest command, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, command,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).OfType<ChannelKind.IDeliveryReply>()
-                                            .IfNone(ChannelKind.System)), Option.None);
+            return Deliverer(uow, endpoint, command,
+                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).IfNone(ChannelKind.System)), Option.None);
         }
 
-        public Task<Guid> DeliverResponse<TStore, TRequest, TReplay>(TStore store,
+        public Task<Guid> DeliverResponse<TStore, TRequest, TReplay>(IUnitOfWork<TStore> uow,
             Expression<Func<TService, ICall<TRequest, TReplay>>> selector, TReplay response,
-            ChannelKind.ReplyChannelKind replyTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            ChannelKind.ReplyChannel replyTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, response,
+            return Deliverer(uow, endpoint, response,
                 DeliveryReply.IsReply(replyTo),
                 DeliveryOnSuccess.Delete);
         }
         
-        public Task<Guid> DeliverFaultReply<TStore, TRequest, TReplay>(TStore store,
+        public Task<Guid> DeliverFaultReply<TStore, TRequest, TReplay>(IUnitOfWork<TStore> uow,
             Expression<Func<TService, ICall<TRequest, TReplay>>> selector, RequestFault fault,
-            ChannelKind.ReplyChannelKind replayTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
+            ChannelKind.ReplyChannel replayTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(store, endpoint, fault,
+            return Deliverer(uow, endpoint, fault,
                 DeliveryReply.IsReply(replayTo),
                 DeliveryOnSuccess.Delete);
         }
         
         public IDisposable ListenResponse<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
             IListener<Result<TResponse>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null)
+            ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
             var channel = endpoint.Channel((ChannelKind) replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
@@ -414,7 +387,7 @@ namespace Astral.Internals
                 var token = cancellationSource.Token;
                 var task = rpcSubscriber.AnswerAsync(requestId, token);
                 await endpoint.Transport.PreparePublish<TRequest>(endpoint,
-                    new PublishOptions(tout, ChannelKind.Rpc, requestId))(new Lazy<TRequest>(() => request),  req, token);
+                    ChannelKind.Rpc)(new Lazy<TRequest>(() => request),  req, requestId, token);
                 var resp = await task;
                 return endpoint.FromPayload(resp).As<TResponse>().Unwrap();
             }
@@ -473,31 +446,26 @@ namespace Astral.Internals
         
 
 
-        private async Task<Guid> Deliverer<TStore, TMessage>(TStore store, EndpointConfig endpoint, TMessage message,
+        private async Task<Guid> Deliverer<TStore, TMessage>(IUnitOfWork<TStore> uow, EndpointConfig endpoint, TMessage message,
             DeliveryReply reply, Option<DeliveryOnSuccess> onSuccess)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
         {
             var deliveryId = Guid.NewGuid();
             var deliveryManager = Config.GetRequiredService<BoundDeliveryManager<TStore>>();
-            var messageTtl = endpoint.TryGetService<MessageTtlSetting>().Map(p => p.Value)
-                .OrElse(() => endpoint.TryGetService<MessageTtlFactorySetting<TMessage>>().Map(p => p.Value(message)))
-                .IfNone(Timeout.InfiniteTimeSpan);
-            var sender = endpoint.Transport.PreparePublish<TMessage>(endpoint,
-                new PublishOptions(messageTtl, reply.Match(() => (ChannelKind.IResponseTo) ChannelKind.None, rt => rt, rt => rt), deliveryId.ToString("D")));
-            
-            await deliveryManager.Prepare(store, endpoint, deliveryId, message, reply, sender, onSuccess);
+            var channel = reply.Match(() => (ChannelKind.RespondableChannel) ChannelKind.None, rt => rt, rt => rt);
+            var sender = endpoint.Transport.PreparePublish<TMessage>(endpoint, channel);
+            await deliveryManager.Prepare(uow, endpoint, deliveryId, message, reply, sender, onSuccess);
             return deliveryId;
         }
         
         
         
-        private Task PublishMessageAsync<TEvent>(EndpointConfig config, TEvent @event, PublishOptions options, CancellationToken token)
+        private Task PublishMessageAsync<TEvent>(EndpointConfig config, TEvent @event, ChannelKind channel, CancellationToken token)
         {
             Task Publish()
             {
                 var serialized = config.ToPayload(@event).Unwrap();
-                var prepared = config.Transport.PreparePublish<TEvent>(config, options);
-                return prepared(new Lazy<TEvent>(() => @event), serialized, token);
+                var prepared = config.Transport.PreparePublish<TEvent>(config, channel);
+                return prepared(new Lazy<TEvent>(() => @event), serialized, null, token);
             }
 
             return Logger.LogActivity(Publish, "event {service} {endpoint}", config.ServiceType,

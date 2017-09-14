@@ -11,9 +11,9 @@ namespace Astral.Internals
     {
         private readonly IBusService<TService> _busService;
         private readonly Expression<Func<TService, ICall<TRequest>>> _selector;
-        private readonly ChannelKind.ReplyChannelKind _channel;
+        private readonly ChannelKind.ReplyChannel _channel;
 
-        public Responder(IBusService<TService> busService, Expression<Func<TService, ICall<TRequest>>> selector, ChannelKind.ReplyChannelKind channel)
+        public Responder(IBusService<TService> busService, Expression<Func<TService, ICall<TRequest>>> selector, ChannelKind.ReplyChannel channel)
         {
             _busService = busService;
             _selector = selector;
@@ -26,22 +26,20 @@ namespace Astral.Internals
         public Task Send(RequestFault fault, CancellationToken token)
             => _channel == null ? Task.CompletedTask : _busService.ResponseFault(_selector, fault, _channel, token);
 
-        public Task<Guid> Deliver<TStore>(TStore store)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverResponse(store, _selector, _channel);
+        public Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow)
+            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverResponse(uow, _selector, _channel);
 
-        public Task<Guid> Deliver<TStore>(TStore store, RequestFault fault) 
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverFaultReply(store, _selector, fault, _channel);
+        public Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow, RequestFault fault) 
+            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverFaultReply(uow, _selector, fault, _channel);
     }
 
     internal class Responder<TService, TRequest, TResponse> : IResponder<TResponse> where TService : class
     {
         private readonly IBusService<TService> _busService;
         private readonly Expression<Func<TService, ICall<TRequest, TResponse>>> _selector;
-        private readonly ChannelKind.ReplyChannelKind _channel;
+        private readonly ChannelKind.ReplyChannel _channel;
 
-        public Responder(IBusService<TService> busService, Expression<Func<TService, ICall<TRequest, TResponse>>> selector, ChannelKind.ReplyChannelKind channel)
+        public Responder(IBusService<TService> busService, Expression<Func<TService, ICall<TRequest, TResponse>>> selector, ChannelKind.ReplyChannel channel)
         {
             _busService = busService;
             _selector = selector;
@@ -54,11 +52,11 @@ namespace Astral.Internals
         public Task Send(RequestFault fault, CancellationToken token)
             => _channel == null ? Task.CompletedTask : _busService.ResponseFault(_selector, fault, _channel, token);
 
-        public Task<Guid> Deliver<TStore>(TStore store, TResponse response)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverResponse(store, _selector, response, _channel);
+        public Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow, TResponse response)
+            
+            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverResponse(uow, _selector, response, _channel);
 
-        public Task<Guid> Deliver<TStore>(TStore store, RequestFault fault) where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
-            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverFaultReply(store, _selector, fault, _channel);
+        public Task<Guid> Deliver<TStore>(IUnitOfWork<TStore> uow, RequestFault fault)
+            => _channel == null ? Task.FromResult(Guid.Empty) : _busService.DeliverFaultReply(uow, _selector, fault, _channel);
     }
 }

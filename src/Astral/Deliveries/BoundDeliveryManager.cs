@@ -20,7 +20,6 @@ using Microsoft.Extensions.Logging;
 namespace Astral.Deliveries
 {
     internal class BoundDeliveryManager<TStore>
-        where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>
     {
         private readonly string _sponsor;
         private readonly TimeSpan _leaseInterval;
@@ -46,7 +45,7 @@ namespace Astral.Deliveries
 
 
         public async Task Prepare<T>(
-            TStore store, 
+            IUnitOfWork<TStore> store, 
             EndpointConfig endpoint,
             Guid deliveryId,
             T message,
@@ -57,49 +56,17 @@ namespace Astral.Deliveries
             if (store == null) throw new ArgumentNullException(nameof(store));
             if (endpoint == null) throw new ArgumentNullException(nameof(endpoint));
             if (sender == null) throw new ArgumentNullException(nameof(sender));
-            var service = store.DeliveryService;
-            using (var work = store.BeginWork())
-            {
-                var payload =
-                    await service.NewDelivery(endpoint, deliveryId, reply, message, _sponsor,
-                        policy.Map(_ => _leaseInterval + +_leaseInterval).IfNone(TimeSpan.Zero));
-                policy.IfSome(plc =>
-                    work.CommitEvents.Subscribe(_ => { }, () => AddDelivery(deliveryId, payload,
-                        new Lazy<T>(() => message),
-                        plc, sender, endpoint.PayloadEncode, true).Wait()));
-                work.Commit();
-            }
+            var service = store.GetService<IDeliveryDataService<TStore>>();
+            
+            var payload =
+                await service.NewDelivery(endpoint, deliveryId, reply, message, _sponsor,
+                    policy.Map(_ => _leaseInterval + +_leaseInterval).IfNone(TimeSpan.Zero));
+            policy.IfSome(plc =>
+                store.WorkResult.Subscribe(_ => { }, () => AddDelivery(deliveryId, payload,
+                    new Lazy<T>(() => message),
+                    plc, sender, endpoint.PayloadEncode, true).Wait()));
         }
         
-       /* public async Task Prepare<T>(TStore store, T message, Guid deliveryId, IDeliverySpecification specification, DeliveryParams parameters, 
-            PayloadSender<T> sender, Option<string> key)
-        {
-            var service = store.DeliveryService;
-            using (var work = store.BeginWork())
-            {
-                key.IfSome(p => service.RemoveByKey(specification.Service, specification.Endpoint, p));
-                var payload = await service.NewDelivery(message?.GetType() ?? typeof(T), message, deliveryId, specification, parameters.Operation,
-                    parameters.MessageTtl, _sponsor,
-                    parameters.AfterCommit is DeliveryAfterCommit.NoOpType ? TimeSpan.Zero :_leaseInterval + _leaseInterval);
-                switch (parameters.AfterCommit)
-                {
-                    case DeliveryAfterCommit.NoOpType _:
-                        break;
-                    case DeliveryAfterCommit.SendType send:
-                        work.CommitEvents.Subscribe(_ => {}, () => AddDelivery(deliveryId, payload, new Lazy<T>(() => message), send.DeliveryOnSuccess, sender, 
-                            new PayloadEncode<byte[]>(specification.ContentType, specification.TypeEncoder, specification.SerializeProvider), true).Wait());
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unknown {nameof(DeliveryAfterCommit)} - {parameters.AfterCommit}");
-                }
-                work.Commit();
-            }
-            
-        }*/
-
-
-
-
         private async Task AddDelivery<T>(Guid deliveryId, Payload payload, Lazy<T> message, 
             DeliveryOnSuccess policy, PayloadSender<T> sender, PayloadEncode<byte[]> payloadEncode, bool pickup)
         {
@@ -141,7 +108,7 @@ namespace Astral.Deliveries
 
             try
             {
-                await ContinueDoInLease(sender(message, rawPayload, compositeCancellation.Token), deliveryId, policy);
+                await ContinueDoInLease(sender(message, rawPayload, deliveryId.ToString("D"), compositeCancellation.Token), deliveryId, policy);
             }
             finally
             {
@@ -207,10 +174,9 @@ namespace Astral.Deliveries
         {
             using (var scope = _provider.CreateScope())
             {
-                var provider = scope.ServiceProvider.GetRequiredService<TStore>();
-                using (var uow = provider.BeginWork())
+                using (var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork<TStore>>())
                 {
-                    var dataService = provider.DeliveryService;
+                    var dataService = uow.GetService<IDeliveryDataService<TStore>>();
                     var result = await func(dataService);
                     uow.Commit();
                     return result;
@@ -222,10 +188,9 @@ namespace Astral.Deliveries
         {
             using (var scope = _provider.CreateScope())
             {
-                var provider = scope.ServiceProvider.GetRequiredService<TStore>();
-                using (var uow = provider.BeginWork())
+                using (var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork<TStore>>())
                 {
-                    var dataService = provider.DeliveryService;
+                    var dataService = uow.GetService<IDeliveryDataService<TStore>>();
                     await func(dataService);
                     uow.Commit();
                 }

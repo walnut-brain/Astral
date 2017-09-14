@@ -3,12 +3,10 @@ using Astral.Transport;
 
 namespace Astral.Configuration.Settings
 {
-    public sealed class ResponseToSetting : Fact<ChannelKind>
+    public sealed class ResponseToSetting : Fact<ChannelKind.RespondableChannel>
     {
-        public ResponseToSetting(ChannelKind value) : base(value)
+        public ResponseToSetting(ChannelKind.RespondableChannel value) : base(value)
         {
-            if(!(value is ChannelKind.IResponseTo))
-                throw new ArgumentOutOfRangeException("Channel must be responsable");
         }
     }
 }

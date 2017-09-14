@@ -40,114 +40,107 @@ namespace Astral
         /// <returns>dispose to unlisten</returns>
         IDisposable Listen<TEvent, TChannel>(Expression<Func<T, IEvent<TEvent>>> selector,
             IListener<TEvent, EventContext> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null)
-            where TChannel : ChannelKind, ChannelKind.IEventChannel;
+            where TChannel : ChannelKind, IEventChannel;
 
 
         
         /// <summary>
         /// Deliver event
         /// </summary>
-        /// <param name="store">bounded store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">event selector</param>
         /// <param name="event">event</param>
         /// <param name="onSuccess">on success delivery, default from config if present then Delete</param>
-        /// <typeparam name="TStore">bounded store type</typeparam>
+        /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TEvent">event type</typeparam>
         /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Deliver<TStore, TEvent>(TStore store,
+        Task<Guid> Deliver<TStore, TEvent>(IUnitOfWork<TStore> uow,
             Expression<Func<T, IEvent<TEvent>>> selector,
-            TEvent @event, DeliveryOnSuccess? onSuccess = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+            TEvent @event, DeliveryOnSuccess? onSuccess = null);
 
         /// <summary>
         /// Enqueue event delivery
         /// </summary>
-        /// <param name="store">bounded store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">event selector</param>
         /// <param name="event">event</param>
-        /// <typeparam name="TStore">bounded store type</typeparam>
+        /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TEvent">event type</typeparam>
         /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Enqueue<TStore, TEvent>(TStore store,
+        Task<Guid> Enqueue<TStore, TEvent>(IUnitOfWork<TStore> uow,
             Expression<Func<T, IEvent<TEvent>>> selector,
-            TEvent @event)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+            TEvent @event);
 
 
         /// <summary>
         /// Deliver call
         /// </summary>
-        /// <param name="store">bounded store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">call selector</param>
         /// <param name="command">command</param>
         /// <param name="onSuccess">on success delivery, default from config if present then Archive</param>
         /// <param name="replyTo">replay to, default to config if present then System</param>
-        /// <typeparam name="TStore">bounded store type</typeparam>
+        /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Deliver<TStore, TCommand>(TStore store, Expression<Func<T, ICall<TCommand>>> selector,
-            TCommand command, DeliveryOnSuccess? onSuccess = null, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> Deliver<TStore, TCommand>(IUnitOfWork<TStore> uow, Expression<Func<T, ICall<TCommand>>> selector,
+            TCommand command, DeliveryOnSuccess? onSuccess = null, ChannelKind.DurableChannel replyTo = null);
 
 
         /// <summary>
         /// Enqueue call delivery
         /// </summary>
-        /// <param name="store">bounded store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">call selector</param>
         /// <param name="command">command</param>
         /// <param name="replyTo">replay to, default to config if present then System</param>
-        /// <typeparam name="TStore">bounded store type</typeparam>
+        /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Enqueue<TStore, TCommand>(TStore store,
-            Expression<Func<T, ICall<TCommand>>> selector, TCommand command, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> Enqueue<TStore, TCommand>(IUnitOfWork<TStore> uow,
+            Expression<Func<T, ICall<TCommand>>> selector, TCommand command, ChannelKind.DurableChannel replyTo = null);
 
         /// <summary>
         /// Deliver call
         /// </summary>
-        /// <param name="store">bounded store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">call selector</param>
         /// <param name="command">command</param>
         /// <param name="onSuccess">on success delivery, default from config if present then Archive</param>
         /// <param name="replyTo">replay to, default to config if present then System</param>
-        /// <typeparam name="TStore">bounded store type</typeparam>
+        /// <typeparam name="TStore">bstore type</typeparam>
         /// <typeparam name="TRequest">request type</typeparam>
         /// <typeparam name="TResponse">response type</typeparam>
         /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Deliver<TStore, TRequest, TResponse>(TStore store, Expression<Func<T, ICall<TRequest, TResponse>>> selector,
-            TRequest command, DeliveryOnSuccess? onSuccess = null, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> Deliver<TStore, TRequest, TResponse>(IUnitOfWork<TStore> uow, Expression<Func<T, ICall<TRequest, TResponse>>> selector,
+            TRequest command, DeliveryOnSuccess? onSuccess = null, ChannelKind.DurableChannel replyTo = null);
 
         /// <summary>
         /// Enqueue call delivery
         /// </summary>
-        /// <param name="store">bounded store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">call selector</param>
         /// <param name="command">command</param>
         /// <param name="replyTo">replay to, default to config if present then System</param>
-        /// <typeparam name="TStore">bounded store type</typeparam>
+        /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TRequest">request type</typeparam>
         /// <typeparam name="TResponse">response type</typeparam>
         /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Enqueue<TStore, TRequest, TResponse>(TStore store,
-            Expression<Func<T, ICall<TRequest, TResponse>>> selector, TRequest command, ChannelKind.IDeliveryReply replyTo = null)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> Enqueue<TStore, TRequest, TResponse>(IUnitOfWork<TStore> uow,
+            Expression<Func<T, ICall<TRequest, TResponse>>> selector, TRequest command, ChannelKind.DurableChannel replyTo = null);
 
         
         /// <summary>
         /// Deliver command reply
         /// </summary>
-        /// <param name="store">delivery store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">command selector</param>
         /// <param name="replayTo">replay to</param>
         /// <typeparam name="TStore">store type</typeparam>
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>awaitable delivery id</returns>
-        Task<Guid> DeliverResponse<TStore, TCommand>(TStore store,
-            Expression<Func<T, ICall<TCommand>>> selector, ChannelKind.ReplyChannelKind replayTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+        Task<Guid> DeliverResponse<TStore, TCommand>(IUnitOfWork<TStore> uow,
+            Expression<Func<T, ICall<TCommand>>> selector, ChannelKind.ReplyChannel replayTo);
 
         /// <summary>
         /// Send command
@@ -159,7 +152,7 @@ namespace Astral
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>awaitable request id</returns>
         Task<Guid> Send<TCommand>(Expression<Func<T, ICall<TCommand>>> selector, TCommand command,
-            ChannelKind.IDeliveryReply responseTo = null, CancellationToken cancellation = default(CancellationToken));
+            ChannelKind.RespondableChannel responseTo = null, CancellationToken cancellation = default(CancellationToken));
 
         /// <summary>
         /// Response to command
@@ -170,12 +163,12 @@ namespace Astral
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>awaitable</returns>
         Task Response<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
-            ChannelKind.ReplyChannelKind replyTo, CancellationToken cancellation = default(CancellationToken));
+            ChannelKind.ReplyChannel replyTo, CancellationToken cancellation = default(CancellationToken));
 
         /// <summary>
         /// Deliverty call response
         /// </summary>
-        /// <param name="store">delivery store</param>
+        /// <param name="uow">current unit of work</param>
         /// <param name="selector">call selector</param>
         /// <param name="response">response</param>
         /// <param name="replyTo">reply to</param>
@@ -183,10 +176,9 @@ namespace Astral
         /// <typeparam name="TRequest">request type</typeparam>
         /// <typeparam name="TResponse">response type</typeparam>
         /// <returns></returns>
-        Task<Guid> DeliverResponse<TStore, TRequest, TResponse>(TStore store,
+        Task<Guid> DeliverResponse<TStore, TRequest, TResponse>(IUnitOfWork<TStore> uow,
             Expression<Func<T, ICall<TRequest, TResponse>>> selector, TResponse response,
-            ChannelKind.ReplyChannelKind replyTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+            ChannelKind.ReplyChannel replyTo);
 
         /// <summary>
         /// Listen response from command
@@ -199,14 +191,14 @@ namespace Astral
         /// <returns>dispose for unlisten</returns>
         IDisposable ListenResponse<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
             IListener<Result<ValueTuple>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null);
+            ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null);
 
         IDisposable ListenResponse<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
             IListener<Result<TResponse>, ResponseContext> listener,
-            ChannelKind.IDeliveryReply replyFrom = null, Action<ChannelBuilder> configure = null);
+            ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null);
 
         Task Response<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
-            TResponse response, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken));
+            TResponse response, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken));
 
         IDisposable ListenRequest<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
             IListener<TCommand, RequestContext> listener, Action<ChannelBuilder> configure = null);
@@ -223,23 +215,21 @@ namespace Astral
             TCommand request, TimeSpan? timeout = null);
 
         Task ResponseFault<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
-            RequestFault fault, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken));
+            RequestFault fault, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken));
 
         Task<Guid> Send<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector, TRequest command,
-            ChannelKind.IDeliveryReply responseTo = null, CancellationToken cancellation = default(CancellationToken));
+            ChannelKind.RespondableChannel responseTo = null, CancellationToken cancellation = default(CancellationToken));
 
         Task ResponseFault<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
-            RequestFault fault, ChannelKind.ReplyChannelKind replayTo, CancellationToken cancellation = default(CancellationToken));
+            RequestFault fault, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken));
 
-        Task<Guid> DeliverFaultReply<TStore, TCommand>(TStore store,
+        Task<Guid> DeliverFaultReply<TStore, TCommand>(IUnitOfWork<TStore> uow,
             Expression<Func<T, ICall<TCommand>>> selector, RequestFault fault,
-            ChannelKind.ReplyChannelKind replayTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+            ChannelKind.ReplyChannel replayTo);
 
-        Task<Guid> DeliverFaultReply<TStore, TRequest, TReplay>(TStore store,
+        Task<Guid> DeliverFaultReply<TStore, TRequest, TReplay>(IUnitOfWork<TStore> uow,
             Expression<Func<T, ICall<TRequest, TReplay>>> selector, RequestFault fault,
-            ChannelKind.ReplyChannelKind replayTo)
-            where TStore : IBoundDeliveryStore<TStore>, IStore<TStore>;
+            ChannelKind.ReplyChannel replayTo);
 
         IDisposable HandleCall<TRequest, TResponse>(
             Expression<Func<T, ICall<TRequest, TResponse>>> selector,
