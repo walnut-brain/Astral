@@ -6,7 +6,8 @@ using Astral.Configuration.Settings;
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Interface)]
-    public class ServiceAttribute : Attribute, IConfigAttribute
+    [ConfigRegister]
+    public class ServiceAttribute : Attribute
     {
         public ServiceAttribute(string name)
         {
@@ -14,8 +15,5 @@ namespace Astral
         }
 
         public string Name { get; }
-
-        public Fact[] GetConfigElements(MemberInfo applyedTo)
-            => new Fact[] {new ServiceName(Name)};
     }
 }

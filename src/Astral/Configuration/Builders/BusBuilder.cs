@@ -41,6 +41,12 @@ namespace Astral.Configuration.Builders
                 : DeliveryOnSuccess.Archive));
             BookBuilder.RegisterLaw(Law.Axiom(new ResponseTo(ChannelKind.System)));
             BookBuilder.RegisterLaw(Law.Axiom(new RpcTimeout(TimeSpan.FromHours(1))));
+            BookBuilder.RegisterLaw(Law.Create("EndpointAttribute", (EndpointAttribute ea) => new EndpointName(ea.Name)));
+            BookBuilder.RegisterLaw(Law.Create("SerializeToAttribute", (SerializeToAttribute sa) => new SerailizationContentType(sa.ContentType)));
+            BookBuilder.RegisterLaw(Law.Create("ServiceAttribute", (ServiceAttribute sa) => new ServiceName(sa.Name)));
+            BookBuilder.RegisterLaw(Law.Create("OwnerAttribute", (OwnerAttribute sa) => new ServiceOwner(sa.OwnerName)));
+            BookBuilder.RegisterLaw(Law.Create("VersionAttribute", (VersionAttribute sa) => new ServiceVersion(sa.Version)));
+            BookBuilder.RegisterLaw(Law.Create("TransportAttribute", (TransportAttribute ta) => new TransportSelector((ta.Tag, ta.ContentType))));
             ServiceProvider = provider;
         }
 

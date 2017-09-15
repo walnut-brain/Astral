@@ -7,7 +7,8 @@ using Astral.Schema;
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class EndpointAttribute : Attribute, IConfigAttribute
+    [ConfigRegister]
+    public class EndpointAttribute : Attribute
     {
         public EndpointAttribute(string name)
         {
@@ -16,7 +17,5 @@ namespace Astral
 
         public string Name { get; }
 
-        public Fact[] GetConfigElements(MemberInfo applyedTo)
-            => new Fact[] {  new EndpointName(Name) };
     }
 }

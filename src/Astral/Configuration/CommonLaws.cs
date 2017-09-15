@@ -13,10 +13,10 @@ namespace Astral.Configuration
         {
             builder.RegisterLaw(Law.Axiom(new ServiceType(serviceType)));
             var typeInfo = serviceType.GetTypeInfo();
-            foreach (var astralAttribute in serviceType.GetCustomAttributes(true).OfType<IConfigAttribute>())
+            foreach (var attr in serviceType.GetCustomAttributes(true).OfType<Attribute>().Where(IsConfigRegisterAttribute))
             {
-                foreach(var fact in astralAttribute.GetConfigElements(typeInfo))
-                    builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
+                
+                    builder.RegisterLaw(Law.Axiom(attr.GetType(), attr));
             }
             return builder;
         }
@@ -34,6 +34,9 @@ namespace Astral.Configuration
             }
         }
 
+        public static bool IsConfigRegisterAttribute(this Attribute attr)
+            => attr != null && attr.GetType().GetCustomAttribute<ConfigRegisterAttribute>() != null;
+
         public static LawBookBuilder AddEndpointLaws(this LawBookBuilder builder, PropertyInfo property)
         {
             var propType = property.PropertyType;
@@ -46,10 +49,9 @@ namespace Astral.Configuration
                         builder.RegisterLaw(Law.Axiom(new EndpointProperty(property)));
                         builder.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
                     
-                            foreach (var astralAttribute in property.GetCustomAttributes(true).OfType<IConfigAttribute>())
+                            foreach (var attr in property.GetCustomAttributes(true).OfType<Attribute>().Where(IsConfigRegisterAttribute))
                             {
-                                foreach(var fact in astralAttribute.GetConfigElements(property))
-                                    builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
+                                builder.RegisterLaw(Law.Axiom(attr.GetType(), attr));
                             }
                     return builder;
                 }
@@ -59,10 +61,9 @@ namespace Astral.Configuration
                     builder.RegisterLaw(Law.Axiom(new EndpointProperty(property)));
                     builder.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
                     builder.RegisterLaw(Law.Axiom(new ResponseType(typeof(ValueTuple))));
-                    foreach (var astralAttribute in property.GetCustomAttributes(true).OfType<IConfigAttribute>())
+                    foreach (var attr in property.GetCustomAttributes(true).OfType<Attribute>().Where(IsConfigRegisterAttribute))
                     {
-                        foreach(var fact in astralAttribute.GetConfigElements(property))
-                            builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
+                        builder.RegisterLaw(Law.Axiom(attr.GetType(), attr));
                     }
                     
                     return builder;
@@ -73,10 +74,9 @@ namespace Astral.Configuration
                             builder.RegisterLaw(Law.Axiom(new EndpointProperty(property)));
                             builder.RegisterLaw(Law.Axiom(new MessageType(propType.GenericTypeArguments[0])));
                             builder.RegisterLaw(Law.Axiom(new ResponseType(propType.GenericTypeArguments[1])));
-                            foreach (var astralAttribute in property.GetCustomAttributes(true).OfType<IConfigAttribute>())
+                            foreach (var attr in property.GetCustomAttributes(true).OfType<Attribute>().Where(IsConfigRegisterAttribute))
                             {
-                                foreach (var fact in astralAttribute.GetConfigElements(property))
-                                    builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
+                                builder.RegisterLaw(Law.Axiom(attr.GetType(), attr));
                             }
                         
                     return builder;

@@ -6,7 +6,8 @@ using Astral.Configuration.Settings;
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
-    public class VersionAttribute : Attribute, IConfigAttribute
+    [ConfigRegister]
+    public class VersionAttribute : Attribute
     {
         public VersionAttribute(string version)
         {
@@ -15,11 +16,5 @@ namespace Astral
 
         public Version Version { get; }
 
-        public Fact[] GetConfigElements(MemberInfo applyedTo)
-        {
-            if (applyedTo is TypeInfo ti && ti.IsInterface)
-                return new Fact[] { new ServiceVersion(Version) };
-            throw new NotImplementedException();
-        }
     }
 }

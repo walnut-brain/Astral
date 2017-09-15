@@ -6,7 +6,8 @@ using Astral.Configuration.Settings;
 namespace Astral
 {
     [AttributeUsage(AttributeTargets.Interface)]
-    public class OwnerAttribute : Attribute, IConfigAttribute
+    [ConfigRegister]
+    public class OwnerAttribute : Attribute
     {
         public string OwnerName { get; }
 
@@ -14,8 +15,5 @@ namespace Astral
         {
             OwnerName = ownerName;
         }
-
-        public Fact[] GetConfigElements(MemberInfo applyedTo)
-            => new Fact[] {new ServiceOwner(OwnerName)};
     }
 }
