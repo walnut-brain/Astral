@@ -51,61 +51,6 @@ namespace Astral
         /// </summary>
         public static readonly NoneChannel None = new NoneChannel();
             
-        public void Match(Action system, Action<string> named, Action instance, Action dedicated, Action rpc, Action<string, string> reply,
-            Action none)
-        {
-            switch (this)
-            {
-                case DedicatedChannel _:
-                    dedicated();
-                    break;
-                case InstanceChannel _:
-                    instance();
-                    break;
-                case NamedChannelKind namedChannel:
-                    named(namedChannel.Name);
-                    break;
-                case NoneChannel _:
-                    none();
-                    break;
-                case ReplyChannel replyChannel:
-                    reply(replyChannel.ReplyTo, replyChannel.RequestId);
-                    break;
-                case RpcChannelKind _:
-                    rpc();
-                    break;
-                case SystemChannel _:
-                    system();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-        
-        public T Match<T>(Func<T> system, Func<string, T> named, Func<T> instance, Func<T> dedicated, Func<T> rpc, Func<string, string, T> reply,
-            Func<T> none)
-        {
-            switch (this)
-            {
-                case DedicatedChannel _:
-                    return dedicated();
-                case InstanceChannel _:
-                    return instance();
-                case NamedChannelKind namedChannel:
-                    return named(namedChannel.Name);
-                case NoneChannel _:
-                    return none();
-                case ReplyChannel replyChannel:
-                    return reply(replyChannel.ReplyTo, replyChannel.RequestId);                    
-                case RpcChannelKind _:
-                    return rpc();
-                case SystemChannel _:
-                    return system();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-        
         public abstract class RespondableChannel : ChannelKind
         {
             internal RespondableChannel()

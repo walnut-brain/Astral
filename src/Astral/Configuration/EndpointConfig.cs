@@ -56,20 +56,24 @@ namespace Astral.Specifications
         
         internal ChannelConfig Channel(ChannelKind channelKind, bool isResponse, Action<ChannelBuilder> onCreate)
         {
-            LawBook Simple() =>
-                LawBook.GetOrAddSubBook((channelKind, isResponse), bld =>
-                {
-                    bld.RegisterLaw(Law.Axiom(new SubscribeChannel(channelKind)));
-                    bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isResponse)));
-                }).AddSubBook(b => onCreate(new ChannelBuilder(b)));
-            return new ChannelConfig(channelKind.Match(Simple, 
-                name => LawBook.GetOrAddSubBook((ConfigUtils.DefaultNamedChannel, isResponse), bld =>
+            switch (channelKind)
             {
-                bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isResponse)));
-            }).GetOrAddSubBook(name, bld =>
-            {
-                bld.RegisterLaw(Law.Axiom(new SubscribeChannel(channelKind)));
-            }).AddSubBook(b => onCreate(new ChannelBuilder(b))), Simple, Simple, Simple, (s, s1) => Simple(), Simple), this);
+                case ChannelKind.NamedChannelKind nck:
+                    return new ChannelConfig(LawBook.GetOrAddSubBook((ConfigUtils.DefaultNamedChannel, isResponse), bld =>
+                    {
+                        bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isResponse)));
+                    }).GetOrAddSubBook(nck.Name, bld =>
+                    {
+                        bld.RegisterLaw(Law.Axiom(new SubscribeChannel(channelKind)));
+                    }).AddSubBook(b => onCreate(new ChannelBuilder(b))), this);
+                default:
+                    return new ChannelConfig(LawBook.GetOrAddSubBook((channelKind, isResponse), bld =>
+                    {
+                        bld.RegisterLaw(Law.Axiom(new SubscribeChannel(channelKind)));
+                        bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isResponse)));
+                    }).AddSubBook(b => onCreate(new ChannelBuilder(b))), this);
+            }
+
         }
     }
 }
