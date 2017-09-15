@@ -30,7 +30,7 @@ namespace RabbitLink.Astral
                     .Build();
         }
 
-        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, ChannelKind responseTo)
+        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, bool isReply, ChannelKind responseTo)
         {
             PayloadSender<TMessage> Sender(ExchangeConfig exchangeConfig,
                 PublishMessageProperties<TMessage> properties)

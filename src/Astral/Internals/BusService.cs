@@ -74,7 +74,7 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             
-            return Deliverer(uow, endpoint, @event, DeliveryReply.NoReply, 
+            return Deliverer(uow, endpoint, @event, false, DeliveryReply.NoReply, 
                 onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value).IfNone(DeliveryOnSuccess.Delete));
         }
 
@@ -83,7 +83,7 @@ namespace Astral.Internals
             TEvent @event)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, @event, DeliveryReply.NoReply, Option.None);
+            return Deliverer(uow, endpoint,@event, false, DeliveryReply.NoReply, Option.None);
         }
 
 
@@ -107,7 +107,7 @@ namespace Astral.Internals
             
             var correlationId = Guid.NewGuid();
             var payload = endpoint.ToPayload(command).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<TCommand>(endpoint, responseTo);
+            var sender = endpoint.Transport.PreparePublish<TCommand>(endpoint, false, responseTo);
             await sender(new Lazy<TCommand>(() => command), payload, correlationId.ToString("D"), cancellation);
             return correlationId;
         }
@@ -118,7 +118,7 @@ namespace Astral.Internals
             if (replyTo == null) throw new ArgumentNullException(nameof(replyTo));
             var endpoint = Config.Endpoint(selector);
             var payload = endpoint.ToPayload(default(ValueTuple)).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<ValueTuple>(endpoint, replyTo);
+            var sender = endpoint.Transport.PreparePublish<ValueTuple>(endpoint, true, replyTo);
             await sender(new Lazy<ValueTuple>(() => default(ValueTuple)), payload, replyTo.RequestId, cancellation);
         }
         
@@ -128,7 +128,7 @@ namespace Astral.Internals
             if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
             var endpoint = Config.Endpoint(selector);
             var payload = endpoint.ToPayload(fault).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, replayTo);
+            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, true, replayTo);
             await sender(new Lazy<RequestFault>(() => fault), payload, replayTo.RequestId, cancellation);
         }
         
@@ -136,7 +136,7 @@ namespace Astral.Internals
             TCommand command, DeliveryOnSuccess? onSuccess = null, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, command,
+            return Deliverer(uow, endpoint, command, false,
                 DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>()
                                             .Map(p => p.Value)
                                             .IfNone(ChannelKind.System)),
@@ -150,7 +150,7 @@ namespace Astral.Internals
             Expression<Func<TService, ICall<TCommand>>> selector, TCommand command, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, command,
+            return Deliverer(uow, endpoint, command, false,
                 DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value)
                                             .IfNone(ChannelKind.System)), Option.None);
         }
@@ -160,7 +160,7 @@ namespace Astral.Internals
             ChannelKind.ReplyChannel replayTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, default(ValueTuple),
+            return Deliverer(uow, endpoint, default(ValueTuple), true,
                 DeliveryReply.IsReply(replayTo),
                 DeliveryOnSuccess.Delete);
         }
@@ -170,7 +170,7 @@ namespace Astral.Internals
             ChannelKind.ReplyChannel replayTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, fault,
+            return Deliverer(uow, endpoint, fault, true,
                 DeliveryReply.IsReply(replayTo),
                 DeliveryOnSuccess.Delete);
         }
@@ -229,7 +229,7 @@ namespace Astral.Internals
             {
                 var token = cancellationSource.Token;
                 var task = rpcSubscriber.AnswerAsync(requestId, token);
-                await endpoint.Transport.PreparePublish<TCommand>(endpoint,
+                await endpoint.Transport.PreparePublish<TCommand>(endpoint, false,
                     ChannelKind.Rpc)(new Lazy<TCommand>(() => request),  req, requestId, token);
                 await task;
             }
@@ -266,7 +266,7 @@ namespace Astral.Internals
                          endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).IfNone(ChannelKind.System);
             var correlationId = Guid.NewGuid();
             var payload = endpoint.ToPayload(command).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<TRequest>(endpoint, (ChannelKind) responseTo);
+            var sender = endpoint.Transport.PreparePublish<TRequest>(endpoint, false, responseTo);
             await sender(new Lazy<TRequest>(() => command), payload, correlationId.ToString("D"), cancellation);
             return correlationId;
         }
@@ -277,7 +277,7 @@ namespace Astral.Internals
             if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
             var endpoint = Config.Endpoint(selector);
             var payload = endpoint.ToPayload(response).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<TResponse>(endpoint, replayTo);
+            var sender = endpoint.Transport.PreparePublish<TResponse>(endpoint, true, replayTo);
             await sender(new Lazy<TResponse>(() => response), payload, replayTo.RequestId, cancellation);
         }
         
@@ -287,7 +287,7 @@ namespace Astral.Internals
             if (replayTo == null) throw new ArgumentNullException(nameof(replayTo));
             var endpoint = Config.Endpoint(selector);
             var payload = endpoint.ToPayload(fault).Unwrap();
-            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, replayTo);
+            var sender = endpoint.Transport.PreparePublish<RequestFault>(endpoint, true, replayTo);
             await sender(new Lazy<RequestFault>(() => fault), payload, replayTo.RequestId, cancellation);
         }
         
@@ -295,7 +295,7 @@ namespace Astral.Internals
             TRequest command, DeliveryOnSuccess? onSuccess = null, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, command,
+            return Deliverer(uow, endpoint, command, false,
                 DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).OfType<ChannelKind.DurableChannel>()
                                             .IfNone(ChannelKind.System)),
                 onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value)
@@ -306,7 +306,7 @@ namespace Astral.Internals
             Expression<Func<TService, ICall<TRequest, TResponse>>> selector, TRequest command, ChannelKind.DurableChannel replyTo = null)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, command,
+            return Deliverer(uow, endpoint, command, false,
                 DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).IfNone(ChannelKind.System)), Option.None);
         }
 
@@ -315,7 +315,7 @@ namespace Astral.Internals
             ChannelKind.ReplyChannel replyTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, response,
+            return Deliverer(uow, endpoint, response, true,
                 DeliveryReply.IsReply(replyTo),
                 DeliveryOnSuccess.Delete);
         }
@@ -325,7 +325,7 @@ namespace Astral.Internals
             ChannelKind.ReplyChannel replayTo)
         {
             var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint, fault,
+            return Deliverer(uow, endpoint, fault, true,
                 DeliveryReply.IsReply(replayTo),
                 DeliveryOnSuccess.Delete);
         }
@@ -335,7 +335,7 @@ namespace Astral.Internals
             ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
-            var channel = endpoint.Channel((ChannelKind) replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
+            var channel = endpoint.Channel(replyFrom ?? ChannelKind.System, true, configure ?? (_ => { }));
             
             return Listen(channel, listener, p =>
             {
@@ -382,7 +382,7 @@ namespace Astral.Internals
             {
                 var token = cancellationSource.Token;
                 var task = rpcSubscriber.AnswerAsync(requestId, token);
-                await endpoint.Transport.PreparePublish<TRequest>(endpoint,
+                await endpoint.Transport.PreparePublish<TRequest>(endpoint, false,
                     ChannelKind.Rpc)(new Lazy<TRequest>(() => request),  req, requestId, token);
                 var resp = await task;
                 return endpoint.FromPayload(resp).As<TResponse>().Unwrap();
@@ -443,12 +443,12 @@ namespace Astral.Internals
 
 
         private async Task<Guid> Deliverer<TStore, TMessage>(IUnitOfWork<TStore> uow, EndpointConfig endpoint, TMessage message,
-            DeliveryReply reply, Option<DeliveryOnSuccess> onSuccess)
+            bool isReply, DeliveryReply reply, Option<DeliveryOnSuccess> onSuccess)
         {
             var deliveryId = Guid.NewGuid();
             var deliveryManager = Config.GetRequiredService<BoundDeliveryManager<TStore>>();
             var channel = reply.Match(() => (ChannelKind.RespondableChannel) ChannelKind.None, rt => rt, rt => rt);
-            var sender = endpoint.Transport.PreparePublish<TMessage>(endpoint, channel);
+            var sender = endpoint.Transport.PreparePublish<TMessage>(endpoint, isReply, channel);
             await deliveryManager.Prepare(uow, endpoint, deliveryId, message, reply, sender, onSuccess);
             return deliveryId;
         }
@@ -460,7 +460,7 @@ namespace Astral.Internals
             Task Publish()
             {
                 var serialized = config.ToPayload(@event).Unwrap();
-                var prepared = config.Transport.PreparePublish<TEvent>(config, channel);
+                var prepared = config.Transport.PreparePublish<TEvent>(config, false, channel);
                 return prepared(new Lazy<TEvent>(() => @event), serialized, null, token);
             }
 

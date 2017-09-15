@@ -22,7 +22,7 @@ namespace SampleApp
         {
         }
 
-        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, ChannelKind responseTo)
+        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, bool isReply, ChannelKind responseTo)
         {
             throw new NotImplementedException();
         }
