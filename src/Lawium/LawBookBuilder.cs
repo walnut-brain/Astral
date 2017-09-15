@@ -128,8 +128,8 @@ namespace Lawium
                             nextLaw++;
                             continue;
                         }
-                        // Skip no enough arguments
-                        if (!law.Law.Arguments.All(p => inferences.ContainsKey(p)))
+                        // Skip not enough arguments
+                        if (!law.Law.Arguments.All(p => inferences.ContainsKey(p) || p.OptionOf().IsSome))
                         {
                             nextLaw++;
                             continue;
@@ -145,7 +145,13 @@ namespace Lawium
                             nextLaw++;
                             continue;
                         }
-                        var args = law.Law.Arguments.Map(p => inferences[p].Value);
+                        var args = law.Law.Arguments.Map(p =>
+                            {
+                                if (inferences.TryGetValue(p, out var val)) return val;
+                                var optionOf = p.OptionOf();
+                                if(optionOf.IsNone) throw new InvalidOperationException();
+                                return optionOf.Bind(t => inferences.TryGetValue(t));
+                            });
                         using (logger.BeginScope("{law}", law.Law.Name))
                         {
                             try
@@ -156,22 +162,24 @@ namespace Lawium
                                 for (var i = 0; i < law.Law.Findings.Length; i++)
                                     if (result[i] != null)
                                     {
+                                        if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
+                                            throw new InvalidOperationException($"{result[i]} is not {law.Law.Findings[i]}");
                                         if (inferences.TryGetValue(law.Law.Findings[i], out var current))
                                         {
                                             if(Equals(current.Value, result[i])) continue;
                                             if (current.Law.Index > nextLaw) continue;
                                         }
-                                        if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
-                                            throw new InvalidOperationException($"{result[i]} is not {law.Law.Findings[i]}");
                                         inferences[law.Law.Findings[i]] = new Inference(result[i], law);
                                         foreach (var rec in laws)
                                         {
-                                            if (rec.Law.Arguments.Contains(law.Law.Findings[i]))
+                                            var optType = typeof(Option<>).MakeGenericType(law.Law.Findings[i]);
+                                            if (rec.Law.Arguments.Contains(law.Law.Findings[i]) || rec.Law.Arguments.Contains(optType))
                                             {
-                                                if (!law.Law.Findings.All(p =>
+                                                var index = rec.Index;
+                                                if (!rec.Law.Findings.All(p =>
                                                     inferences
                                                         .TryGetValue(p)
-                                                        .Map(t => t.Law.Index > nextLaw)
+                                                        .Map(t => t.Law.Index > index)
                                                         .IfNone(() => false)))
                                                 {
                                                     rec.Processed = false;

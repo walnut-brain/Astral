@@ -53,5 +53,17 @@ namespace FunEx
 
         public static Option<T> TryGetService<T>(this IServiceProvider provider)
             => provider.GetService(typeof(T)).ToOption().OfType<T>();
+
+        /// <summary>
+        /// Return type parameter of Option{T} or None 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Option<Type> OptionOf(this Type type)
+        {
+            if (type.IsConstructedGenericType && type.GetGenericTypeDefinition() == typeof(Option<>))
+                return type.GenericTypeArguments[0];
+            return  Option.None;
+        }
     }
 }
