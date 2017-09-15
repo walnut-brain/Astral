@@ -5,6 +5,7 @@ using Astral;
 using Astral.Specifications;
 using Astral.Transport;
 using Astral.Utils;
+using Lawium;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitLink.Astral.Settings;

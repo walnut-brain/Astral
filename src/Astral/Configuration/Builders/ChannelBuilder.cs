@@ -11,7 +11,7 @@ namespace Astral.Configuration.Builders
         ///     constructor
         /// </summary>
         /// <param name="bookBuilder">law builder to use</param>
-        internal ChannelBuilder(LawBookBuilder<Fact> bookBuilder)
+        internal ChannelBuilder(LawBookBuilder bookBuilder)
         {
             Logger = LoggerFactory.CreateLogger(GetType());
             BookBuilder = bookBuilder;
@@ -30,12 +30,12 @@ namespace Astral.Configuration.Builders
         /// <summary>
         ///     law book builder
         /// </summary>
-        protected LawBookBuilder<Fact> BookBuilder { get; }
+        protected LawBookBuilder BookBuilder { get; }
 
         /// <summary>
         ///     add law to configuration
         /// </summary>
         /// <param name="law">law</param>
-        public void AddLaw(Law<Fact> law) => BookBuilder.RegisterLaw(law);
+        public void AddLaw(Law law) => BookBuilder.RegisterLaw(law);
     }
 }

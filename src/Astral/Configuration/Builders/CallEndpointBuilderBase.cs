@@ -7,7 +7,7 @@ namespace Astral.Configuration.Builders
 {
     public class CallEndpointBuilderBase<TArgs, TResult> : EndpointBuilder
     {
-        public CallEndpointBuilderBase(LawBookBuilder<Fact> bookBuilder) : base(bookBuilder)
+        public CallEndpointBuilderBase(LawBookBuilder bookBuilder) : base(bookBuilder)
         {
         }
         

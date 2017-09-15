@@ -13,7 +13,7 @@ namespace Astral.Specifications
         private readonly Serialization<byte[]> _serialization;
         private readonly TransportProvider _transportProvider;
 
-        internal BusConfig(LawBook<Fact> lawBook, 
+        internal BusConfig(LawBook lawBook, 
             TypeEncoding typeEncoding, 
             Serialization<byte[]> serialization, 
             TransportProvider transportProvider, 
@@ -42,7 +42,7 @@ namespace Astral.Specifications
             if (!serviceType.IsInterface)
                 throw new ArgumentException($"{serviceType} must be interface");
             var book = LawBook
-                .GetOrAddSubBook(serviceType, b => b.AddServiceLaws(serviceType)).Result;
+                .GetOrAddSubBook(serviceType, b => b.AddServiceLaws(serviceType));
             var cfgType = typeof(ServiceConfig<>).MakeGenericType(serviceType);
             return (ServiceConfig) Activator.CreateInstance(cfgType, this);
         }

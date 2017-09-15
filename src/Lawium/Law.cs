@@ -9,7 +9,7 @@ namespace Lawium
     /// <summary>
     /// Inference law
     /// </summary>
-    public partial class Law<T>
+    public partial class Law
     {
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace Lawium
         /// <param name="delegate">delegate to use</param>
         /// <returns>new law</returns>
         /// <exception cref="ArgumentException">when delegate has bad signature</exception>
-        public static Law<T> FromDelegate(string name, Delegate @delegate)
+        public static Law FromDelegate(string name, Delegate @delegate)
         {
             var parameterTypes = @delegate.Method.GetParameters().Select(p => p.ParameterType).ToImmutableArray();
             if(parameterTypes.GroupBy(p => p).Select(p => (p.Key, p.Count())).Any(t => t.Item2 > 1))
@@ -30,10 +30,10 @@ namespace Lawium
                 var resultTypes = GetTupleTypes(returnType).ToList();
                 if(resultTypes.GroupBy(p => p).Select(p => (p.Key, p.Count())).Any(t => t.Item2 > 1))
                     throw new ArgumentException("Has same types in return list");
-                return new Law<T>(name, parameterTypes.ToImmutableArray(), resultTypes.ToImmutableArray(),
+                return new Law(name, parameterTypes.ToImmutableArray(), resultTypes.ToImmutableArray(),
                     (_, prm) => TupleToArray(@delegate.DynamicInvoke(prm.ToArray())).ToImmutableArray());
             }
-            return new Law<T>(name, parameterTypes.ToImmutableArray(), ImmutableArray.Create(returnType),
+            return new Law(name, parameterTypes.ToImmutableArray(), ImmutableArray.Create(returnType),
                 (_, prm) => ImmutableArray.Create(@delegate.DynamicInvoke(prm.ToArray())));
 
             IEnumerable<Type> GetTupleTypes(Type type)
@@ -64,14 +64,6 @@ namespace Lawium
         {
         
             Name = name;
-            var badArguments = arguments.Where(p => !typeof(T).IsAssignableFrom(p)).ToList();
-            if(badArguments.Count > 0)
-                throw new AggregateException($"Arguments array contains types not assignable to {typeof(T)}",
-                    badArguments.Select(p => new ArgumentException($"Used incompatible argument type {p}")));
-            var badFindings = findings.Where(p => !typeof(T).IsAssignableFrom(p)).ToList();
-            if(badFindings.Count > 0)
-                throw new AggregateException($"Result type array contains types not assignable to {typeof(T)}",
-                    badFindings.Select(p => new ArgumentException($"Used incompatible argument type {p}")));
             Arguments = arguments;
             Findings = findings;
             Executor = executor;
@@ -101,11 +93,10 @@ namespace Lawium
         /// <typeparam name="TKey">type of result</typeparam>
         /// <param name="value">value</param>
         /// <returns>law inference axiom value for type</returns>
-        public static Law<T> Axiom<TKey>(TKey value)
-            where TKey : T
+        public static Law Axiom<TKey>(TKey value)
         {
             if (Equals(value, null)) throw new ArgumentNullException(nameof(value));
-            return new Law<T>($"Value of {typeof(TKey)}", ImmutableArray<Type>.Empty,
+            return new Law($"Value of {typeof(TKey)}", ImmutableArray<Type>.Empty,
                 ImmutableArray.Create(typeof(TKey)), (log, args) => ImmutableArray.Create((object) value));
         }
 
@@ -115,15 +106,13 @@ namespace Lawium
         /// <param name="type">type of result</param>
         /// <param name="value">value</param>
         /// <returns>law inference axiom value for type</returns>
-        public static Law<T> Axiom(Type type, object value)
+        public static Law Axiom(Type type, object value)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (value == null) throw new ArgumentNullException(nameof(value));
-            if(!typeof(T).IsAssignableFrom(type))
-                throw new ArgumentException($"Type {type} is not assignable to {typeof(T)}");
             if(!type.IsInstanceOfType(value))
                 throw new ArgumentException($"{value} is not instance of {type}");
-            return new Law<T>($"Value of {type}", ImmutableArray<Type>.Empty, 
+            return new Law($"Value of {type}", ImmutableArray<Type>.Empty, 
                 ImmutableArray.Create(type), (log, args) => ImmutableArray.Create(value));
         }
         

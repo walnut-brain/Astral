@@ -11,14 +11,14 @@ namespace Astral.Specifications
     {
         protected IServiceProvider Provider { get; }
 
-        public ConfigBase(LawBook<Fact> lawBook, IServiceProvider provider)
+        public ConfigBase(LawBook lawBook, IServiceProvider provider)
         {
             Provider = provider;
             LawBook = lawBook;
             Logger = LoggerFactory.CreateLogger(GetType());
         }
 
-        protected LawBook<Fact> LawBook { get; }
+        protected LawBook LawBook { get; }
         public ILoggerFactory LoggerFactory => LawBook.LoggerFactory;
         protected ILogger Logger { get; }
 

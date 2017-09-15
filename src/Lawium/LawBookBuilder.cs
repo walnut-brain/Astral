@@ -13,16 +13,16 @@ namespace Lawium
     /// <summary>
     /// Law book builder
     /// </summary>
-    public class LawBookBuilder<T>
+    public class LawBookBuilder
     {
         /// <summary>
         /// Maximum level of inference recursion
         /// </summary>
         public static volatile ushort MaxRecursion = 100;
 
-        private readonly Func<IEnumerable<Law<T>>> _parentLaws;
+        private readonly Func<IEnumerable<Law>> _parentLaws;
         private readonly string _path = "";
-        private readonly Dictionary<object, LawBookBuilder<T>> _subBuilders = new Dictionary<object, LawBookBuilder<T>>();
+        private readonly Dictionary<object, LawBookBuilder> _subBuilders = new Dictionary<object, LawBookBuilder>();
 
         /// <summary>
         /// Create law book builder
@@ -31,19 +31,19 @@ namespace Lawium
         public LawBookBuilder(ILoggerFactory loggerFactory = null)
         {
             LoggerFactory = loggerFactory ?? new FakeLoggerFactory();
-            _parentLaws = Enumerable.Empty<Law<T>>;
+            _parentLaws = Enumerable.Empty<Law>;
         }
 
-        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<Law<T>>> parentLaws, string path)
+        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<Law>> parentLaws, string path)
         {
             LoggerFactory = loggerFactory;
             _parentLaws = parentLaws;
             _path = path;
         }
 
-        private readonly List<Law<T>> _laws = new List<Law<T>>();
+        private readonly List<Law> _laws = new List<Law>();
 
-        private IEnumerable<Law<T>> GetLaws() => _parentLaws().Union(_laws);
+        private IEnumerable<Law> GetLaws() => _parentLaws().Union(_laws);
 
         /// <summary>
         /// Logger factory
@@ -55,7 +55,7 @@ namespace Lawium
         /// Register law in builder
         /// </summary>
         /// <param name="law">law</param>
-        public void RegisterLaw(Law<T> law)
+        public void RegisterLaw(Law law)
         {
             _laws.Add(law);
         }
@@ -67,11 +67,11 @@ namespace Lawium
         /// <param name="key">sub book key</param>
         /// <param name="onCreate">on create law registration</param>
         /// <returns>sub book builder</returns>
-        public LawBookBuilder<T> GetSubBookBuilder(object key, Action<LawBookBuilder<T>> onCreate = null)
+        public LawBookBuilder GetSubBookBuilder(object key, Action<LawBookBuilder> onCreate = null)
         {
             if (_subBuilders.TryGetValue(key, out var sub))
                 return sub;
-            sub = new LawBookBuilder<T>(LoggerFactory, GetLaws, _path + "/" + key);
+            sub = new LawBookBuilder(LoggerFactory, GetLaws, _path + "/" + key);
             _subBuilders.Add(key, sub);
             onCreate?.Invoke(sub);
             return sub;
@@ -81,9 +81,9 @@ namespace Lawium
         /// build law book 
         /// </summary>
         /// <returns>law book</returns>
-        public LawBook<T> Build()
+        public LawBook Build()
         {
-            var logger = LoggerFactory.CreateLogger<LawBookBuilder<T>>();
+            var logger = LoggerFactory.CreateLogger<LawBookBuilder>();
             using (logger.BeginScope("{path}", _path))
             {
                 try
@@ -106,7 +106,7 @@ namespace Lawium
                                     {
                                         if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
                                             throw new InvalidOperationException($"{result[i]} is not {law.Law.Findings[i]}");
-                                        inferences[law.Law.Findings[i]] = new Inference((T) result[i], law);
+                                        inferences[law.Law.Findings[i]] = new Inference(result[i], law);
                                         logger.LogTrace("Writing {type} {value}", law.Law.Findings[i], result[i]);
                                     }
                             }
@@ -163,7 +163,7 @@ namespace Lawium
                                         }
                                         if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
                                             throw new InvalidOperationException($"{result[i]} is not {law.Law.Findings[i]}");
-                                        inferences[law.Law.Findings[i]] = new Inference((T) result[i], law);
+                                        inferences[law.Law.Findings[i]] = new Inference(result[i], law);
                                         foreach (var rec in laws)
                                         {
                                             if (rec.Law.Arguments.Contains(law.Law.Findings[i]))
@@ -202,13 +202,12 @@ namespace Lawium
                     if(loopNum >= maxRecursion)
                         throw new InvalidOperationException($"Maximal recursion {maxRecursion} reached on build law book {_path}");
 
-                    return new LawBook<T>(LoggerFactory, _path, 
+                    return new LawBook(LoggerFactory, _path, 
                         GetLaws().ToImmutableArray()
                         , 
-                        new ReadOnlyDictionary<Type, T>(
+                        new ReadOnlyDictionary<Type, object>(
                                 inferences.ToDictionary(p => p.Key, p => p.Value.Value)), 
-                        new ReadOnlyDictionary<object, LawBook<T>>(
-                            _subBuilders.ToDictionary(p => p.Key, p => p.Value.Build())));
+                        _subBuilders.ToDictionary(p => p.Key, p => p.Value.Build()));
 
                 }
                 catch (Exception ex)
@@ -222,19 +221,19 @@ namespace Lawium
 
         private class Inference
         {
-            public Inference(T value, LawRec law)
+            public Inference(object value, LawRec law)
             {
                 Value = value;
                 Law = law;
             }
 
-            public T Value { get; }
+            public object Value { get; }
             public LawRec Law { get; }
         }
 
         private class LawRec
         {
-            public LawRec(int index, bool processed, Law<T> law)
+            public LawRec(int index, bool processed, Law law)
             {
                 Index = index;
                 Processed = processed;
@@ -243,7 +242,7 @@ namespace Lawium
 
             public int Index { get; }
             public bool Processed { get; set; }
-            public Law<T> Law { get; }
+            public Law Law { get; }
         }
     }
 }

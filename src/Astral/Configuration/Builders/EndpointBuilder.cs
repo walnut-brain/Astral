@@ -8,17 +8,17 @@ namespace Astral.Configuration.Builders
 {
     public abstract class EndpointBuilder : BuilderBase
     {
-        protected EndpointBuilder(LawBookBuilder<Fact> bookBuilder) : base(bookBuilder)
+        protected EndpointBuilder(LawBookBuilder bookBuilder) : base(bookBuilder)
         {
         }
 
         protected ChannelBuilder ChannelBuilder(ChannelKind channelKind, bool isReponse)
         {
-            LawBookBuilder<Fact> Simple()
+            LawBookBuilder Simple()
                 =>  BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                     {
-                        bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channelKind)));
-                        bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isReponse)));
+                        bld.RegisterLaw(Law.Axiom(new SubscribeChannelSetting(channelKind)));
+                        bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isReponse)));
                     });
             
 
@@ -28,12 +28,12 @@ namespace Astral.Configuration.Builders
                     name == ConfigUtils.DefaultNamedChannel.Name 
                         ? BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                         {
-                            bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isReponse)));
+                            bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isReponse)));
                         })
                         : BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                         {
-                            bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isReponse)));
-                        }).GetSubBookBuilder(name, bld => bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channelKind)))),
+                            bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isReponse)));
+                        }).GetSubBookBuilder(name, bld => bld.RegisterLaw(Law.Axiom(new SubscribeChannelSetting(channelKind)))),
                 Simple,
                 Simple,
                 Simple,

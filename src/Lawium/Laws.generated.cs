@@ -7,14 +7,13 @@ using FunEx;
 
 namespace Lawium
 {
-	public partial class Law<T>
+	public partial class Law
     {
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1>(string name, Func<TI1, TO1> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TO1>(string name, Func<TI1, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -26,16 +25,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1, TO2>(string name, Func<TI1, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TO1, TO2>(string name, Func<TI1, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -47,17 +44,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1, TO2, TO3>(string name, Func<TI1, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TO1, TO2, TO3>(string name, Func<TI1, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -69,18 +63,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1, TO2, TO3, TO4>(string name, Func<TI1, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TO1, TO2, TO3, TO4>(string name, Func<TI1, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -92,19 +82,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -116,20 +101,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -141,21 +120,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -167,16 +139,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1>(string name, Func<TI1, TI2, TO1> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TI2, TO1>(string name, Func<TI1, TI2, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -188,17 +158,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1, TO2>(string name, Func<TI1, TI2, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TI2, TO1, TO2>(string name, Func<TI1, TI2, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -210,18 +177,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1, TO2, TO3>(string name, Func<TI1, TI2, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TI2, TO1, TO2, TO3>(string name, Func<TI1, TI2, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -233,19 +196,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -257,20 +215,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -282,21 +234,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -308,22 +253,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TI2, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -335,17 +272,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1>(string name, Func<TI1, TI2, TI3, TO1> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1>(string name, Func<TI1, TI2, TI3, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -357,18 +291,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1, TO2>(string name, Func<TI1, TI2, TI3, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1, TO2>(string name, Func<TI1, TI2, TI3, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -380,19 +310,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -404,20 +329,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -429,21 +348,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -455,22 +367,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -482,23 +386,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TI2, TI3, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -510,18 +405,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1>(string name, Func<TI1, TI2, TI3, TI4, TO1> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1>(string name, Func<TI1, TI2, TI3, TI4, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -533,19 +424,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -557,20 +443,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -582,21 +462,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -608,22 +481,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -635,23 +500,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -663,24 +519,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -692,19 +538,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TO1> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -716,20 +557,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -741,21 +576,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -767,22 +595,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -794,23 +614,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -822,24 +633,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -851,25 +652,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -881,20 +671,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TO1> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -906,21 +690,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -932,22 +709,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -959,23 +728,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -987,24 +747,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1016,25 +766,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1046,26 +785,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1077,21 +804,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1103,22 +823,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1130,23 +842,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1158,24 +861,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1187,25 +880,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1217,26 +899,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1248,27 +918,14 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		/// <summary>
 		/// Create law from function
 		/// </summary>
-		public static Law<T> Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)		    
-		    where TI1 : T		    
-		    where TI2 : T		    
-		    where TI3 : T		    
-		    where TI4 : T		    
-		    where TI5 : T		    
-		    where TI6 : T		    
-		    where TI7 : T		    
-		    where TO1 : T		    
-		    where TO2 : T		    
-		    where TO3 : T		    
-		    where TO4 : T		    
-		    where TO5 : T		    
-		    where TO6 : T		    
-		    where TO7 : T		    
+		public static Law Create<TI1, TI2, TI3, TI4, TI5, TI6, TI7, TO1, TO2, TO3, TO4, TO5, TO6, TO7>(string name, Func<TI1, TI2, TI3, TI4, TI5, TI6, TI7, (TO1, TO2, TO3, TO4, TO5, TO6, TO7)> execute)
+		    
 		{
 			ImmutableArray<object> Calc(ILogger logger, ImmutableArray<object> args)
             {
@@ -1280,7 +937,7 @@ namespace Lawium
 			var inArr = ImmutableArray.Create(typeof(TI1), typeof(TI2), typeof(TI3), typeof(TI4), typeof(TI5), typeof(TI6), typeof(TI7));
 			var outArr = ImmutableArray.Create(typeof(TO1), typeof(TO2), typeof(TO3), typeof(TO4), typeof(TO5), typeof(TO6), typeof(TO7));
 
-			return new Law<T>(name, inArr, outArr, Calc);
+			return new Law(name, inArr, outArr, Calc);
 		}
 
 		

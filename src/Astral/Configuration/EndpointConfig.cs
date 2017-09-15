@@ -18,7 +18,7 @@ namespace Astral.Specifications
 {
     public class EndpointConfig : ConfigBase
     {
-        internal EndpointConfig(LawBook<Fact> lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
+        internal EndpointConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
         {
             var selector = this.TryGetService<TransportSelector>().Map(p => p.Value);
             Transport = this
@@ -56,20 +56,20 @@ namespace Astral.Specifications
         
         internal ChannelConfig Channel(ChannelKind channelKind, bool isResponse, Action<ChannelBuilder> onCreate)
         {
-            LawBook<Fact> Simple() =>
+            LawBook Simple() =>
                 LawBook.GetOrAddSubBook((channelKind, isResponse), bld =>
                 {
-                    bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channelKind)));
-                    bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isResponse)));
-                }).Result.GetOrAddSubBook(Guid.NewGuid(), b => onCreate(new ChannelBuilder(b))).Result;
+                    bld.RegisterLaw(Law.Axiom(new SubscribeChannelSetting(channelKind)));
+                    bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isResponse)));
+                }).GetOrAddSubBook(Guid.NewGuid(), b => onCreate(new ChannelBuilder(b)));
             return new ChannelConfig(channelKind.Match(Simple, 
                 name => LawBook.GetOrAddSubBook((ConfigUtils.DefaultNamedChannel, isResponse), bld =>
             {
-                bld.RegisterLaw(Law<Fact>.Axiom(new IsResponseChannelSetting(isResponse)));
-            }).Result.GetOrAddSubBook(name, bld =>
+                bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isResponse)));
+            }).GetOrAddSubBook(name, bld =>
             {
-                bld.RegisterLaw(Law<Fact>.Axiom(new SubscribeChannelSetting(channelKind)));
-            }).Result.GetOrAddSubBook(Guid.NewGuid(), b => onCreate(new ChannelBuilder(b))).Result, Simple, Simple, Simple, (s, s1) => Simple(), Simple), this);
+                bld.RegisterLaw(Law.Axiom(new SubscribeChannelSetting(channelKind)));
+            }).GetOrAddSubBook(Guid.NewGuid(), b => onCreate(new ChannelBuilder(b))), Simple, Simple, Simple, (s, s1) => Simple(), Simple), this);
         }
     }
 }

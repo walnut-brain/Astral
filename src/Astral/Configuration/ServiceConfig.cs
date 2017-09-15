@@ -10,7 +10,7 @@ namespace Astral.Specifications
 {
     public abstract class ServiceConfig : ConfigBase
     {
-        internal ServiceConfig(LawBook<Fact> lawBook, IServiceProvider provider) : base(lawBook, provider)
+        internal ServiceConfig(LawBook lawBook, IServiceProvider provider) : base(lawBook, provider)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Astral.Specifications
 
         protected EndpointConfig Endpoint(PropertyInfo propertyInfo)
         {
-            var book = LawBook.GetOrAddSubBook(propertyInfo.Name, b => b.AddEndpointLaws(propertyInfo)).Result;
+            var book = LawBook.GetOrAddSubBook(propertyInfo.Name, b => b.AddEndpointLaws(propertyInfo));
             return new EndpointConfig(book, this);
         }
         
@@ -35,7 +35,7 @@ namespace Astral.Specifications
 
     public class ServiceConfig<T> : ServiceConfig
     {
-        internal ServiceConfig(LawBook<Fact> lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
+        internal ServiceConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
         {
         }
 

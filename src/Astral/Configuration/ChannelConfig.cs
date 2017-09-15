@@ -9,10 +9,10 @@ namespace Astral.Specifications
 {
     public class ChannelConfig : IServiceProvider
     {
-        private readonly LawBook<Fact> _lawBook;
+        private readonly LawBook _lawBook;
         public EndpointConfig Endpoint { get; }
 
-        internal ChannelConfig(LawBook<Fact> lawBook, EndpointConfig endpoint)
+        internal ChannelConfig(LawBook lawBook, EndpointConfig endpoint)
         {
             _lawBook = lawBook;
             Endpoint = endpoint;

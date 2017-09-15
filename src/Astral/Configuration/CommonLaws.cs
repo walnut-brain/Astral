@@ -9,14 +9,14 @@ namespace Astral.Configuration
 {
     internal static class CommonLaws
     {
-        public static LawBookBuilder<Fact> AddServiceLaws(this LawBookBuilder<Fact> builder, Type serviceType)
+        public static LawBookBuilder AddServiceLaws(this LawBookBuilder builder, Type serviceType)
         {
-            builder.RegisterLaw(Law<Fact>.Axiom(new ServiceTypeSetting(serviceType)));
+            builder.RegisterLaw(Law.Axiom(new ServiceTypeSetting(serviceType)));
             var typeInfo = serviceType.GetTypeInfo();
             foreach (var astralAttribute in serviceType.GetCustomAttributes(true).OfType<IConfigAttribute>())
             {
                 foreach(var fact in astralAttribute.GetConfigElements(typeInfo))
-                    builder.RegisterLaw(Law<Fact>.Axiom(fact.GetType(), fact));
+                    builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
             }
             return builder;
         }
@@ -34,7 +34,7 @@ namespace Astral.Configuration
             }
         }
 
-        public static LawBookBuilder<Fact> AddEndpointLaws(this LawBookBuilder<Fact> builder, PropertyInfo property)
+        public static LawBookBuilder AddEndpointLaws(this LawBookBuilder builder, PropertyInfo property)
         {
             var propType = property.PropertyType;
             if (propType.IsConstructedGenericType)
@@ -42,41 +42,41 @@ namespace Astral.Configuration
                 if (propType.GetGenericTypeDefinition() == typeof(IEvent<>))
                 {
                     
-                        builder.RegisterLaw(Law<Fact>.Axiom(new EndpointTypeSetting(EndpointType.Event)));
-                        builder.RegisterLaw(Law<Fact>.Axiom(new EndpointMemberSetting(property)));
-                        builder.RegisterLaw(Law<Fact>.Axiom(new MessageTypeSetting(propType.GenericTypeArguments[0])));
+                        builder.RegisterLaw(Law.Axiom(new EndpointTypeSetting(EndpointType.Event)));
+                        builder.RegisterLaw(Law.Axiom(new EndpointMemberSetting(property)));
+                        builder.RegisterLaw(Law.Axiom(new MessageTypeSetting(propType.GenericTypeArguments[0])));
                     
                             foreach (var astralAttribute in property.GetCustomAttributes(true).OfType<IConfigAttribute>())
                             {
                                 foreach(var fact in astralAttribute.GetConfigElements(property))
-                                    builder.RegisterLaw(Law<Fact>.Axiom(fact.GetType(), fact));
+                                    builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
                             }
                     return builder;
                 }
                 if (propType.GetGenericTypeDefinition() == typeof(ICall<>))
                 {
-                    builder.RegisterLaw(Law<Fact>.Axiom(new EndpointTypeSetting(EndpointType.Call)));
-                    builder.RegisterLaw(Law<Fact>.Axiom(new EndpointMemberSetting(property)));
-                    builder.RegisterLaw(Law<Fact>.Axiom(new MessageTypeSetting(propType.GenericTypeArguments[0])));
-                    builder.RegisterLaw(Law<Fact>.Axiom(new ResponseTypeSetting(typeof(ValueTuple))));
+                    builder.RegisterLaw(Law.Axiom(new EndpointTypeSetting(EndpointType.Call)));
+                    builder.RegisterLaw(Law.Axiom(new EndpointMemberSetting(property)));
+                    builder.RegisterLaw(Law.Axiom(new MessageTypeSetting(propType.GenericTypeArguments[0])));
+                    builder.RegisterLaw(Law.Axiom(new ResponseTypeSetting(typeof(ValueTuple))));
                     foreach (var astralAttribute in property.GetCustomAttributes(true).OfType<IConfigAttribute>())
                     {
                         foreach(var fact in astralAttribute.GetConfigElements(property))
-                            builder.RegisterLaw(Law<Fact>.Axiom(fact.GetType(), fact));
+                            builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
                     }
                     
                     return builder;
                 }
                 if (propType.GetGenericTypeDefinition() == typeof(ICall<,>))
                 {
-                    builder.RegisterLaw(Law<Fact>.Axiom(new EndpointTypeSetting(EndpointType.Call)));
-                            builder.RegisterLaw(Law<Fact>.Axiom(new EndpointMemberSetting(property)));
-                            builder.RegisterLaw(Law<Fact>.Axiom(new MessageTypeSetting(propType.GenericTypeArguments[0])));
-                            builder.RegisterLaw(Law<Fact>.Axiom(new ResponseTypeSetting(propType.GenericTypeArguments[1])));
+                    builder.RegisterLaw(Law.Axiom(new EndpointTypeSetting(EndpointType.Call)));
+                            builder.RegisterLaw(Law.Axiom(new EndpointMemberSetting(property)));
+                            builder.RegisterLaw(Law.Axiom(new MessageTypeSetting(propType.GenericTypeArguments[0])));
+                            builder.RegisterLaw(Law.Axiom(new ResponseTypeSetting(propType.GenericTypeArguments[1])));
                             foreach (var astralAttribute in property.GetCustomAttributes(true).OfType<IConfigAttribute>())
                             {
                                 foreach (var fact in astralAttribute.GetConfigElements(property))
-                                    builder.RegisterLaw(Law<Fact>.Axiom(fact.GetType(), fact));
+                                    builder.RegisterLaw(Law.Axiom(fact.GetType(), fact));
                             }
                         
                     return builder;
