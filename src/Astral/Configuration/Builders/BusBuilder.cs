@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
 using Astral.Configuration.Settings;
+using Astral.Deliveries;
 using Astral.Exceptions;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
@@ -34,7 +35,12 @@ namespace Astral.Configuration.Builders
         internal BusBuilder(IServiceProvider provider, string systemName) : base(new LawBookBuilder(provider.GetService<ILoggerFactory>()))
         {
             if (systemName == null) throw new ArgumentNullException(nameof(systemName));
-            BookBuilder.RegisterLaw(Law.Axiom(new SystemNameSetting(systemName)));
+            BookBuilder.RegisterLaw(Law.Axiom(new SystemName(systemName)));
+            BookBuilder.RegisterLaw(Law.Create("DeliveryOnSuccess defaults", (EndpointType et) => et == EndpointType.Event 
+                ? DeliveryOnSuccess.Delete 
+                : DeliveryOnSuccess.Archive));
+            BookBuilder.RegisterLaw(Law.Axiom(new ResponseTo(ChannelKind.System)));
+            BookBuilder.RegisterLaw(Law.Axiom(new RpcTimeout(TimeSpan.FromHours(1))));
             ServiceProvider = provider;
         }
 
@@ -121,7 +127,7 @@ namespace Astral.Configuration.Builders
         {
             if(_transports.Count == 0)
                 throw new InvalidConfigurationException("No transport configured");
-            BookBuilder.RegisterLaw(Law.Axiom(new InstanceCodeSetting(Guid.NewGuid().ToString("D"))));
+            BookBuilder.RegisterLaw(Law.Axiom(new InstanceCode(Guid.NewGuid().ToString("D"))));
 
             var transportProvider = new TransportProvider(new ReadOnlyDictionary<string, DisposableValue<ITransport>>(_transports));
             return new BusConfig(BookBuilder.Build(), _typeEncoding, _serialization, transportProvider, ServiceProvider);

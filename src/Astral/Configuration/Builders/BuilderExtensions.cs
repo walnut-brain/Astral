@@ -17,7 +17,7 @@ namespace Astral.Configuration.Builders
         public static TBuilder DeliveryOnSuccess<TBuilder>(this TBuilder builder, DeliveryOnSuccess onSuccess)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new DeliveryOnSuccessSetting(onSuccess)));
+            builder.AddLaw(Law.Axiom(onSuccess));
             return builder;
             
         }
@@ -26,14 +26,14 @@ namespace Astral.Configuration.Builders
         public static TBuilder MessageTtl<TBuilder>(this TBuilder builder, TimeSpan ttl)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new MessageTtlSetting(ttl)));
+            builder.AddLaw(Law.Axiom(new MessageTtl(ttl)));
             return builder;
         }
         
         public static TBuilder MessageTtl<TBuilder, TMessage>(this TBuilder builder, Func<TMessage, TimeSpan> messageTtl)
             where TBuilder : BuilderBase
         {
-            builder.AddLaw(Law.Axiom(new MessageTtlFactorySetting<TMessage>(messageTtl)));
+            builder.AddLaw(Law.Axiom((MessageToMessageTtl<TMessage>) (p => messageTtl(p))));
             return builder;
         }
 
@@ -41,7 +41,7 @@ namespace Astral.Configuration.Builders
             where TBuilder : BuilderBase
             
         {
-            builder.AddLaw(Law.Axiom(new DeliveryReplayToSetting(replayTo)));
+            builder.AddLaw(Law.Axiom(new DeliveryReplayTo(replayTo)));
             return builder;
         }
         

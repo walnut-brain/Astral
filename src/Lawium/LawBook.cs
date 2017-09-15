@@ -91,6 +91,21 @@ namespace Lawium
 
             });
         }
+        
+        /// <summary>
+        /// Add subbook without saving
+        /// </summary>
+        /// <param name="onBuild">on build law adding</param>
+        /// <returns>new law book</returns>
+        public LawBook AddSubBook(Action<LawBookBuilder> onBuild = null)
+        {
+            onBuild = onBuild ?? (_ => {});
+            
+            var builder = new LawBookBuilder(LoggerFactory, () => _laws, Guid.NewGuid().ToString("D"));
+            onBuild(builder);
+            return builder.Build();
+
+        }
 
     }
 }

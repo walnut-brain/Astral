@@ -39,7 +39,7 @@ namespace Astral
         /// <typeparam name="TEvent">event type</typeparam>
         /// <returns>dispose to unlisten</returns>
         IDisposable Listen<TEvent, TChannel>(Expression<Func<T, IEvent<TEvent>>> selector,
-            IListener<TEvent, EventContext> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null)
+            Func<TEvent, EventContext, CancellationToken, Task> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null)
             where TChannel : ChannelKind, IEventChannel;
 
 
@@ -190,21 +190,21 @@ namespace Astral
         /// <typeparam name="TCommand">command type</typeparam>
         /// <returns>dispose for unlisten</returns>
         IDisposable ListenResponse<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
-            IListener<Result<ValueTuple>, ResponseContext> listener,
+            Func<Result<ValueTuple>, ResponseContext, CancellationToken, Task> listener,
             ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null);
 
         IDisposable ListenResponse<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
-            IListener<Result<TResponse>, ResponseContext> listener,
+            Func<Result<TResponse>, ResponseContext, CancellationToken, Task> listener,
             ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null);
 
         Task Response<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
             TResponse response, ChannelKind.ReplyChannel replayTo, CancellationToken cancellation = default(CancellationToken));
 
         IDisposable ListenRequest<TCommand>(Expression<Func<T, ICall<TCommand>>> selector,
-            IListener<TCommand, RequestContext> listener, Action<ChannelBuilder> configure = null);
+            Func<TCommand, RequestContext, CancellationToken, Task> listener, Action<ChannelBuilder> configure = null);
 
         IDisposable ListenRequest<TRequest, TResponse>(Expression<Func<T, ICall<TRequest, TResponse>>> selector,
-            IListener<TRequest, RequestContext<TResponse>> listener, Action<ChannelBuilder> configure = null);
+            Func<TRequest, RequestContext<TResponse>, CancellationToken, Task> listener, Action<ChannelBuilder> configure = null);
 
         Task<TResponse> Call<TRequest, TResponse>(
             Expression<Func<T, ICall<TRequest, TResponse>>> selector,

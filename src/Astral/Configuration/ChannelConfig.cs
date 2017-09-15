@@ -21,7 +21,7 @@ namespace Astral.Specifications
         public object GetService(Type serviceType)
             => _lawBook.TryGet(serviceType).OfType<object>().OrElse(() => Endpoint.GetService(serviceType).ToOption()).IfNoneDefault();
 
-        public ChannelKind ChannelKind => this.GetRequiredService<SubscribeChannelSetting>().Value;
-        public bool IsResponse => this.GetRequiredService<IsResponseChannelSetting>().Value;
+        public ChannelKind ChannelKind => this.GetRequiredService<SubscribeChannel>();
+        public bool IsResponse => this.GetRequiredService<IsResponseChannel>();
     }
 }

@@ -66,12 +66,30 @@ namespace RabbitLink.Astral
                         message.PublishProperties.RoutingKey = routingKey;
                     return producer.PublishAsync(message, cancellation);
                 };
-            var exConfig = new ExchangeConfig(
-                config.GetRequiredService<ExchangeNameSetting>().Value,
-                config.GetRequiredService<ExchangeTypeSetting>().Value,
-                config.GetRequiredService<PassiveExchangeDeclareSetting>().Value,
-                config.GetRequiredService<DurableExchangeSetting>().Value,
-                config.GetRequiredService<ConfirmsModeSetting>().Value);
+
+            ExchangeConfig exConfig;
+            PublishMessageProperties<TMessage> pmp;
+            if (!isReply)
+            {
+                exConfig = new ExchangeConfig(
+                    config.GetRequiredService<ExchangeName>(),
+                    config.GetRequiredService<ExchangeType>(),
+                    config.GetRequiredService<ExchangeDeclarePassive>(),
+                    config.GetRequiredService<IsDurableExchange>(),
+                    config.GetRequiredService<ConfirmsMode>());
+                /*pmp = (responseTo ?? ChannelKind.None).Match(() => new PublishMessageProperties<TMessage>(config.SystemName,
+                    ), )*/
+            }
+            else
+            {
+                exConfig = new ExchangeConfig(config.GetRequiredService<ResponseExchangeName>(),
+                    config.GetRequiredService<ResponseExchangeType>(),
+                    config.GetRequiredService<ResponseExchangeDeclarePassive>(),
+                    config.GetRequiredService<IsDurableResponseExchange>(),
+                    config.GetRequiredService<ResponseConfirmsMode>());
+            }
+                
+            
             /*var pmp = new PublishMessageProperties<TMessage>(config.SystemName, 
                 );*/
             throw new NotImplementedException();

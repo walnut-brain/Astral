@@ -29,8 +29,8 @@ namespace Astral.Specifications
                 .IfNoneDefault();
         } 
 
-        public string SystemName => this.GetRequiredService<SystemNameSetting>().Value;
-        public string InstanceCode => this.GetRequiredService<InstanceCodeSetting>().Value;
+        public string SystemName => this.GetRequiredService<SystemName>();
+        public string InstanceCode => this.GetRequiredService<InstanceCode>();
 
     }
 }

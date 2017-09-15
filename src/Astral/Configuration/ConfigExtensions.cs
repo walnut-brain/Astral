@@ -6,13 +6,13 @@ namespace Astral.Specifications
 {
     public static class ConfigExtensions
     {
-        public static Result<T> AsTry<T>(this ConfigBase config) where T : Fact
+        public static Result<T> AsTry<T>(this ConfigBase config) 
         {
             return config.TryGetService<T>()
                 .ToResult(new InvalidConfigurationException($"Cannot find config setting {typeof(T)}"));
         }
 
-        public static bool TryGetService<T>(this ConfigBase config, out T result) where T : Fact
+        public static bool TryGetService<T>(this ConfigBase config, out T result) 
         {
             var data = default(T);
             var res = config.TryGetService<T>().Match(p =>

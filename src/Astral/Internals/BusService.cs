@@ -1,24 +1,16 @@
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Net.Mime;
 using System.Reactive.Disposables;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Configuration;
 using Astral.Configuration.Builders;
 using Astral.Configuration.Settings;
-using Astral.Contracts;
 using Astral.Data;
 using Astral.Deliveries;
 using Astral.Payloads;
-using Astral.Payloads.DataContracts;
-using Astral.Payloads.Serialization;
 using Astral.Specifications;
 using Astral.Transport;
-using Astral.Utils;
 using FunEx;
 using FunEx.Monads;
 using Lawium;
@@ -75,7 +67,7 @@ namespace Astral.Internals
             var endpoint = Config.Endpoint(selector);
             
             return Deliverer(uow, endpoint, @event, false, DeliveryReply.NoReply, 
-                onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value).IfNone(DeliveryOnSuccess.Delete));
+                onSuccess ?? endpoint.GetRequiredService<DeliveryOnSuccess>());
         }
 
         public Task<Guid> Enqueue<TStore, TEvent>(IUnitOfWork<TStore> uow,
@@ -89,7 +81,7 @@ namespace Astral.Internals
 
         /// <inheritdoc />
         public IDisposable Listen<TEvent, TChannel>(Expression<Func<TService, IEvent<TEvent>>> selector,
-            IListener<TEvent, EventContext> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null) 
+            Func<TEvent, EventContext, CancellationToken, Task> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null) 
             where TChannel : ChannelKind, IEventChannel 
             => Listen(Config.Endpoint(selector).Channel((ChannelKind)channel ?? ChannelKind.System, false, configure ?? (_ => { })), 
                 eventListener, p => new EventContext(p.Sender));
@@ -103,7 +95,7 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             responseTo = responseTo ??
-                         endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).IfNone(ChannelKind.System);
+                         endpoint.GetRequiredService<ResponseTo>();
             
             var correlationId = Guid.NewGuid();
             var payload = endpoint.ToPayload(command).Unwrap();
@@ -137,11 +129,8 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             return Deliverer(uow, endpoint, command, false,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>()
-                                            .Map(p => p.Value)
-                                            .IfNone(ChannelKind.System)),
-                onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value)
-                    .IfNone(DeliveryOnSuccess.Archive));
+                DeliveryReply.WithReply(replyTo ?? endpoint.GetRequiredService<DeliveryReplayTo>()),
+                onSuccess ?? endpoint.GetRequiredService<DeliveryOnSuccess>());
         }
         
         
@@ -151,8 +140,7 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             return Deliverer(uow, endpoint, command, false,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value)
-                                            .IfNone(ChannelKind.System)), Option.None);
+                DeliveryReply.WithReply(replyTo ?? endpoint.GetRequiredService<DeliveryReplayTo>()), Option.None);
         }
 
         public Task<Guid> DeliverResponse<TStore, TCommand>(IUnitOfWork<TStore> uow,
@@ -176,7 +164,7 @@ namespace Astral.Internals
         }
 
         public IDisposable ListenResponse<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
-            IListener<Result<ValueTuple>, ResponseContext> listener,
+            Func<Result<ValueTuple>, ResponseContext, CancellationToken, Task> listener,
             ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
@@ -194,7 +182,7 @@ namespace Astral.Internals
         }
 
         public IDisposable ListenRequest<TCommand>(Expression<Func<TService, ICall<TCommand>>> selector,
-            IListener<TCommand, RequestContext> listener, Action<ChannelBuilder> configure = null)
+            Func<TCommand, RequestContext, CancellationToken, Task> listener, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
             var channel = endpoint.Channel(ChannelKind.System, false, configure);
@@ -213,7 +201,7 @@ namespace Astral.Internals
             TCommand request, TimeSpan? timeout = null)
         {
             var endpoint = Config.Endpoint(selector);
-            var tout = timeout ?? endpoint.TryGetService<RpcTimeout>().Map(p => p.Value).IfNone(TimeSpan.FromHours(1));
+            var tout = timeout ?? endpoint.GetRequiredService<RpcTimeout>();
             var req = endpoint.ToPayload(request).Unwrap();
             if (endpoint.Transport is IRpcTransport rpc)
             {
@@ -239,7 +227,7 @@ namespace Astral.Internals
             Expression<Func<TService, ICall<TCommand>>> selector,
             Func<TCommand, CancellationToken, Task> handler)
         {
-            return ListenRequest(selector, new Listener<TCommand>(async (req, ctx, token) =>
+            return ListenRequest(selector, async (req, ctx, token) =>
             {
                 try
                 {
@@ -251,7 +239,7 @@ namespace Astral.Internals
                     return;
                 }
                 await ctx.Response.Send(token);
-            }));
+            });
         }
 
         #endregion
@@ -263,7 +251,7 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             responseTo = responseTo ??
-                         endpoint.TryGetService<ResponseToSetting>().Map(p => p.Value).IfNone(ChannelKind.System);
+                         endpoint.GetRequiredService<ResponseTo>();
             var correlationId = Guid.NewGuid();
             var payload = endpoint.ToPayload(command).Unwrap();
             var sender = endpoint.Transport.PreparePublish<TRequest>(endpoint, false, responseTo);
@@ -296,10 +284,8 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             return Deliverer(uow, endpoint, command, false,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).OfType<ChannelKind.DurableChannel>()
-                                            .IfNone(ChannelKind.System)),
-                onSuccess ?? endpoint.TryGetService<DeliveryOnSuccessSetting>().Map(p => p.Value)
-                    .IfNone(DeliveryOnSuccess.Archive));
+                DeliveryReply.WithReply(replyTo ?? endpoint.GetRequiredService<DeliveryReplayTo>()),
+                onSuccess ?? endpoint.GetRequiredService<DeliveryOnSuccess>());
         }
 
         public Task<Guid> Enqueue<TStore, TRequest, TResponse>(IUnitOfWork<TStore> uow,
@@ -307,7 +293,7 @@ namespace Astral.Internals
         {
             var endpoint = Config.Endpoint(selector);
             return Deliverer(uow, endpoint, command, false,
-                DeliveryReply.WithReply(replyTo ?? endpoint.TryGetService<DeliveryReplayToSetting>().Map(p => p.Value).IfNone(ChannelKind.System)), Option.None);
+                DeliveryReply.WithReply(replyTo ?? endpoint.GetRequiredService<DeliveryReplayTo>()), Option.None);
         }
 
         public Task<Guid> DeliverResponse<TStore, TRequest, TReplay>(IUnitOfWork<TStore> uow,
@@ -331,7 +317,7 @@ namespace Astral.Internals
         }
         
         public IDisposable ListenResponse<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
-            IListener<Result<TResponse>, ResponseContext> listener,
+            Func<Result<TResponse>, ResponseContext, CancellationToken, Task> listener,
             ChannelKind.DurableChannel replyFrom = null, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
@@ -347,7 +333,7 @@ namespace Astral.Internals
         }
         
         public IDisposable ListenRequest<TRequest, TResponse>(Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
-            IListener<TRequest, RequestContext<TResponse>> listener, Action<ChannelBuilder> configure = null)
+            Func<TRequest, RequestContext<TResponse>, CancellationToken, Task> listener, Action<ChannelBuilder> configure = null)
         {
             var endpoint = Config.Endpoint(selector);
             var channel = endpoint.Channel(ChannelKind.System, false, configure);
@@ -366,7 +352,7 @@ namespace Astral.Internals
             TRequest request, TimeSpan? timeout = null)
         {
             var endpoint = Config.Endpoint(selector);
-            var tout = timeout ?? endpoint.TryGetService<RpcTimeout>().Map(p => p.Value).IfNone(TimeSpan.FromHours(1));
+            var tout = timeout ?? endpoint.GetRequiredService<RpcTimeout>();
             var req = endpoint.ToPayload(request).Unwrap();
             if (endpoint.Transport is IRpcTransport rpc)
             {
@@ -393,7 +379,7 @@ namespace Astral.Internals
             Expression<Func<TService, ICall<TRequest, TResponse>>> selector,
             Func<TRequest, CancellationToken, Task<TResponse>> handler)
         {
-            return ListenRequest(selector, new Listener<TRequest, TResponse>(async (req, ctx, token) =>
+            return ListenRequest(selector, async (req, ctx, token) =>
             {
                 TResponse resp;
                 try
@@ -406,40 +392,12 @@ namespace Astral.Internals
                     return;
                 }
                 await ctx.Response.Send(resp, token);
-            }));
+            });
         }
         
         
         
         #endregion
-
-        private class Listener<TRequest, TResponse> : IListener<TRequest, RequestContext<TResponse>>
-        {
-            private readonly Func<TRequest, RequestContext<TResponse>, CancellationToken, Task> _handler;
-
-            public Listener(Func<TRequest, RequestContext<TResponse>, CancellationToken, Task> handler)
-            {
-                _handler = handler;
-            }
-
-            public Task Handle(TRequest message, RequestContext<TResponse> context, CancellationToken token)
-                => _handler(message, context, token);
-        }
-        
-        private class Listener<TRequest> : IListener<TRequest, RequestContext>
-        {
-            private readonly Func<TRequest, RequestContext, CancellationToken, Task> _handler;
-
-            public Listener(Func<TRequest, RequestContext, CancellationToken, Task> handler)
-            {
-                _handler = handler;
-            }
-
-            public Task Handle(TRequest message, RequestContext context, CancellationToken token)
-                => _handler(message, context, token);
-        }
-        
-        
 
 
         private async Task<Guid> Deliverer<TStore, TMessage>(IUnitOfWork<TStore> uow, EndpointConfig endpoint, TMessage message,
@@ -470,12 +428,12 @@ namespace Astral.Internals
 
 
         private IDisposable Listen<TEvent, TContext>(ChannelConfig config,
-            IListener<TEvent, TContext> eventListener,
+            Func<TEvent, TContext, CancellationToken, Task> eventListener,
             Func<MessageContext, TContext> contextConverter)
             => Listen(config, eventListener, p => config.Endpoint.FromPayload(p).As<TEvent>().Unwrap(), contextConverter);
        
         private IDisposable Listen<TEvent, TContext>(ChannelConfig config,
-            IListener<TEvent, TContext> eventListener, Func<Payload<byte[]>, TEvent> converter, 
+            Func<TEvent, TContext, CancellationToken, Task> eventListener, Func<Payload<byte[]>, TEvent> converter, 
             Func<MessageContext, TContext> contextConverter)
         {
             return Logger.LogActivity(Listen, "listen {service} {endpoint}", config.Endpoint.ServiceType,
@@ -483,11 +441,11 @@ namespace Astral.Internals
 
             IDisposable Listen()
             {
-                var exceptionPolicy = config.Endpoint.AsTry<ExceptionToAcknowledgeSetting>().Map(p => p.Value).RecoverTo(p => CommonLaws.DefaultExceptionPolicy(p));
+                var exceptionPolicy = config.Endpoint.AsTry<ExceptionToAcknowledge>().RecoverTo(p => CommonLaws.DefaultExceptionPolicy(p));
 
 
                 var (_, subscribable) = config.Endpoint.Transport.GetChannel(config);
-                return subscribable((msg, ctx, token) => Listener(msg, ctx, token, exceptionPolicy));
+                return subscribable((msg, ctx, token) => Listener(msg, ctx, token, ex => exceptionPolicy(ex)));
             }
 
             async Task<Acknowledge> Listener(
@@ -496,7 +454,7 @@ namespace Astral.Internals
                 async Task<Acknowledge> Receive()
                 {
                     var obj = converter(msg); 
-                    await eventListener.Handle(obj, contextConverter(ctx), token);
+                    await eventListener(obj, contextConverter(ctx), token);
                     return Acknowledge.Ack;
                 }
 

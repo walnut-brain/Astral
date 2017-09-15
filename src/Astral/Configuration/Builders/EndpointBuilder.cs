@@ -17,8 +17,8 @@ namespace Astral.Configuration.Builders
             LawBookBuilder Simple()
                 =>  BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                     {
-                        bld.RegisterLaw(Law.Axiom(new SubscribeChannelSetting(channelKind)));
-                        bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isReponse)));
+                        bld.RegisterLaw(Law.Axiom(new SubscribeChannel(channelKind)));
+                        bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isReponse)));
                     });
             
 
@@ -28,12 +28,12 @@ namespace Astral.Configuration.Builders
                     name == ConfigUtils.DefaultNamedChannel.Name 
                         ? BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                         {
-                            bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isReponse)));
+                            bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isReponse)));
                         })
                         : BookBuilder.GetSubBookBuilder((channelKind, isReponse), bld =>
                         {
-                            bld.RegisterLaw(Law.Axiom(new IsResponseChannelSetting(isReponse)));
-                        }).GetSubBookBuilder(name, bld => bld.RegisterLaw(Law.Axiom(new SubscribeChannelSetting(channelKind)))),
+                            bld.RegisterLaw(Law.Axiom(new IsResponseChannel(isReponse)));
+                        }).GetSubBookBuilder(name, bld => bld.RegisterLaw(Law.Axiom(new SubscribeChannel(channelKind)))),
                 Simple,
                 Simple,
                 Simple,

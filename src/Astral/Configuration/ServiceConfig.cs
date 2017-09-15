@@ -14,8 +14,8 @@ namespace Astral.Specifications
         {
         }
 
-        public Type ServiceType => this.GetRequiredService<ServiceTypeSetting>().Value;
-        public string ServiceName => this.GetRequiredService<ServiceName>().Value;
+        public Type ServiceType => this.GetRequiredService<ServiceType>();
+        public string ServiceName => this.GetRequiredService<ServiceName>();
 
         public EndpointConfig Endpoint(string name)
         {
