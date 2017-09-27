@@ -14,15 +14,15 @@ namespace Lawium
     public class LawBook
     {
         private readonly string _path;
-        private readonly IReadOnlyCollection<Law> _laws;
-        private readonly IReadOnlyDictionary<Type, object> _facts;
+        private readonly IReadOnlyList<Law> _laws;
+        private readonly IReadOnlyDictionary<Type, Inference> _facts;
         private readonly BlockedDisposableDictionary<object, LawBook> _subBooks;
 
         internal LawBook(
             ILoggerFactory loggerFactory,
             string path, 
-            IReadOnlyCollection<Law> laws, 
-            IReadOnlyDictionary<Type, object> facts,
+            IReadOnlyList<Law> laws, 
+            IReadOnlyDictionary<Type, Inference> facts,
             IDictionary<object, LawBook> subBooks)
         {
             LoggerFactory = loggerFactory;
@@ -44,7 +44,7 @@ namespace Lawium
         /// <param name="type">key type</param>
         /// <returns>Some value or none</returns>
         public Option<object> TryGet(Type type)
-            => _facts.TryGetValue(type);
+            => _facts.TryGetValue(type).Map(p => p.Value);
         
         /// <summary>
         /// Try get value from LawBook
@@ -85,7 +85,7 @@ namespace Lawium
             onBuild = onBuild ?? (_ => {});
             
             return _subBooks.GetOrAdd(key, _ => { 
-                var builder = new LawBookBuilder(LoggerFactory, () => _laws, _path + "/" + key);
+                var builder = new LawBookBuilder(LoggerFactory, 100, _laws, _facts, _path + "/" + key);
                 onBuild(builder);
                 return builder.Build();
 
@@ -101,7 +101,7 @@ namespace Lawium
         {
             onBuild = onBuild ?? (_ => {});
             
-            var builder = new LawBookBuilder(LoggerFactory, () => _laws, Guid.NewGuid().ToString("D"));
+            var builder = new LawBookBuilder(LoggerFactory, 100, _laws, _facts, Guid.NewGuid().ToString("D"));
             onBuild(builder);
             return builder.Build();
 

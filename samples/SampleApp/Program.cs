@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Astral;
 using Astral.Configuration.Builders;
+using Astral.Deliveries;
 using Astral.DependencyInjection;
 using Astral.Payloads;
 using Astral.Specifications;
@@ -54,6 +55,9 @@ namespace SampleApp
                         cfg.AddTransport<FakeTranport>();
                         cfg.Service<ISampleService>().Endpoint(p => p.AwesomeEvent)
                             .MessageTtl(TimeSpan.FromSeconds(60));
+                        cfg.Service<ISampleService>().Endpoint(p => p.Command)
+                            .DeliveryOnSuccess(DeliveryOnSuccess.Delete)
+                            .DeliveryReplayTo(ChannelKind.System);
 
                     });
 
@@ -64,8 +68,13 @@ namespace SampleApp
             using (var container = containerBuilder.Build())
             {
                 var bus = container.Resolve<Bus>();
+                bus.Service<ISampleService>().Endpoint(p => p.AwesomeEvent)
+                    .PublishAsync(new SampleEvent {Name = "Hellow", Id = 123}).Wait();
                 bus.Service<ISampleService>()
-                    .PublishAsync(p => p.AwesomeEvent, new SampleEvent {Name = "Hellow", Id = 123}).Wait();
+                    .ListenResponse(p => p.Command, (result, context, arg3) => Task.CompletedTask, ChannelKind.System);
+                bus.Service<ISampleService>()
+                    .Send(p => p.Command, new SampleEvent());
+                var res = bus.Service<ISampleService>().Call(p => p.Command, new SampleEvent()).Result;
             }
         }
     }

@@ -48,45 +48,10 @@ namespace Astral.Internals
 
 
 
-        #region Event
-
-        /// <inheritdoc />
-        public Task PublishAsync<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector, TEvent @event,
-            CancellationToken token = default(CancellationToken))
-        {
-            var config = Config.Endpoint(selector);
-            
-            return PublishMessageAsync(config, @event, ChannelKind.None, token);
-        }
-
-
-        public Task<Guid> Deliver<TStore, TEvent>(IUnitOfWork<TStore> uow,
-            Expression<Func<TService, IEvent<TEvent>>> selector,
-            TEvent @event, DeliveryOnSuccess? onSuccess = null)
-        {
-            var endpoint = Config.Endpoint(selector);
-            
-            return Deliverer(uow, endpoint, @event, false, DeliveryReply.NoReply, 
-                onSuccess ?? endpoint.GetRequiredService<DeliveryOnSuccess>());
-        }
-
-        public Task<Guid> Enqueue<TStore, TEvent>(IUnitOfWork<TStore> uow,
-            Expression<Func<TService, IEvent<TEvent>>> selector,
-            TEvent @event)
-        {
-            var endpoint = Config.Endpoint(selector);
-            return Deliverer(uow, endpoint,@event, false, DeliveryReply.NoReply, Option.None);
-        }
-
-
-        /// <inheritdoc />
-        public IDisposable Listen<TEvent, TChannel>(Expression<Func<TService, IEvent<TEvent>>> selector,
-            Func<TEvent, EventContext, CancellationToken, Task> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null) 
-            where TChannel : ChannelKind, IEventChannel 
-            => Listen(Config.Endpoint(selector).Channel((ChannelKind)channel ?? ChannelKind.System, false, configure ?? (_ => { })), 
-                eventListener, p => new EventContext(p.Sender));
-
-        #endregion
+        public IEventEndpoint<TEvent> Endpoint<TEvent>(Expression<Func<TService, IEvent<TEvent>>> selector)
+            => new EventEndpoint<TEvent>(Config.Endpoint(selector));
+        
+        
 
         #region ICall<>
 

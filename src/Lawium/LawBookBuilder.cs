@@ -15,12 +15,15 @@ namespace Lawium
     /// </summary>
     public class LawBookBuilder
     {
+        private readonly ushort _maxRecursion;
+
         /// <summary>
         /// Maximum level of inference recursion
         /// </summary>
-        public static volatile ushort MaxRecursion = 100;
+        //public static volatile ushort MaxRecursion = 100;
 
-        private readonly Func<IEnumerable<Law>> _parentLaws;
+        private readonly Func<IReadOnlyList<Law>> _parentLaws;
+        private readonly IReadOnlyDictionary<Type, Inference> _parentFacts;
         private readonly string _path = "";
         private readonly Dictionary<object, LawBookBuilder> _subBuilders = new Dictionary<object, LawBookBuilder>();
 
@@ -28,22 +31,36 @@ namespace Lawium
         /// Create law book builder
         /// </summary>
         /// <param name="loggerFactory">logger factory for logging inference process</param>
-        public LawBookBuilder(ILoggerFactory loggerFactory = null)
+        public LawBookBuilder(ILoggerFactory loggerFactory = null, ushort maxRecursion = 100)
         {
+            _maxRecursion = maxRecursion;
             LoggerFactory = loggerFactory ?? new FakeLoggerFactory();
-            _parentLaws = Enumerable.Empty<Law>;
+            _parentLaws = () => new List<Law>();
         }
 
-        internal LawBookBuilder(ILoggerFactory loggerFactory, Func<IEnumerable<Law>> parentLaws, string path)
+        internal LawBookBuilder(ILoggerFactory loggerFactory, ushort maxRecursion, Func<IReadOnlyList<Law>> parentLaws, string path)
         {
             LoggerFactory = loggerFactory;
+            _maxRecursion = maxRecursion;
             _parentLaws = parentLaws;
+            _path = path;
+        }
+        
+        internal LawBookBuilder(ILoggerFactory loggerFactory, ushort maxRecursion, IReadOnlyList<Law> parentLaws, IReadOnlyDictionary<Type, Inference> parentFacts, string path)
+        {
+            LoggerFactory = loggerFactory;
+            _parentLaws = () => parentLaws;
+            _maxRecursion = maxRecursion;
+            _parentFacts = parentFacts;
             _path = path;
         }
 
         private readonly List<Law> _laws = new List<Law>();
 
-        private IEnumerable<Law> GetLaws() => _parentLaws().Union(_laws);
+        private List<LawRec> GetLaws() => 
+            _parentFacts == null 
+                ?  _parentLaws().Union(_laws).Select(p => new LawRec(p)).ToList()
+                : _parentLaws().Select(p => new LawRec(p, true)).Union(_laws.Select(p => new LawRec(p))).ToList();
 
         /// <summary>
         /// Logger factory
@@ -71,7 +88,7 @@ namespace Lawium
         {
             if (_subBuilders.TryGetValue(key, out var sub))
                 return sub;
-            sub = new LawBookBuilder(LoggerFactory, GetLaws, _path + "/" + key);
+            sub = new LawBookBuilder(LoggerFactory, _maxRecursion, () => GetLaws().Select(p => p.Law).ToList(), _path + "/" + key);
             _subBuilders.Add(key, sub);
             onCreate?.Invoke(sub);
             return sub;
@@ -86,27 +103,41 @@ namespace Lawium
             var logger = LoggerFactory.CreateLogger<LawBookBuilder>();
             using (logger.BeginScope("{path}", _path))
             {
+                if (_parentFacts != null && _laws.Count == 0)
+                {
+                    logger.LogTrace("No laws in builder, use parent facts");
+                    return new LawBook(LoggerFactory, _path,
+                        GetLaws().Select(p => p.Law).ToImmutableArray(),
+                        _parentFacts,
+                        _subBuilders.ToDictionary(p => p.Key, p => p.Value.Build()));
+                }
                 try
                 {
-                    var maxRecursion = MaxRecursion;
+                    var maxRecursion = _maxRecursion;
                     var loopNum = 0;
-                    var laws = GetLaws().Select((p, n) => new LawRec(n, false, p)).ToList();
-                    IDictionary<Type, Inference> inferences = new Dictionary<Type, Inference>();
+                    var laws = GetLaws();
+                    var inferences = 
+                        _parentFacts?.ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<Type, Inference>();
+
+
                     // process axioms
-                    foreach (var law in laws.Where(p => p.Law.Arguments.Length == 0))
+                    foreach (var (law, index) in laws.Where(p => p.Law.Arguments.Length == 0).Select((p, i) => (p, i)))
                     {
+                        if(law.Processed) continue;
                         using (logger.BeginScope("{law}", law.Law.Name))
                         {
                             try
                             {
                                 logger.LogTrace("Processing");
+                                 
                                 var result = law.Law.Executor(logger, ImmutableArray<object>.Empty);
                                 for (var i = 0; i < law.Law.Findings.Length; i++)
                                     if (result[i] != null)
                                     {
                                         if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
-                                            throw new InvalidOperationException($"{result[i]} is not {law.Law.Findings[i]}");
-                                        inferences[law.Law.Findings[i]] = new Inference(result[i], law);
+                                            throw new InvalidOperationException(
+                                                $"{result[i]} is not {law.Law.Findings[i]}");
+                                        inferences[law.Law.Findings[i]] = new Inference(result[i], index);
                                         logger.LogTrace("Writing {type} {value}", law.Law.Findings[i], result[i]);
                                     }
                             }
@@ -119,67 +150,70 @@ namespace Lawium
                         law.Processed = true;
                     }
 
-                    var nextLaw = 0;
-                    while (loopNum < maxRecursion && nextLaw < laws.Count)
+                    var current = laws.FindIndex(p => !p.Processed);
+                    while (loopNum < maxRecursion && current >= 0)
                     {
-                        var law = laws[nextLaw];
+                        var law = laws[current];
                         if (law.Processed)
                         {
-                            nextLaw++;
+                            current++;
                             continue;
                         }
                         // Skip not enough arguments
                         if (!law.Law.Arguments.All(p => inferences.ContainsKey(p) || p.OptionOf().IsSome))
                         {
-                            nextLaw++;
+                            current++;
                             continue;
                         }
                         // Skip lated
+                        var ind1 = current;
                         if (law.Law.Findings.All(p =>
                             inferences
                                 .TryGetValue(p)
-                                .Map(t => t.Law.Index > nextLaw)
+                                .Map(t => t.LawIndex > ind1)
                                 .IfNone(() => false)))
                         {
                             law.Processed = true;
-                            nextLaw++;
+                            current++;
                             continue;
                         }
                         var args = law.Law.Arguments.Map(p =>
-                            {
-                                if (inferences.TryGetValue(p, out var val)) return val;
-                                var optionOf = p.OptionOf();
-                                if(optionOf.IsNone) throw new InvalidOperationException();
-                                return optionOf.Bind(t => inferences.TryGetValue(t));
-                            });
+                        {
+                            if (inferences.TryGetValue(p, out var val)) return val.Value;
+                            var optionOf = p.OptionOf();
+                            if (optionOf.IsNone) throw new InvalidOperationException();
+                            return (object) optionOf.Bind(t => inferences.TryGetValue(t).Map(k => k.Value));
+                        }).ToImmutableArray();
                         using (logger.BeginScope("{law}", law.Law.Name))
                         {
                             try
                             {
                                 logger.LogTrace("Processing");
-                                var result = law.Law.Executor(logger, ImmutableArray<object>.Empty);
+                                var result = law.Law.Executor(logger, args);
                                 law.Processed = true;
                                 for (var i = 0; i < law.Law.Findings.Length; i++)
                                     if (result[i] != null)
                                     {
                                         if (!law.Law.Findings[i].IsInstanceOfType(result[i]))
-                                            throw new InvalidOperationException($"{result[i]} is not {law.Law.Findings[i]}");
-                                        if (inferences.TryGetValue(law.Law.Findings[i], out var current))
+                                            throw new InvalidOperationException(
+                                                $"{result[i]} is not {law.Law.Findings[i]}");
+                                        if (inferences.TryGetValue(law.Law.Findings[i], out var currentValue))
                                         {
-                                            if(Equals(current.Value, result[i])) continue;
-                                            if (current.Law.Index > nextLaw) continue;
+                                            if (Equals(currentValue.Value, result[i])) continue;
+                                            if (currentValue.LawIndex > current) continue;
                                         }
-                                        inferences[law.Law.Findings[i]] = new Inference(result[i], law);
-                                        foreach (var rec in laws)
+                                        inferences[law.Law.Findings[i]] = new Inference(result[i], current);
+                                        foreach (var (rec, num) in laws.Select((p, i1) => (p, i1)))
                                         {
                                             var optType = typeof(Option<>).MakeGenericType(law.Law.Findings[i]);
-                                            if (rec.Law.Arguments.Contains(law.Law.Findings[i]) || rec.Law.Arguments.Contains(optType))
+                                            if (rec.Law.Arguments.Contains(law.Law.Findings[i]) ||
+                                                rec.Law.Arguments.Contains(optType))
                                             {
-                                                var index = rec.Index;
+                                                var index = num;
                                                 if (!rec.Law.Findings.All(p =>
                                                     inferences
                                                         .TryGetValue(p)
-                                                        .Map(t => t.Law.Index > index)
+                                                        .Map(t => t.LawIndex > index)
                                                         .IfNone(() => false)))
                                                 {
                                                     rec.Processed = false;
@@ -195,26 +229,25 @@ namespace Lawium
                                 throw;
                             }
                         }
-                        var minUnprocessed = laws.Where(p => !p.Processed).Min(p => (int?) p.Index);
-                        if (minUnprocessed != null && minUnprocessed.Value <= nextLaw)
+                        var nxtLaw = laws.FindIndex(p => !p.Processed);
+                        if (nxtLaw >=0 && nxtLaw <= current)
                         {
-                            nextLaw = minUnprocessed.Value;
+                            current = nxtLaw;
                             loopNum++;
                         }
                         else
                         {
-                            nextLaw++;
+                            current++;
                         }
 
                     }
-                    if(loopNum >= maxRecursion)
-                        throw new InvalidOperationException($"Maximal recursion {maxRecursion} reached on build law book {_path}");
+                    if (loopNum >= maxRecursion)
+                        throw new InvalidOperationException(
+                            $"Maximal recursion {maxRecursion} reached on build law book {_path}");
 
-                    return new LawBook(LoggerFactory, _path, 
-                        GetLaws().ToImmutableArray()
-                        , 
-                        new ReadOnlyDictionary<Type, object>(
-                                inferences.ToDictionary(p => p.Key, p => p.Value.Value)), 
+                    return new LawBook(LoggerFactory, _path,
+                        GetLaws().Select(p => p.Law).ToImmutableArray(),
+                        new ReadOnlyDictionary<Type, Inference>(inferences),
                         _subBuilders.ToDictionary(p => p.Key, p => p.Value.Build()));
 
                 }
@@ -224,33 +257,20 @@ namespace Lawium
                     throw;
                 }
             }
-
-        }
-
-        private class Inference
-        {
-            public Inference(object value, LawRec law)
-            {
-                Value = value;
-                Law = law;
-            }
-
-            public object Value { get; }
-            public LawRec Law { get; }
         }
 
         private class LawRec
         {
-            public LawRec(int index, bool processed, Law law)
+            public LawRec(Law law, bool processed = false)
             {
-                Index = index;
-                Processed = processed;
                 Law = law;
+                Processed = processed;
             }
 
-            public int Index { get; }
-            public bool Processed { get; set; }
             public Law Law { get; }
+            public bool Processed { get; set; }
         }
+
+        
     }
 }

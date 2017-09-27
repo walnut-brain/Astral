@@ -21,11 +21,12 @@ namespace Astral.Specifications
         internal EndpointConfig(LawBook lawBook, IServiceProvider serviceProvider) : base(lawBook, serviceProvider)
         {
             var selector = this.TryGetService<TransportSelector>().Map(p => p.Value);
+            TransportTag = selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null));
             Transport = this
                 .GetService<TransportProvider>()
-                .GetTransport(selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null)))
+                .GetTransport(TransportTag)
                 .Unwrap();
-            TransportTag = selector.Map(p => ConfigUtils.NormalizeTag(p.Item1)).IfNone(() => ConfigUtils.NormalizeTag(null));
+            
             ContentType = 
                 selector.Map(p => p.Item2).OrElse(() => this.TryGetService<SerailizationContentType>().Map(p => p.Value))
                 .Unwrap(new InvalidConfigurationException($"For {ServiceType}  {PropertyInfo.Name} not setted content type of transport"));

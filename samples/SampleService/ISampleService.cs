@@ -8,5 +8,8 @@ namespace SampleService
     {
         [Endpoint("awesome.event")]
         IEvent<SampleEvent> AwesomeEvent { get; }
+        
+        [Endpoint("sample.event")]
+        ICall<SampleEvent, int> Command { get; }
     }
 }

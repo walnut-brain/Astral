@@ -13,64 +13,9 @@ namespace Astral
     public interface IBusService<T> : IBusService
         where T : class
     {
-        
-        
-        /// <summary>
-        ///     Publish event asynchronius
-        /// </summary>
-        /// <param name="selector">event selector expression</param>
-        /// <param name="event">published event</param>
-        /// <param name="token">cancellation</param>
-        /// <typeparam name="T">service type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>awaitable task</returns>
-        Task PublishAsync<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector, TEvent @event, 
-            CancellationToken token = default(CancellationToken));
-
-
-        /// <summary>
-        ///     Listen event
-        /// </summary>
-        /// <param name="selector">event selector</param>
-        /// <param name="eventListener">event listener</param>
-        /// <param name="channel">channel type, default System</param>
-        /// <param name="configure">configure channel, default from config</param>
-        /// <typeparam name="T">service type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>dispose to unlisten</returns>
-        IDisposable Listen<TEvent, TChannel>(Expression<Func<T, IEvent<TEvent>>> selector,
-            Func<TEvent, EventContext, CancellationToken, Task> eventListener, TChannel channel = null, Action<ChannelBuilder> configure = null)
-            where TChannel : ChannelKind, IEventChannel;
-
 
         
-        /// <summary>
-        /// Deliver event
-        /// </summary>
-        /// <param name="uow">current unit of work</param>
-        /// <param name="selector">event selector</param>
-        /// <param name="event">event</param>
-        /// <param name="onSuccess">on success delivery, default from config if present then Delete</param>
-        /// <typeparam name="TStore">store type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Deliver<TStore, TEvent>(IUnitOfWork<TStore> uow,
-            Expression<Func<T, IEvent<TEvent>>> selector,
-            TEvent @event, DeliveryOnSuccess? onSuccess = null);
-
-        /// <summary>
-        /// Enqueue event delivery
-        /// </summary>
-        /// <param name="uow">current unit of work</param>
-        /// <param name="selector">event selector</param>
-        /// <param name="event">event</param>
-        /// <typeparam name="TStore">store type</typeparam>
-        /// <typeparam name="TEvent">event type</typeparam>
-        /// <returns>awaitable delivery uid</returns>
-        Task<Guid> Enqueue<TStore, TEvent>(IUnitOfWork<TStore> uow,
-            Expression<Func<T, IEvent<TEvent>>> selector,
-            TEvent @event);
-
+        
 
         /// <summary>
         /// Deliver call
@@ -238,6 +183,8 @@ namespace Astral
         IDisposable HandleCall<TCommand>(
             Expression<Func<T, ICall<TCommand>>> selector,
             Func<TCommand, CancellationToken, Task> handler);
+
+        IEventEndpoint<TEvent> Endpoint<TEvent>(Expression<Func<T, IEvent<TEvent>>> selector);
     }
 
     public interface IBusService : IDisposable
