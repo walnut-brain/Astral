@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.CodeDom.Compiler;
 using Astral.Schema.Generators;
 using SchemaTests.Services;
@@ -34,4 +34,4 @@ namespace SchemaTests
             Assert.Equal(nameof(ISampleService.SampleEvent), schema.Events["first"].Title);
         }
     }
-}
+}*/

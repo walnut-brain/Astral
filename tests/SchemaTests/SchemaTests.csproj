@@ -9,7 +9,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Astral.Core\Astral.Core.csproj" />
     <ProjectReference Include="..\..\src\Astral.Schema\Astral.Schema.csproj" />
   </ItemGroup>
 </Project>
