@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.Schema", "src\Astral
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchemaTests", "tests\SchemaTests\SchemaTests.csproj", "{654D90F5-7966-4B0A-937F-17DF5A6E786E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Markup", "src\Astral.Markup\Astral.Markup.csproj", "{18B33233-D7D3-440E-97FB-360E0C413546}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Astral", "src\RabbitMq.Astral\RabbitMq.Astral.csproj", "{AC352CE1-CB73-4F5D-8937-AFDD818917AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{654D90F5-7966-4B0A-937F-17DF5A6E786E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{654D90F5-7966-4B0A-937F-17DF5A6E786E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{654D90F5-7966-4B0A-937F-17DF5A6E786E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18B33233-D7D3-440E-97FB-360E0C413546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18B33233-D7D3-440E-97FB-360E0C413546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18B33233-D7D3-440E-97FB-360E0C413546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18B33233-D7D3-440E-97FB-360E0C413546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC352CE1-CB73-4F5D-8937-AFDD818917AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC352CE1-CB73-4F5D-8937-AFDD818917AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC352CE1-CB73-4F5D-8937-AFDD818917AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC352CE1-CB73-4F5D-8937-AFDD818917AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -34,6 +46,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{96B5E334-0B60-4A83-AB7C-778A96CBAB55} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{654D90F5-7966-4B0A-937F-17DF5A6E786E} = {1A2A4CA1-5FC7-48F5-B019-3415E9042ECA}
+		{18B33233-D7D3-440E-97FB-360E0C413546} = {AFD8E592-8E24-4442-98E6-E105850659CE}
+		{AC352CE1-CB73-4F5D-8937-AFDD818917AE} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}
