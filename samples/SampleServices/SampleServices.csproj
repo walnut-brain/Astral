@@ -2,4 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Astral.Markup\Astral.Markup.csproj" />
+  </ItemGroup>
 </Project>
