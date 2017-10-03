@@ -1,4 +1,4 @@
-﻿namespace RabbitLink.Astral.Markup
+﻿namespace Astral.Markup.RabbitMq
 {
     public enum ExchangeKind
     {

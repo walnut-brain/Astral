@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RabbitLink.Astral.Markup
+namespace Astral.Markup.RabbitMq
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class RoutingKeyAttribute : Attribute

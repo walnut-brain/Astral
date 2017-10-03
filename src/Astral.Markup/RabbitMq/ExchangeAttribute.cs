@@ -1,7 +1,6 @@
 ﻿using System;
 
-
-namespace RabbitLink.Astral.Markup
+namespace Astral.Markup.RabbitMq
 {
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Property)]
     public class ExchangeAttribute : Attribute

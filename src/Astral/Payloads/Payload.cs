@@ -5,7 +5,6 @@ using System.Net.Mime;
 using Astral.Payloads.DataContracts;
 using FunEx;
 using FunEx.Monads;
-using Microsoft.Extensions.Logging;
 
 namespace Astral.Payloads
 {
@@ -38,7 +37,7 @@ namespace Astral.Payloads
         public abstract Type Format { get; }
         public abstract object Value { get; }
 
-        public static Result<Payload<TFormat>> ToPayload<TFormat>(ILogger logger, Type type, object obj, PayloadEncode<TFormat> payloadEncode)
+        public static Result<Payload<TFormat>> ToPayload<TFormat>(ITracer logger, Type type, object obj, PayloadEncode<TFormat> payloadEncode)
         {
             type = obj?.GetType() ?? type;
             return
@@ -52,11 +51,11 @@ namespace Astral.Payloads
                             .Map(data => new Payload<TFormat>(contract, data.Item1, data.Item2)));
         }
 
-        public static Result<Payload<TFormat>> ToPayload<T, TFormat>(ILogger logger, T obj, PayloadEncode<TFormat> payloadEncode) 
+        public static Result<Payload<TFormat>> ToPayload<T, TFormat>(ITracer logger, T obj, PayloadEncode<TFormat> payloadEncode) 
             => ToPayload(logger, typeof(T), obj, payloadEncode);
 
 
-        public static Result<object> FromPayload<TFormat>(ILogger logger, Payload<TFormat> payload, ImmutableList<Type> awaited, PayloadDecode<TFormat> payloadDecode)
+        public static Result<object> FromPayload<TFormat>(ITracer logger, Payload<TFormat> payload, ImmutableList<Type> awaited, PayloadDecode<TFormat> payloadDecode)
         {
             var typ = string.IsNullOrWhiteSpace(payload.TypeCode)
                 ? awaited.FirstOrNone()
@@ -80,7 +79,7 @@ namespace Astral.Payloads
             Result<T> As<T>();
         }
 
-        public static IFromPayload FromPayload<TFormat>(ILogger logger, Payload<TFormat> payload, PayloadDecode<TFormat> payloadDecode)
+        public static IFromPayload FromPayload<TFormat>(ITracer logger, Payload<TFormat> payload, PayloadDecode<TFormat> payloadDecode)
             => new FromPayloadDelegated(p => FromPayload(logger, payload, p, payloadDecode));
 
 

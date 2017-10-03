@@ -7,32 +7,31 @@ using System.Runtime.Serialization;
 using Astral.Markup;
 using FunEx;
 using FunEx.Monads;
-using Microsoft.Extensions.Logging;
 
 namespace Astral.Payloads.DataContracts
 {
     public static class TypeDecoder
     {
         public static DecodeComplex Create(string name, Func<string, Option<Type>> decode)
-            => (logger, decoder, code, awaited) =>
+            => (tracer, decoder, code, awaited) =>
             {
-                using (logger.BeginScope("Decoder: {name}", name))
+                using (tracer.Scope($"{name}: ", 0))
                 {
-                    logger.LogTrace("code {code}", code);
+                    tracer.Write($"code {code}");
                     var result = decode(code);
-                    logger.LogTrace("result {type}", result);
+                    tracer.Write($"result {result}");
                     return result;
                 }
             };
 
         public static DecodeComplex Create(string name, Func<string, IReadOnlyCollection<Type>, Option<Type>> decode)
-            => (logger, decoder, code, awaited) =>
+            => (tracer, decoder, code, awaited) =>
             {
-                using (logger.BeginScope("Decoder: {name}", name))
+                using (tracer.Scope($"{name}: ", 0))
                 {
-                    logger.LogTrace("code {code}", code);
+                    tracer.Write($"code {code}");
                     var result = decode(code, awaited);
-                    logger.LogTrace("result {type}", result);
+                    tracer.Write($"result {result}");
                     return result;
                 }
             };
@@ -46,20 +45,21 @@ namespace Astral.Payloads.DataContracts
         public static DecodeComplex Create(string name,
             Func<string, IReadOnlyCollection<Type>, Func<string, IReadOnlyCollection<Type>, Option<Type>>, Option<Type>>
                 decode)
-            => (logger, decoder, code, awaited) =>
+            => (tracer, decoder, code, awaited) =>
             {
                 Option<Type> ControlledDecoder(string nextCode, IReadOnlyCollection<Type> nextAwaited)
                 {
                     if (code == nextCode && CollectionEquals(nextAwaited, awaited))
                         throw new RecursiveResolutionException(code);
-                    return decoder(logger, nextCode, nextAwaited);
+                    using(tracer.Scope(""))
+                        return decoder(tracer, nextCode, nextAwaited);
                 }
 
-                using (logger.BeginScope("Encoder: {name}", name))
+                using (tracer.Scope($"{name}: ", 0))
                 {
-                    logger.LogTrace("code {code}", code);
+                    tracer.Write($"code {code}");
                     var result = decode(code, awaited, ControlledDecoder);
-                    logger.LogTrace("result {type}", result);
+                    tracer.Write($"result {result}");
                     return result;
                 }
             };
@@ -70,8 +70,8 @@ namespace Astral.Payloads.DataContracts
 
         public static Decode Loopback(this DecodeComplex complex)
         {
-            Option<Type> Loop(ILogger logger, string code, IReadOnlyCollection<Type> awaited) =>
-                complex(logger, Loop, code, awaited);
+            Option<Type> Loop(ITracer tracer, string code, IReadOnlyCollection<Type> awaited) =>
+                complex(tracer, Loop, code, awaited);
 
             return Loop;
         }

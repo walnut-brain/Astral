@@ -1,43 +1,41 @@
 ﻿using System;
-using System.CodeDom;
 using System.Reflection;
-using System.Text;
 using Astral.Markup;
 using FunEx.Monads;
-using Microsoft.Extensions.Logging;
 
 namespace Astral.Payloads.DataContracts
 {
     public static class TypeEncoder
     {
         public static EncodeComplex Create(string name, Func<Type, Option<string>> encode)
-            => (logger, encoder, type) =>
+            => (tracer, encoder, type) =>
             {
-                using (logger.BeginScope("Encoder: {name}", name))
+                using (tracer.Scope($"{name}: ", 0))
                 {
-                    logger.LogTrace("type {type}", type);
+                    tracer.Write($"type {type}");
                     var result = encode(type);
-                    logger.LogTrace("result {code}", result);
+                    tracer.Write($"result {result}");
                     return result;
                 }
             };
 
         public static EncodeComplex Create(string name, Func<Func<Type, Option<string>>, Type, Option<string>> encode)
-            => (logger, encoder, type) =>
+            => (tracer, encoder, type) =>
             {
                 Option<string> ControlledEncoder(Type nextType)
                 {
                     if (nextType == type)
                         throw new RecursiveResolutionException(type);
-                    return encoder(logger, nextType);
+                    using (tracer.Scope(""))
+                        return encoder(tracer, nextType);
                 }
 
-                using (logger.BeginScope("Encoder: {name}", name))
+                using (tracer.Scope($"{name}: "))
                 {
-                    logger.LogTrace("type {type}", type);
+                    tracer.Write($"type {type}");
 
                     var result = encode(ControlledEncoder, type);
-                    logger.LogTrace("result {code}", result);
+                    tracer.Write($"result {result}");
                     return result;
                 }
             };
@@ -48,7 +46,7 @@ namespace Astral.Payloads.DataContracts
 
         public static Encode Loopback(this EncodeComplex complex)
         {
-            Option<string> Loop(ILogger log, Type t) => complex(log, Loop, t);
+            Option<string> Loop(ITracer log, Type t) => complex(log, Loop, t);
             return Loop;
         }
 

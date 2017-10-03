@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Reflection;
-using FunEx;
 
-namespace Astral
+namespace RabbitLink.Services
 {
-    public static class CommonExtensions
+    public static partial class Extensions
     {
         public static PropertyInfo GetProperty<TOwner, TValue>(this Expression<Func<TOwner, TValue>> selector)
         {
@@ -31,8 +29,7 @@ namespace Astral
                 string.Compare(contentType.MediaType, p, StringComparison.InvariantCultureIgnoreCase) == 0);
         }
 
-        /*public static Option<T> TryGet<T>(this IServiceProvider provider)
-            => provider.GetService(typeof(T)).ToOption().OfType<T>();*/
+        
 
     }
 }
