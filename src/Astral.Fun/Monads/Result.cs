@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FunEx.Monads
+namespace Astral.Fun.Monads
 {
     public struct Result<T> : IEquatable<Result<T>>
     {

@@ -1,4 +1,4 @@
-﻿namespace FunEx.TypeClasses
+﻿namespace Astral.Fun.TypeClasses
 {
     public interface SMonoid<T>
     {

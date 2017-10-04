@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using Astral.Fun.Monads;
 using Astral.Markup;
-using FunEx.Monads;
 
 namespace Astral.Payloads.DataContracts
 {

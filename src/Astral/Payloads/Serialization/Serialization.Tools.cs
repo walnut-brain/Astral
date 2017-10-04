@@ -2,8 +2,8 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Mime;
-using FunEx;
-using FunEx.Monads;
+using Astral.Fun;
+using Astral.Fun.Monads;
 
 
 namespace Astral.Payloads.Serialization

@@ -1,7 +1,7 @@
 ﻿using System;
-using FunEx.TypeClasses;
+using Astral.Fun.TypeClasses;
 
-namespace FunEx.Monads
+namespace Astral.Fun.Monads
 {
 
     public delegate (T, TAcc) Writer<T, TMonoid, TAcc>()

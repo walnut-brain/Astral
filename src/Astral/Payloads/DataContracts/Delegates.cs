@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using FunEx.Monads;
+using Astral.Fun.Monads;
 
 namespace Astral.Payloads.DataContracts
 {

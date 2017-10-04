@@ -2,9 +2,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Mime;
+using Astral.Fun;
+using Astral.Fun.Monads;
 using Astral.Payloads.DataContracts;
-using FunEx;
-using FunEx.Monads;
 
 namespace Astral.Payloads
 {

@@ -7,7 +7,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Astral.Fun\Astral.Fun.csproj" />
     <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
-    <ProjectReference Include="..\FunEx\FunEx.csproj" />
   </ItemGroup>
 </Project>

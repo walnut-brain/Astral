@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using FunEx.Monads;
+using Astral.Fun.Monads;
 
-namespace FunEx
+namespace Astral.Fun
 {
     public static class Extensions
     {

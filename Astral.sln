@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral", "src\Astral\Astral
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleServices", "samples\SampleServices\SampleServices.csproj", "{EE8E0BD7-D576-4D5F-AA57-8C2ACC11E572}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunEx", "src\FunEx\FunEx.csproj", "{41AC75D6-C7FA-41B2-A1E1-E639D4DA5960}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atral.Fun", "src\Astral.Fun\Astral.Fun.csproj", "{41AC75D6-C7FA-41B2-A1E1-E639D4DA5960}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitLink.Services", "src\RabbitLink.Services\RabbitLink.Services.csproj", "{34AC85A2-1BFC-465C-BC5C-437DA2B3D9D3}"
 EndProject
