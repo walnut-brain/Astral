@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Astral.Delivery
+namespace Astral.Leasing
 {
     public interface IPacketLeaseController<in TSponsorId, TResource> : ILeaseController<TSponsorId, TResource>
     {

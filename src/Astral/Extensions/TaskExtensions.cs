@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Astral
+namespace Astral.Extensions
 {
     public static class TaskExtensions
     {

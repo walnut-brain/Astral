@@ -1,6 +1,4 @@
-﻿using Astral.Contracts;
-
-namespace RabbitLink.Services
+﻿namespace RabbitLink.Services
 {
     public interface IEventEndpoint<TService, TEvent>
         where TEvent : class

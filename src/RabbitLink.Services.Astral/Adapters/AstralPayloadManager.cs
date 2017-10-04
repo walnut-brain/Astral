@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Mime;
-using Astral.Disposables;
 using Astral.Payloads;
 using Astral.Payloads.DataContracts;
 using Astral.Payloads.Serialization;
@@ -32,8 +31,16 @@ namespace RabbitLink.Services.Astral.Adapters
              
             }
 
+            private struct EmptyDisposable : IDisposable
+            {
+                public void Dispose()
+                {
+                    
+                }
+            }
+            
             public IDisposable Scope(string name, ushort offset = 4)
-                => Disposable.Empty;
+                => default(EmptyDisposable);
         }
         
         private class LinkSerializer : ILinkSerializer

@@ -1,6 +1,7 @@
 ﻿using System;
 using RabbitLink.Builders;
 using RabbitLink.Connection;
+using RabbitLink.Logging;
 
 namespace RabbitLink.Services
 {
@@ -16,6 +17,7 @@ namespace RabbitLink.Services
         IServiceLinkBuilder OnStateChange(LinkStateHandler<LinkConnectionState> handler);
         IServiceLinkBuilder UseBackgroundThreadsForConnection(bool value);
         IServiceLinkBuilder PayloadManager(Func<IServiceProvider, IPayloadManager> factory);
+        IServiceLinkBuilder LoggerFactory(ILinkLoggerFactory value);
 
         IServiceLink Build();
     }

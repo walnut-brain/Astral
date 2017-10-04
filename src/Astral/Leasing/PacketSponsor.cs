@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Astral.Delivery
+namespace Astral.Leasing
 {
     public class PacketSponsor<TSposorId, TResource, TController, TControllerKey> : Sponsor<TSposorId, TResource>
         where TController : IPacketLeaseController<TSposorId, TResource>
@@ -18,7 +18,7 @@ namespace Astral.Delivery
             _keyExtractor = keyExtractor;
         }
 
-        protected override ILease CreateLease(TResource resource, ILeaseController<TSposorId, TResource> controller)
+        protected override Lease<TSposorId, TResource> CreateLease(TResource resource, ILeaseController<TSposorId, TResource> controller)
         {
             if (!(controller is TController plc))
                 return base.CreateLease(resource, controller);
@@ -43,7 +43,7 @@ namespace Astral.Delivery
             Func<Exception, Task> Free(TController ctrl, TResource res)
                 => ex => ctrl.FreeLease(SponsorId, res, ex); 
             
-            return new DelegatedLease(Renew(current, resource), Free(plc, resource));
+            return new Lease<TSposorId, TResource>(Renew(current, resource), Free(plc, resource));
         }
 
         private async Task Loop(TController controller, ConcurrentDictionary<TResource, ValueTuple> leases)

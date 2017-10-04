@@ -1,5 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <Authors>Ivan Simongauz</Authors>
+    <Description>Astral markup attributes</Description>
+    <Copyright>Ivan Simongauz 2017</Copyright>
+    <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageTags>Functional Monads</PackageTags>
+    <VersionPrefix>0.2.2-beta</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+    <PackageReleaseNotes>
+    </PackageReleaseNotes>
+  </PropertyGroup>
+  <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
   </PropertyGroup>
 </Project>

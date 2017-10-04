@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Astral.Delivery
+namespace Astral.Leasing
 {
     public interface ILeaseController<in TSponsorId, in TResource>
     {

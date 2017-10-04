@@ -1,4 +1,4 @@
-﻿namespace Astral.Contracts
+﻿namespace Astral.Links
 {
     public enum Acknowledge
     {

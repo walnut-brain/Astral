@@ -2,7 +2,7 @@
 
 namespace Astral.Payloads
 {
-    public class UnknownContentTypeException : AstralException
+    public class UnknownContentTypeException : PayloadException
     {
         public UnknownContentTypeException()
         {

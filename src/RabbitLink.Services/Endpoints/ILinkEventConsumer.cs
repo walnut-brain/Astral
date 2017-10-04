@@ -1,4 +1,4 @@
-﻿using Astral.Contracts;
+﻿using Astral.Links;
 using RabbitLink.Consumer;
 
 namespace RabbitLink.Services

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Authors>Ivan Simongauz</Authors>
-    <Description>Rabbit link astral contracts implementation</Description>
+    <Description>Astral payloads: serialization and contract resolution combinators</Description>
     <Copyright>Ivan Simongauz 2017</Copyright>
     <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
@@ -15,9 +15,10 @@
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RabbitLink" Version="0.5.6" />
+    <ProjectReference Include="..\Astral.Fun\Astral.Fun.csproj" />
+    <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Astral.Contracts\Astral.Contracts.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 </Project>

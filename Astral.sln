@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "samples\Sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Contracts", "src\Astral.Contracts\Astral.Contracts.csproj", "{5C7ECA94-72E9-4C01-8DD9-92A2DDDF3467}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Payloads", "src\Astral.Payloads\Astral.Payloads.csproj", "{B5C2ACED-581E-49B8-BD3F-7D30C95C5FBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{5C7ECA94-72E9-4C01-8DD9-92A2DDDF3467}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C7ECA94-72E9-4C01-8DD9-92A2DDDF3467}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C7ECA94-72E9-4C01-8DD9-92A2DDDF3467}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5C2ACED-581E-49B8-BD3F-7D30C95C5FBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5C2ACED-581E-49B8-BD3F-7D30C95C5FBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5C2ACED-581E-49B8-BD3F-7D30C95C5FBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5C2ACED-581E-49B8-BD3F-7D30C95C5FBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{1BB44FAE-9919-4356-BB73-8688BD4F548C} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{2A9EB2D5-75AA-4F45-BB91-C39210935551} = {B8943705-69CD-4A40-9DB4-EBCE30BC7478}
 		{5C7ECA94-72E9-4C01-8DD9-92A2DDDF3467} = {AFD8E592-8E24-4442-98E6-E105850659CE}
+		{B5C2ACED-581E-49B8-BD3F-7D30C95C5FBF} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}

@@ -21,13 +21,7 @@ namespace Astral.Extensions
             return propInfo;
         }
 
-        public static bool IsJson(this ContentType contentType)
-        {
-            var types = new[] {"text/json", "application/json"};
-
-            return types.Any(p =>
-                string.Compare(contentType.MediaType, p, StringComparison.InvariantCultureIgnoreCase) == 0);
-        }
+        
 
         
 

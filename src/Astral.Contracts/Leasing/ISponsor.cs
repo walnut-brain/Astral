@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Astral.Delivery
+namespace Astral.Leasing
 {
     public interface ISponsor<out TSponsorId, TResource>
     {

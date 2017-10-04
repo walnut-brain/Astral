@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Astral.Contracts;
+using Astral.Links;
 using RabbitLink.Consumer;
 using RabbitLink.Services.Descriptions;
 using RabbitLink.Services.Exceptions;

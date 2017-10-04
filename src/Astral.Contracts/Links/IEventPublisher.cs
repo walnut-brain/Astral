@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Astral.Contracts
+namespace Astral.Links
 {
     
     public interface IEventPublisher 

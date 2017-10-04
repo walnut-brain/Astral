@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Astral.Contracts;
+using Astral.Links;
 using RabbitLink.Messaging;
 using RabbitLink.Producer;
 using RabbitLink.Services.Descriptions;

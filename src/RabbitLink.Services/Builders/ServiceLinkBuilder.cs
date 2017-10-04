@@ -57,6 +57,9 @@ namespace RabbitLink.Services
         public IServiceLinkBuilder PayloadManager(Func<IServiceProvider, IPayloadManager> factory)
             => new ServiceLinkBuilder(_linkBuilder, _payloadManager, _descriptionFactory, _serviceName);
 
+        public IServiceLinkBuilder LoggerFactory(ILinkLoggerFactory value)
+            => new ServiceLinkBuilder(_linkBuilder.LoggerFactory(value), _payloadManager, _descriptionFactory, _serviceName);
+
         public IServiceLink Build()
             => new ServiceLink(_linkBuilder.Build(), _payloadManager, _descriptionFactory, _serviceName);
     }

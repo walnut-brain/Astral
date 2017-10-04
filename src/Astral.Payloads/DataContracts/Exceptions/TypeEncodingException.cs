@@ -2,7 +2,7 @@
 
 namespace Astral.Payloads.DataContracts
 {
-    public class TypeEncodingException : AstralException
+    public class TypeEncodingException : PayloadException
     {
         public TypeEncodingException()
         {

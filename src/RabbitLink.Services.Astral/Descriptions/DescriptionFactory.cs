@@ -14,9 +14,9 @@ namespace RabbitLink.Services.Astral.Descriptions
         protected ExchangeAttribute GetDefaultExchange(Type type)
         {
             var owner = type.GetCustomAttribute<OwnerAttribute>()?.OwnerName ??
-                        throw new AstralException("Owner not specified");
+                        throw new SchemaMarkupException("Owner not specified");
             var serviceName = type.GetCustomAttribute<ServiceAttribute>()?.Name ??
-                              throw new AstralException("Service name not specified");
+                              throw new SchemaMarkupException("Service name not specified");
             return new ExchangeAttribute($"{owner}.{serviceName}");
         }
 
@@ -40,9 +40,9 @@ namespace RabbitLink.Services.Astral.Descriptions
             if (type == null) throw new ArgumentNullException(nameof(type));
             if(!type.IsInterface) throw new ArgumentException($"Type {type} must be a interface");
             var serviceName = type.GetCustomAttribute<ServiceAttribute>()?.Name ??
-                              throw new AstralException("No service attribute found");
+                              throw new SchemaMarkupException("No service attribute found");
             var serviceOwner = type.GetCustomAttribute<OwnerAttribute>()?.OwnerName ??
-                              throw new AstralException("No owner attribute found");
+                              throw new SchemaMarkupException("No owner attribute found");
             var description = new ServiceDescription(serviceName, serviceOwner);
             foreach (var property in type.GetProperties())
             {
@@ -55,13 +55,13 @@ namespace RabbitLink.Services.Astral.Descriptions
                     if (exchange.Kind != ExchangeKind.Fanout)
                         routingKey = property.GetCustomAttribute<RoutingKeyAttribute>()?.Key ??
                                      property.GetCustomAttribute<EndpointAttribute>()?.Name ??
-                                     throw new AstralException("Missign routing key or endpoint name");
+                                     throw new SchemaMarkupException("Missign routing key or endpoint name");
                     var contentType = property.GetCustomAttribute<ContentTypeAttribute>()?.ContentType ??
                                       type.GetCustomAttribute<ContentTypeAttribute>()?.ContentType ??
                                       new ContentType("text/json;charset=utf-8");
 
                     var endpointName = property.GetCustomAttribute<EndpointAttribute>()?.Name ??
-                                       throw new AstralException($"Not endpoint attribute found on {property.Name}");
+                                       throw new SchemaMarkupException($"Not endpoint attribute found on {property.Name}");
                     
                     var eventDesc = new EventDescription(description, endpointName,  new ExchangeDescription(exchange.Name)
                         {

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Astral.Disposables;
 
-namespace Astral.Delivery
+namespace Astral.Leasing
 {
     public class Sponsor<TSposorId, TResource> : ISponsor<TSposorId, TResource>, IDisposable
     {
@@ -20,26 +20,9 @@ namespace Astral.Delivery
             Finisher = new CancellationDisposable();
         }
 
-        protected class DelegatedLease : ILease
+        protected virtual Lease<TSposorId, TResource> CreateLease(TResource resource, ILeaseController<TSposorId, TResource> controller)
         {
-            private readonly Func<Task> _renew;
-            private readonly Func<Exception, Task> _free;
-
-            public DelegatedLease(Func<Task> renew, Func<Exception, Task> free)
-            {
-                _renew = renew;
-                _free = free;
-            }
-
-            public Task Renew() => _renew();
-
-            public Task Free(Exception error = null) => _free(error);
-            
-        }
-        
-        protected virtual ILease CreateLease(TResource resource, ILeaseController<TSposorId, TResource> controller)
-        {
-            return new DelegatedLease(
+            return new Lease<TSposorId, TResource>(
                 () => controller.RenewLease(SponsorId, resource, LeaseInterval), 
                 ex => controller.FreeLease(SponsorId, resource, ex));
         }

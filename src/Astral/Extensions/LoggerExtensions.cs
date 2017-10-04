@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 
-namespace Astral
+namespace Astral.Extensions
 {
     public static class LoggerExtensions
     {

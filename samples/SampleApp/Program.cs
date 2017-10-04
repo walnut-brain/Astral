@@ -1,8 +1,8 @@
 ﻿﻿using System;
 using System.Reflection;
 using System.Threading;
-using Astral.Contracts;
-using RabbitLink;
+ using Astral.Links;
+ using RabbitLink;
 using RabbitLink.Messaging;
 using RabbitLink.Services.Astral;
 using SampleServices;
