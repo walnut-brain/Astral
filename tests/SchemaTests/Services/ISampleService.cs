@@ -1,4 +1,4 @@
-﻿using Astral;
+﻿/*using Astral;
 
 namespace SchemaTests.Services
 {
@@ -9,4 +9,4 @@ namespace SchemaTests.Services
         [Endpoint("first")]
         IEvent<int> SampleEvent { get; }       
     }
-}
+}*/

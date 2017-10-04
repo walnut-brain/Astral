@@ -1,80 +1,40 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
-using Astral;
-using Astral.Configuration.Builders;
-using Astral.Deliveries;
-using Astral.DependencyInjection;
-using Astral.Payloads;
-using Astral.Specifications;
-using Astral.Transport;
-using Autofac;
-using Autofac.Astral;
-using Autofac.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using SampleService;
-using Serilog;
+﻿﻿using System;
+using System.Reflection;
+using System.Threading;
+using Astral.Contracts;
+using RabbitLink;
+using RabbitLink.Messaging;
+using RabbitLink.Services.Astral;
+using SampleServices;
 
 namespace SampleApp
 {
-    public class FakeTranport : ITransport
-    {
-        public FakeTranport()
-        {
-        }
-
-        public PayloadSender<TMessage> PreparePublish<TMessage>(EndpointConfig config, bool isReply, ChannelKind responseTo)
-        {
-            throw new NotImplementedException();
-        }
-
-        public (string, Subscribable) GetChannel(ChannelConfig config)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
+    
+    
     class Program
     {
         static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .Enrich.FromLogContext()
-                .WriteTo.LiterateConsole()
-                .CreateLogger();
 
-
-            var services = new ServiceCollection()
-                .AddLogging()
-                .AddSingleton<FakeTranport>()
-                .AddAstral()
-                .AddBus("Test", cfg =>
-                    {
-                        cfg.AddTransport<FakeTranport>();
-                        cfg.Service<ISampleService>().Endpoint(p => p.AwesomeEvent)
-                            .MessageTtl(TimeSpan.FromSeconds(60));
-                        cfg.Service<ISampleService>().Endpoint(p => p.Command)
-                            .DeliveryOnSuccess(DeliveryOnSuccess.Delete)
-                            .DeliveryReplayTo(ChannelKind.System);
-
-                    });
-
-
-            var containerBuilder = new ContainerBuilder();
-            containerBuilder.Populate(services);
-            containerBuilder.AddAstral();
-            using (var container = containerBuilder.Build())
+            using (var link =
+                LinkBuilder
+                    .Configure
+                    .UseAstral("test")
+                    .Uri("amqp://youdo:youdo@localhost")
+                    .AutoStart(true)
+                    .ConnectionName("Test process")
+                    .Build())
             {
-                var bus = container.Resolve<Bus>();
-                bus.Service<ISampleService>().Endpoint(p => p.AwesomeEvent)
-                    .PublishAsync(new SampleEvent {Name = "Hellow", Id = 123}).Wait();
-                bus.Service<ISampleService>()
-                    .ListenResponse(p => p.Command, (result, context, arg3) => Task.CompletedTask, ChannelKind.System);
-                bus.Service<ISampleService>()
-                    .Send(p => p.Command, new SampleEvent());
-                var res = bus.Service<ISampleService>().Call(p => p.Command, new SampleEvent()).Result;
+                link.Service<IFirstService>().Event(p => p.Event).Consumer
+                    .Listen(async (p, ct) =>
+                    {
+                        Console.WriteLine(p.Name);
+                        return Acknowledge.Ack;
+                    });
+                Thread.Sleep(1000);
+                link.Service<IFirstService>().Event(p => p.Event).Publisher
+                    .PublishAsync(new EventContract {Name = "test "});
+                Console.ReadKey();
             }
         }
     }

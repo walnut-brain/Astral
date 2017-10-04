@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="RabbitLink" Version="0.5.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Astral.Contracts\Astral.Contracts.csproj" />
+  </ItemGroup>
+</Project>

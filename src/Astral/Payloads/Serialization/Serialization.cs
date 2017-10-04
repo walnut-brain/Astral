@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-
-namespace Astral.Payloads.Serialization
+﻿namespace Astral.Payloads.Serialization
 {
     public class Serialization<TFormat> 
     {

@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RabbitLink" Version="0.5.0-beta" />
+    <PackageReference Include="RabbitLink" Version="0.5.6" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Astral.Core\Astral.Core.csproj" />
+    <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
     <ProjectReference Include="..\Astral\Astral.csproj" />
-    <ProjectReference Include="..\FunEx\FunEx.csproj" />
-    <ProjectReference Include="..\RabbitMq.Astral.Core\RabbitMq.Astral.Core.csproj" />
+    <ProjectReference Include="..\RabbitLink.Astral.Markup\RabbitLink.Astral.Markup.csproj" />
   </ItemGroup>
 </Project>
