@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ServiceLink
+namespace Astral.Data
 {
     /// <summary>
     /// Unit of work 

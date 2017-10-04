@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace ServiceLink
+namespace Astral.Data
 {
     /// <summary>
     /// Provide interface for starting unit of work
