@@ -38,13 +38,13 @@ namespace FunEx
                         case AggregateException aex2:
                             return new AggregateException(aex1.InnerExceptions.Union(aex2.InnerExceptions));
                         default:
-                            return new AggregateException(aex1.InnerExceptions.Append(ex2));
+                            return new AggregateException(aex1.InnerExceptions.Union(new [] {ex2}));
                     }
                 default:
                     switch (ex2)
                     {
                         case AggregateException aex2:
-                            return new AggregateException(aex2.InnerExceptions.Prepend(ex1));
+                            return new AggregateException(new [] { ex1 }.Union(aex2.InnerExceptions));
                         default:
                             return new AggregateException(ex1, ex2);
                     }

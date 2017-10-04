@@ -1,7 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Transactions;
 using FunEx.TypeClasses;
 
 namespace FunEx.Monads
