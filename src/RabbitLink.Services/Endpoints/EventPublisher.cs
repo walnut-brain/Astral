@@ -11,29 +11,30 @@ using RabbitLink.Topology;
 
 namespace RabbitLink.Services
 {
-    internal class EventPublisher : ILinkEventPublisher
+    internal class EventPublisher<TService, TEvent> :
+        ILinkEventPublisher<TService, TEvent>
+        where TEvent : class
     {
-        protected EventDescription Description { get; }
-        protected ServiceLink Link { get; }
-        protected bool Passive { get; }
-        protected bool ConfirmMode { get; }
-        protected string Name { get; }
+        private EventDescription Description { get; }
+        private ServiceLink Link { get; }
+        private bool Passive { get; }
+        private bool ConfirmMode { get; }
+        private string Name { get; }
         private Lazy<ILinkProducer> Producer { get; }
         
-        private Func<object, CancellationToken, Task> UntypedPublishAsync { get; }
-
-        public EventPublisher(EventDescription description, ServiceLink link, bool passive = false, bool confirmMode = true, string name = null)
+        public EventPublisher(EventDescription description, ServiceLink link, bool passive = false, bool confirmMode = true,
+            string name = null) 
         {
+            if(description.Type != typeof(TEvent))
+                throw new InvalidConfigurationException("Invalid configuration - type in description different from generic type");
             Description = description;
             Link = link;
             Passive = passive;
             ConfirmMode = confirmMode;
             Name = name ?? description.Exchange.Name;
             Producer = new Lazy<ILinkProducer>(() => Link.GetOrAddProducer(Name, ConfirmMode, CreateProducer));
-            var method = typeof(EventPublisher).GetMethod(nameof(PublishAsync), BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(Description.Type);
-            UntypedPublishAsync = (o, t) => (Task) method.Invoke(this, new[] {o, t});
         }
-
+        
         private ILinkProducer CreateProducer()
         {
             return
@@ -49,39 +50,15 @@ namespace RabbitLink.Services
                     .Build();
         }
 
-        protected Task PublishAsync<TEvent>(TEvent message, CancellationToken token) where TEvent : class
+        private Task PublishAsync(TEvent message, CancellationToken token)
         {
             var msg = new LinkPublishMessage<TEvent>(message, publishProperties: new LinkPublishProperties
             {
                 RoutingKey =
                     Description.Exchange.Type == LinkExchangeType.Fanout ? null :
-                    Description.RoutingKey ?? Description.RoutingKeyExtractor(message)
+                        Description.RoutingKey ?? Description.RoutingKeyExtractor(message)
             });
             return Producer.Value.PublishAsync(msg, token);
-        }
-
-        Task IEventPublisher.PublishAsync(object message, CancellationToken token)
-            => UntypedPublishAsync(message, token);
-
-        ILinkEventPublisher ILinkEventPublisher.DeclarePassive(bool value)
-            => value == Passive ? this : new EventPublisher(Description, Link, value, ConfirmMode, Name);
-
-        ILinkEventPublisher ILinkEventPublisher.ConfirmMode(bool value)
-            => value == ConfirmMode ? this : new EventPublisher(Description, Link, Passive, value, Name);
-
-        ILinkEventPublisher ILinkEventPublisher.Named(string name)
-            => name == Name ? this : new EventPublisher(Description, Link, Passive, ConfirmMode, Name);
-    }
-
-    internal class EventPublisher<TService, TEvent> : EventPublisher,
-        ILinkEventPublisher<TService, TEvent>
-        where TEvent : class
-    {
-        public EventPublisher(EventDescription description, ServiceLink link, bool passive = false, bool confirmMode = true,
-            string name = null) : base(description, link, passive, confirmMode, name)
-        {
-            if(description.Type != typeof(TEvent))
-                throw new InvalidConfigurationException("Invalid configuration - type in description different from generic type");
         }
 
         Task IEventPublisher<TEvent>.PublishAsync(TEvent message, CancellationToken token)  

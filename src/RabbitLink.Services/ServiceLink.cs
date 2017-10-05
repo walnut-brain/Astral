@@ -45,9 +45,6 @@ namespace RabbitLink.Services
             remove => _link.Disconnected -= value;
         }
 
-        public IServiceBuilder Service(ServiceDescription service)
-            => new ServiceBuilder(service, this);
-
         public IServiceBuilder<TService> Service<TService>()
             => new ServiceBuilder<TService>(DescriptionFactory.GetDescription(typeof(TService)), this);
 

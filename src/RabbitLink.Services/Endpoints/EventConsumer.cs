@@ -11,27 +11,27 @@ using RabbitLink.Topology;
 
 namespace RabbitLink.Services
 {
-    internal class EventConsumer : ILinkEventConsumer
+    internal class EventConsumer<TService, TEvent> : ILinkEventConsumer<TService, TEvent>
+        where TEvent : class
     {
-        protected string QueueName { get; }
-        protected ushort PrefetchCount { get; }
-        protected ServiceLink Link { get; }
-        protected EventDescription Description { get; }
-        protected bool AutoAck { get; }
-        protected ILinkConsumerErrorStrategy ErrorStrategy { get; }
-        protected bool? CancelOnHaFailover { get; }
-        protected bool Exclusive { get; }
-        protected bool ExchangePassive { get; }
-        protected bool QueuePassive { get; }
-        protected bool Bind { get; }
-        protected QueueParameters QueueParameters { get; }
-        protected List<string> RoutingKeys { get; }
+        private string QueueName { get; }
+        private ushort PrefetchCount { get; }
+        private ServiceLink Link { get; }
+        private EventDescription Description { get; }
+        private bool AutoAck { get; }
+        private ILinkConsumerErrorStrategy ErrorStrategy { get; }
+        private bool? CancelOnHaFailover { get; }
+        private bool Exclusive { get; }
+        private bool ExchangePassive { get; }
+        private bool QueuePassive { get; }
+        private bool Bind { get; }
+        private QueueParameters QueueParameters { get; }
+        private List<string> RoutingKeys { get; }
         
-        private Func<Func<object, CancellationToken, Task<Acknowledge>>, IDisposable> UntypedListen { get; }
-
-        public EventConsumer(ServiceLink link, EventDescription description, string queueName = null, ushort prefetchCount = 1, 
-            bool autoAck = false, ILinkConsumerErrorStrategy errorStrategy = null, bool? cancelOnHaFailover = null, bool exclusive = false,
-            bool exchangePassive = false, bool queuePassive = false, bool bind = true, QueueParameters queueParameters = null,
+        public EventConsumer(ServiceLink link, EventDescription description, string queueName = null,
+            ushort prefetchCount = 1, bool autoAck = false, ILinkConsumerErrorStrategy errorStrategy = null,
+            bool? cancelOnHaFailover = null, bool exclusive = false, bool exchangePassive = false,
+            bool queuePassive = false, bool bind = true, QueueParameters queueParameters = null,
             List<string> routingKeys = null)
         {
             Link = link;
@@ -47,19 +47,9 @@ namespace RabbitLink.Services
             Bind = bind;
             QueueParameters = queueParameters;
             RoutingKeys = routingKeys;
-            var method1 = typeof(EventConsumer).GetMethod(nameof(Listen), BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(Description.Type);
-            var method2 = typeof(EventConsumer).GetMethod(nameof(ToTyped), BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(Description.Type);
-            UntypedListen = lst => (IDisposable) method1.Invoke(this, new[] {method2.Invoke(null, new[] {lst})});
         }
 
-        private static Func<TEvent, CancellationToken, Task<Acknowledge>> ToTyped<TEvent>(
-            Func<object, CancellationToken, Task<Acknowledge>> untyped)
-        {
-            return (e, ct) => untyped(e, ct);
-        }
-        
-
-        protected IDisposable Listen<TEvent>(Func<TEvent, CancellationToken, Task<Acknowledge>> listener) where TEvent : class
+        private IDisposable Listen(Func<TEvent, CancellationToken, Task<Acknowledge>> listener) 
         {
             var builder = Link
                 .Consumer
@@ -119,80 +109,6 @@ namespace RabbitLink.Services
             });
             
             return builder.Build();
-        }
-
-        IDisposable IEventConsumer.Listen(Func<object, CancellationToken, Task<Acknowledge>> listener)
-            => UntypedListen(listener);
-
-        ILinkEventConsumer ILinkEventConsumer.Queue(string queueName)
-            => new EventConsumer(Link, Description, queueName, PrefetchCount, AutoAck, ErrorStrategy, CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.PrefetchCount(ushort value)
-            => new EventConsumer(Link, Description, QueueName, value, AutoAck, ErrorStrategy, CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.AutoAck(bool value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, value, ErrorStrategy, CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.ErrorStrategy(ILinkConsumerErrorStrategy value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, value, CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.CancelOnHaFailover(bool value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy, value, Exclusive, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.Exclusive(bool value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy, CancelOnHaFailover, value, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.ExchangePassive(bool value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy, CancelOnHaFailover, Exclusive, value, QueuePassive, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.QueuePassive(bool value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy, CancelOnHaFailover, Exclusive, ExchangePassive, value, Bind, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.Bind(bool value)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy, CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, value, QueueParameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.QueueParameters(QueueParameters parameters)
-            => new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy, CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, Bind, parameters,
-                RoutingKeys);
-
-        ILinkEventConsumer ILinkEventConsumer.AddRoutingKey(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(value));
-            var keys = RoutingKeys ?? new List<string>();
-            keys.Add(value);
-            return new EventConsumer(Link, Description, QueueName, PrefetchCount, AutoAck, ErrorStrategy,
-                CancelOnHaFailover, Exclusive, ExchangePassive, QueuePassive, Bind, QueueParameters,
-                keys);
-        }
-
-        ILinkEventConsumer ILinkEventConsumer.AddRoutingKeyByExample(object value)
-        {
-            if(Description.RoutingKeyExtractor == null)
-                throw new InvalidOperationException($"Routing key by example not supported!");
-            return ((ILinkEventConsumer) this).AddRoutingKey(Description.RoutingKeyExtractor(value));
-        }
-    }
-
-    internal class EventConsumer<TService, TEvent> : EventConsumer, ILinkEventConsumer<TService, TEvent>
-        where TEvent : class
-    {
-        public EventConsumer(ServiceLink link, EventDescription description, string queueName = null,
-            ushort prefetchCount = 1, bool autoAck = false, ILinkConsumerErrorStrategy errorStrategy = null,
-            bool? cancelOnHaFailover = null, bool exclusive = false, bool exchangePassive = false,
-            bool queuePassive = false, bool bind = true, QueueParameters queueParameters = null,
-            List<string> routingKeys = null) : base(link, description, queueName, prefetchCount, autoAck, errorStrategy,
-            cancelOnHaFailover, exclusive, exchangePassive, queuePassive, bind, queueParameters, routingKeys)
-        {
         }
 
         IDisposable IEventConsumer<TEvent>.Listen(Func<TEvent, CancellationToken, Task<Acknowledge>> listener)

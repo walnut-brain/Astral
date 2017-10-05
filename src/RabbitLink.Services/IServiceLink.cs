@@ -6,7 +6,6 @@ namespace RabbitLink.Services
     {
         IDescriptionFactory DescriptionFactory { get; }
         IPayloadManager PayloadManager { get; }
-        IServiceBuilder Service(ServiceDescription service);
         IServiceBuilder<TService> Service<TService>();
         string ServiceName { get; }
     }

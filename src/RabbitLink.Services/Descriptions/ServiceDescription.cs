@@ -13,5 +13,6 @@ namespace RabbitLink.Services.Descriptions
         public string Name { get; }
         public string Owner { get; }
         public Dictionary<string, EventDescription> Events { get; set; } = new Dictionary<string, EventDescription>();
+        public Dictionary<string, CallDescription> Calls { get; set; } = new Dictionary<string, CallDescription>();
     }
 }

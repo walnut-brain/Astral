@@ -2,13 +2,6 @@
 
 namespace RabbitLink.Services
 {
-    public interface ILinkEventPublisher : IEventPublisher
-    {
-        ILinkEventPublisher DeclarePassive(bool value);
-        ILinkEventPublisher ConfirmMode(bool value);
-        ILinkEventPublisher Named(string name);    
-    }
-
     public interface ILinkEventPublisher<TService, TEvent> : IEventPublisher<TService, TEvent>
         where TEvent : class    
     {

@@ -3,23 +3,6 @@ using RabbitLink.Consumer;
 
 namespace RabbitLink.Services
 {
-    public interface ILinkEventConsumer : IEventConsumer
-    {
-        ILinkEventConsumer Queue(string queueName);
-        ILinkEventConsumer PrefetchCount(ushort value);
-        ILinkEventConsumer AutoAck(bool value);
-        ILinkEventConsumer ErrorStrategy(ILinkConsumerErrorStrategy value);
-        ILinkEventConsumer CancelOnHaFailover(bool value);
-        ILinkEventConsumer Exclusive(bool value);
-        ILinkEventConsumer ExchangePassive(bool value);
-        ILinkEventConsumer QueuePassive(bool value);
-        ILinkEventConsumer Bind(bool value);
-        ILinkEventConsumer QueueParameters(QueueParameters parameters);
-        ILinkEventConsumer AddRoutingKey(string value);
-        ILinkEventConsumer AddRoutingKeyByExample(object value);
-
-    }
-
     public interface ILinkEventConsumer<TService, TEvent> : IEventConsumer<TService, TEvent>
         where TEvent : class
     {

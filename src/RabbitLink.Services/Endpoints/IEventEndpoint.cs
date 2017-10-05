@@ -7,9 +7,5 @@
         ILinkEventConsumer<TService, TEvent> Consumer { get; }
     }
 
-    public interface IEventEndpoint
-    {
-        ILinkEventPublisher Publisher { get; }
-        ILinkEventConsumer Consumer { get; }
-    }
+    
 }

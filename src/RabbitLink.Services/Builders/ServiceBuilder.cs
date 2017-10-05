@@ -4,29 +4,28 @@ using RabbitLink.Services.Descriptions;
 
 namespace RabbitLink.Services
 {
-    internal class ServiceBuilder : IServiceBuilder
+    internal class ServiceBuilder<T> : IServiceBuilder<T>
     {
-        protected ServiceDescription Description { get; }
-        protected ServiceLink Link { get; } 
-
-        public ServiceBuilder(ServiceDescription description, ServiceLink link)
+        private ServiceDescription Description { get; }
+        private ServiceLink Link { get; }
+        
+        public ServiceBuilder(ServiceDescription description, ServiceLink link) 
         {
             Description = description;
             Link = link;
-            
-        }
-
-        public IEventEndpoint Event(string eventName)
-            => new EventEndpoint(Description.Events[eventName], Link);
-    }
-
-    internal class ServiceBuilder<T> : ServiceBuilder, IServiceBuilder<T>
-    {
-        public ServiceBuilder(ServiceDescription description, ServiceLink link) : base(description, link)
-        {
         }
 
         public IEventEndpoint<T, TEvent> Event<TEvent>(Expression<Func<T, EventHandler<TEvent>>> selector)
-            where TEvent : class => new EventEndpoint<T, TEvent>(Description.Events[selector.GetProperty().Name], Link);
+            where TEvent : class 
+            => new EventEndpoint<T, TEvent>(Description.Events[selector.GetProperty().Name], Link);
+
+        public ICallEndpoint<T, TArg> Call<TArg>(Expression<Func<T, Action<TArg>>> selector) 
+            where TArg : class
+            => new CallEndpoint<T, TArg>(Link, Description.Calls[selector.GetProperty().Name]);
+
+        public ICallEndpoint<T, TArg, TResult> Call<TArg, TResult>(Expression<Func<T, Func<TArg, TResult>>> selector) 
+            where TArg : class 
+            where TResult : class
+            => new CallEndpoint<T, TArg, TResult>(Link, Description.Calls[selector.GetProperty().Name]);
     }
 }
