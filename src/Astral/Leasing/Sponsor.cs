@@ -5,7 +5,7 @@ using Astral.Disposables;
 
 namespace Astral.Leasing
 {
-    public class Sponsor<TResource, TController> : ISponsor<TResource, TController>, IDisposable 
+    public class Sponsor<TResource, TController> : ISponsor<TResource>, IDisposable 
         where TController : ILeaseController<TResource>
     {
         protected TController Controller { get; }
