@@ -4,9 +4,10 @@ using System.Threading.Tasks;
 
 namespace Astral.Leasing
 {
-    public interface ISponsor<out TSponsorId, TResource>
+    public interface ISponsor<TResource, TController>
+        where TController : ILeaseController<TResource>
     {
-        TSponsorId SponsorId { get; }
-        Func<Task> Prepare(TResource resource, Func<CancellationToken, Task> work, ILeaseController<TSponsorId, TResource> controller);
+        string SponsorName { get; }
+        Func<Task> Prepare(TResource resource, Func<CancellationToken, Task> work);
     }
 }

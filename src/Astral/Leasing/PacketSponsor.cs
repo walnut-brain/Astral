@@ -5,57 +5,43 @@ using System.Threading.Tasks;
 
 namespace Astral.Leasing
 {
-    public class PacketSponsor<TSposorId, TResource, TController, TControllerKey> : Sponsor<TSposorId, TResource>
-        where TController : IPacketLeaseController<TSposorId, TResource>
+    public class PacketSponsor<TResource, TController> : Sponsor<TResource, TController>
+        where TController : IPacketLeaseController<TResource>
     {
-        private readonly Func<TController, TControllerKey> _keyExtractor;
+        private readonly ConcurrentDictionary<TResource, ValueTuple> _leases = 
+            new ConcurrentDictionary<TResource, ValueTuple>();
 
-        private readonly ConcurrentDictionary<TControllerKey, ConcurrentDictionary<TResource, ValueTuple>> _leases = 
-            new ConcurrentDictionary<TControllerKey, ConcurrentDictionary<TResource, ValueTuple>>();
-        
-        public PacketSponsor(TSposorId sponsorId, TimeSpan leaseInterval, TimeSpan renewInterval, Func<TController, TControllerKey> keyExtractor) : base(sponsorId, leaseInterval, renewInterval)
+        public PacketSponsor(TController controller, string sponsor, TimeSpan leaseInterval, TimeSpan renewInterval) :
+            base(controller, sponsor, leaseInterval, renewInterval)
         {
-            _keyExtractor = keyExtractor;
+            Task.Run(Loop);
         }
 
-        protected override Lease<TSposorId, TResource> CreateLease(TResource resource, ILeaseController<TSposorId, TResource> controller)
+        protected override Lease CreateLease(TResource resource)
         {
-            if (!(controller is TController plc))
-                return base.CreateLease(resource, controller);
+            _leases.TryAdd(resource, default(ValueTuple));
 
-            ConcurrentDictionary<TResource, ValueTuple> created = null;
-            var controllerKey = _keyExtractor(plc);
-            var current = _leases.GetOrAdd(controllerKey, _ =>
-            {
-                created = new ConcurrentDictionary<TResource, ValueTuple>();
-                return created;
-            });
-
-            if (current == created)
-                Task.Run(() => Loop(plc, current));
-            current.TryAdd(resource, default(ValueTuple));
-
-            Func<Task> Renew(ConcurrentDictionary<TResource, ValueTuple> leases, TResource res)
-              => () => leases.ContainsKey(res)
+            Func<Task> Renew(TResource res)
+              => () => _leases.ContainsKey(res)
                   ? Task.CompletedTask
                   : Task.FromException(new OperationCanceledException("Lease cannot be taken"));
 
-            Func<Exception, Task> Free(TController ctrl, TResource res)
-                => ex => ctrl.FreeLease(SponsorId, res, ex); 
+            Func<Exception, Task> Free(TResource res)
+                => ex => Controller.FreeLease(SponsorName, res, ex); 
             
-            return new Lease<TSposorId, TResource>(Renew(current, resource), Free(plc, resource));
+            return new Lease(Renew(resource), Free(resource));
         }
 
-        private async Task Loop(TController controller, ConcurrentDictionary<TResource, ValueTuple> leases)
+        private async Task Loop()
         {
             while (true)
             {
                 Finisher.Token.ThrowIfCancellationRequested();
-                var current = leases.Keys;
-                var taked = await controller.RenewLeases(SponsorId, LeaseInterval);
+                var current = _leases.Keys;
+                var taked = await Controller.RenewLeases(SponsorName, LeaseInterval);
                 foreach (var resource in current.Except(taked))
                 {
-                    leases.TryRemove(resource, out var _);
+                    _leases.TryRemove(resource, out var _);
                 }
                 
                 await Task.Delay(RenewInterval, Finisher.Token);

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace Astral.Leasing
 {
-    public interface IPacketLeaseController<in TSponsorId, TResource> : ILeaseController<TSponsorId, TResource>
+    public interface IPacketLeaseController<TResource> : ILeaseController<TResource>
     {
-        Task<IEnumerable<TResource>> RenewLeases(TSponsorId sponsor, TimeSpan leaseTime);
+        Task<IEnumerable<TResource>> RenewLeases(string sponsor, TimeSpan leaseTime);
     }
 }

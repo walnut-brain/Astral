@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Astral.Leasing
 {
-    public class Lease<TSposorId, TResource> 
+    public class Lease
     {
         private readonly Func<Task> _renew;
         private readonly Func<Exception, Task> _free;

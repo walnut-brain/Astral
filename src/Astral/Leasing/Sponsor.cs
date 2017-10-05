@@ -5,32 +5,35 @@ using Astral.Disposables;
 
 namespace Astral.Leasing
 {
-    public class Sponsor<TSposorId, TResource> : ISponsor<TSposorId, TResource>, IDisposable
+    public class Sponsor<TResource, TController> : ISponsor<TResource, TController>, IDisposable 
+        where TController : ILeaseController<TResource>
     {
-        public TSposorId SponsorId { get; }
+        protected TController Controller { get; }
+        public string SponsorName { get; }
         protected TimeSpan LeaseInterval { get; }
         protected TimeSpan RenewInterval { get; }
         protected CancellationDisposable Finisher { get; }
 
-        public Sponsor(TSposorId sponsorId, TimeSpan leaseInterval, TimeSpan renewInterval)
+        public Sponsor(TController controller, string sponsor, TimeSpan leaseInterval, TimeSpan renewInterval)
         {
-            SponsorId = sponsorId;
+            Controller = controller;
+            SponsorName = sponsor;
             LeaseInterval = leaseInterval;
             RenewInterval = renewInterval;
             Finisher = new CancellationDisposable();
         }
 
-        protected virtual Lease<TSposorId, TResource> CreateLease(TResource resource, ILeaseController<TSposorId, TResource> controller)
+        protected virtual Lease CreateLease(TResource resource)
         {
-            return new Lease<TSposorId, TResource>(
-                () => controller.RenewLease(SponsorId, resource, LeaseInterval), 
-                ex => controller.FreeLease(SponsorId, resource, ex));
+            return new Lease(
+                () => Controller.RenewLease(SponsorName, resource, LeaseInterval), 
+                ex => Controller.FreeLease(SponsorName, resource, ex));
         }
         
-        public Func<Task> Prepare(TResource resource, Func<CancellationToken, Task> work, ILeaseController<TSposorId, TResource> controller)
+        public Func<Task> Prepare(TResource resource, Func<CancellationToken, Task> work)
         {
-            if(Finisher.IsDisposed) throw new ObjectDisposedException($"{nameof(Sponsor<TSposorId, TResource>)}");
-            var lease = CreateLease(resource, controller);
+            if(Finisher.IsDisposed) throw new ObjectDisposedException($"{nameof(Sponsor<TResource, TController>)}");
+            var lease = CreateLease(resource);
             var workCancellation = new CancellationDisposable();
             var leaseCancellation = new CancellationDisposable();
             var combinedWorkSource = CancellationTokenSource.CreateLinkedTokenSource(workCancellation.Token, Finisher.Token);
