@@ -28,14 +28,14 @@ namespace RabbitLink.Services.Internals
             _consumer = builder.Handler(Handle).Build();
         }
 
-        private async Task<LinkConsumerAckStrategy> Handle(ILinkConsumedMessage<byte[]> message)
+        private Task<LinkConsumerAckStrategy> Handle(ILinkConsumedMessage<byte[]> message)
         {
             if (_subscribers.TryGetValue(message.Properties.CorrelationId, out var source))
             {
                 source.TrySetResult(message);
-                return LinkConsumerAckStrategy.Ack;
+                return Task.FromResult(LinkConsumerAckStrategy.Ack);
             }
-            return LinkConsumerAckStrategy.Nack;
+            return Task.FromResult(LinkConsumerAckStrategy.Nack);
         }
 
         public Task WaitReadyAsync(CancellationToken token) => _consumer.WaitReadyAsync(token);
