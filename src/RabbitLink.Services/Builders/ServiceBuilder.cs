@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Astral;
 using RabbitLink.Services.Descriptions;
 
 namespace RabbitLink.Services
@@ -27,5 +28,14 @@ namespace RabbitLink.Services
             where TArg : class 
             where TResult : class
             => new CallEndpoint<T, TArg, TResult>(Link, Description.Calls[selector.GetProperty().Name]);
+        
+        public IRequestEndpoint<T, TArg, TResult> Request<TArg, TResult>(Expression<Func<T, Func<TArg, TResult>>> selector)
+            where TArg : class 
+            where TResult : class
+            => new RequestEndpoint<T, TArg, TResult>(Link, Description.Calls[selector.GetProperty().Name]);
+        
+        public IRequestEndpoint<T, TArg, RpcOk> Request<TArg>(Expression<Func<T, Action<TArg>>> selector)
+            where TArg : class 
+            => new RequestEndpoint<T, TArg, RpcOk>(Link, Description.Calls[selector.GetProperty().Name]);
     }
 }

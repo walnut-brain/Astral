@@ -69,6 +69,58 @@ namespace RabbitLink.Services.Astral.Descriptions
                         }, routingKey, property.PropertyType.GenericTypeArguments[0], contentType);
                     description.Events.Add(property.Name, eventDesc);
                 }
+                else if (property.PropertyType.IsGenericType &&
+                         property.PropertyType.GetGenericTypeDefinition() == typeof(Action<>))
+                {
+                    var requestExchange = property.GetCustomAttribute<ExchangeAttribute>() ??
+                                   type.GetCustomAttribute<ExchangeAttribute>() ?? GetDefaultExchange(type);
+                    var responseExchange = property.GetCustomAttribute<ResponseExchangeAttribute>() ??
+                                           type.GetCustomAttribute<ResponseExchangeAttribute>() ?? new ResponseExchangeAttribute(requestExchange.Name, requestExchange.Kind);
+                    var routingKey = property.GetCustomAttribute<RoutingKeyAttribute>()?.Key ??
+                                     property.GetCustomAttribute<EndpointAttribute>()?.Name ??
+                                     throw new SchemaMarkupException("Missign routing key or endpoint name");
+                    var contentType = property.GetCustomAttribute<ContentTypeAttribute>()?.ContentType ??
+                                      type.GetCustomAttribute<ContentTypeAttribute>()?.ContentType ??
+                                      new ContentType("text/json;charset=utf-8");
+                    var endpointName = property.GetCustomAttribute<EndpointAttribute>()?.Name ??
+                                       throw new SchemaMarkupException($"Not endpoint attribute found on {property.Name}");
+                    var rpcQueue = property.GetCustomAttribute<RpcQueueAttribute>()?.Name ??
+                                   $"{serviceOwner}.{serviceName}.{endpointName}.rpc";
+                    var callDesc = new CallDescription(description, new ExchangeDescription(requestExchange.Name)
+                    {
+                        Type = LinkExchangeType.Direct
+                    }, new ExchangeDescription(responseExchange.Name)
+                    {
+                        Type = LinkExchangeType.Direct
+                    }, contentType, rpcQueue, routingKey, endpointName);
+                    description.Calls.Add(property.Name, callDesc);
+                }
+                else if (property.PropertyType.IsGenericType &&
+                         property.PropertyType.GetGenericTypeDefinition() == typeof(Func<,>))
+                {
+                    var requestExchange = property.GetCustomAttribute<ExchangeAttribute>() ??
+                                   type.GetCustomAttribute<ExchangeAttribute>() ?? GetDefaultExchange(type);
+                    var responseExchange = property.GetCustomAttribute<ResponseExchangeAttribute>() ??
+                                           type.GetCustomAttribute<ResponseExchangeAttribute>() ?? new ResponseExchangeAttribute(requestExchange.Name, requestExchange.Kind);
+                    var routingKey = property.GetCustomAttribute<RoutingKeyAttribute>()?.Key ??
+                                     property.GetCustomAttribute<EndpointAttribute>()?.Name ??
+                                     throw new SchemaMarkupException("Missign routing key or endpoint name");
+                    var contentType = property.GetCustomAttribute<ContentTypeAttribute>()?.ContentType ??
+                                      type.GetCustomAttribute<ContentTypeAttribute>()?.ContentType ??
+                                      new ContentType("text/json;charset=utf-8");
+                    var endpointName = property.GetCustomAttribute<EndpointAttribute>()?.Name ??
+                                       throw new SchemaMarkupException($"Not endpoint attribute found on {property.Name}");
+                    var rpcQueue = property.GetCustomAttribute<RpcQueueAttribute>()?.Name ??
+                                   $"{serviceOwner}.{serviceName}.{endpointName}.rpc";
+                    var callDesc = new CallDescription(description, new ExchangeDescription(requestExchange.Name)
+                    {
+                        Type = LinkExchangeType.Direct
+                    }, new ExchangeDescription(responseExchange.Name)
+                    {
+                        Type = LinkExchangeType.Direct
+                    }, contentType, rpcQueue, routingKey, endpointName);
+                    description.Calls.Add(property.Name, callDesc);
+                }
             }
             return description;
         }

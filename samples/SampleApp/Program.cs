@@ -25,14 +25,14 @@ namespace SampleApp
                     .ConnectionName("Test process")
                     .Build())
             {
-                link.Service<IFirstService>().Event(p => p.Event).Consumer
+                link.Service<IFirstService>().Event(p => p.Event)
                     .Listen(async (p, ct) =>
                     {
                         Console.WriteLine(p.Name);
                         return Acknowledge.Ack;
                     });
                 Thread.Sleep(1000);
-                link.Service<IFirstService>().Event(p => p.Event).Publisher
+                link.Service<IFirstService>().Event(p => p.Event)
                     .PublishAsync(new EventContract {Name = "test "});
                 Console.ReadKey();
             }

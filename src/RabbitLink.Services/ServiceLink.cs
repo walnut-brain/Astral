@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using RabbitLink.Builders;
 using RabbitLink.Producer;
 using RabbitLink.Services.Descriptions;
+using RabbitLink.Services.Internals;
 
 namespace RabbitLink.Services
 {
@@ -10,6 +11,7 @@ namespace RabbitLink.Services
     {
         private readonly ILink _link;
         private ConcurrentDictionary<(string, bool), ILinkProducer> _producers = new ConcurrentDictionary<(string, bool), ILinkProducer>();
+        private ConcurrentDictionary<string, RpcConsumer> _consumers = new ConcurrentDictionary<string, RpcConsumer>();
         public IPayloadManager PayloadManager { get; }
         public IDescriptionFactory DescriptionFactory { get; }
         
@@ -22,7 +24,14 @@ namespace RabbitLink.Services
             ServiceName = serviceName;
         }
 
-        public void Dispose() => _link.Dispose();
+        public void Dispose()
+        {
+            _link.Dispose();
+            foreach (var consumer in _consumers)
+            {
+                consumer.Value.Dispose();
+            }
+        }
 
 
         public void Initialize() => _link.Initialize();
@@ -58,6 +67,18 @@ namespace RabbitLink.Services
             });
             if (producer != created) created?.Dispose();
             return producer;
+        }
+
+        public RpcConsumer GetOrAddConsumer(string name, Func<RpcConsumer> factory)
+        {
+            RpcConsumer created = null;
+            var consumer = _consumers.GetOrAdd(name, _ =>
+            {
+                created = factory();
+                return created;
+            });
+            if(consumer != created) created?.Dispose();
+            return consumer;
         }
     }
 }
