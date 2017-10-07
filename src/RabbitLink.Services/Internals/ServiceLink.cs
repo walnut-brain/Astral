@@ -1,27 +1,34 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using RabbitLink.Builders;
 using RabbitLink.Producer;
 using RabbitLink.Services.Descriptions;
-using RabbitLink.Services.Internals;
 
-namespace RabbitLink.Services
+namespace RabbitLink.Services.Internals
 {
     internal class ServiceLink : IServiceLink
     {
         private readonly ILink _link;
-        private ConcurrentDictionary<(string, bool), ILinkProducer> _producers = new ConcurrentDictionary<(string, bool), ILinkProducer>();
-        private ConcurrentDictionary<string, RpcConsumer> _consumers = new ConcurrentDictionary<string, RpcConsumer>();
+        public ILoggerFactory LoggerFactory { get; }
+
+        private readonly ConcurrentDictionary<(string, bool), ILinkProducer> _producers =
+            new ConcurrentDictionary<(string, bool), ILinkProducer>();
+
+        private readonly ConcurrentDictionary<string, RpcConsumer> _consumers =
+            new ConcurrentDictionary<string, RpcConsumer>();
+        
         public IPayloadManager PayloadManager { get; }
         public IDescriptionFactory DescriptionFactory { get; }
         
 
-        public ServiceLink(ILink link, IPayloadManager payloadManager, IDescriptionFactory descriptionFactory, string serviceName)
+        public ServiceLink(ILink link, IPayloadManager payloadManager, IDescriptionFactory descriptionFactory, string serviceName, ILoggerFactory loggerFactory)
         {
-            _link = link;
-            PayloadManager = payloadManager;
-            DescriptionFactory = descriptionFactory;
-            ServiceName = serviceName;
+            _link = link ?? throw new ArgumentNullException(nameof(link));
+            LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            PayloadManager = payloadManager ?? throw new ArgumentNullException(nameof(payloadManager));
+            DescriptionFactory = descriptionFactory ?? throw new ArgumentNullException(nameof(descriptionFactory));
+            HolderName = serviceName ?? throw new ArgumentNullException(nameof(serviceName));
         }
 
         public void Dispose()
@@ -41,7 +48,7 @@ namespace RabbitLink.Services
         public ILinkProducerBuilder Producer => _link.Producer;
         public ILinkTopologyBuilder Topology => _link.Topology;
         public ILinkConsumerBuilder Consumer => _link.Consumer;
-        public string ServiceName { get; }
+        public string HolderName { get; }
         public event EventHandler Connected
         {
             add => _link.Connected += value;

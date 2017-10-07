@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using Astral;
 using RabbitLink.Services.Descriptions;
+using RabbitLink.Services.Internals;
 
 namespace RabbitLink.Services
 {
@@ -17,25 +18,24 @@ namespace RabbitLink.Services
         }
 
         public IEventEndpoint<T, TEvent> Event<TEvent>(Expression<Func<T, EventHandler<TEvent>>> selector)
-            where TEvent : class 
-            => new EventEndpoint<T, TEvent>(Description.Events[selector.GetProperty().Name], Link);
+            => new EventEndpoint<T, TEvent>(Link, Description.Events[selector.GetProperty().Name]);
 
         public ICallEndpoint<T, TArg> Call<TArg>(Expression<Func<T, Action<TArg>>> selector) 
-            where TArg : class
             => new CallEndpoint<T, TArg>(Link, Description.Calls[selector.GetProperty().Name]);
 
         public ICallEndpoint<T, TArg, TResult> Call<TArg, TResult>(Expression<Func<T, Func<TArg, TResult>>> selector) 
-            where TArg : class 
-            where TResult : class
             => new CallEndpoint<T, TArg, TResult>(Link, Description.Calls[selector.GetProperty().Name]);
         
         public IRequestEndpoint<T, TArg, TResult> Request<TArg, TResult>(Expression<Func<T, Func<TArg, TResult>>> selector)
-            where TArg : class 
-            where TResult : class
             => new RequestEndpoint<T, TArg, TResult>(Link, Description.Calls[selector.GetProperty().Name]);
         
         public IRequestEndpoint<T, TArg, RpcOk> Request<TArg>(Expression<Func<T, Action<TArg>>> selector)
-            where TArg : class 
             => new RequestEndpoint<T, TArg, RpcOk>(Link, Description.Calls[selector.GetProperty().Name]);
+
+        public IResponseEndpoint<T, TArg, TResult> Response<TArg, TResult>(Expression<Func<T, Func<TArg, TResult>>> selector)
+            => new ResponseEndpoint<T, TArg, TResult>(Link, Description.Calls[selector.GetProperty().Name]);
+
+        public IResponseEndpoint<T, TArg, RpcOk> Response<TArg>(Expression<Func<T, Action<TArg>>> selector)
+            => new ResponseEndpoint<T, TArg, RpcOk>(Link, Description.Calls[selector.GetProperty().Name]);
     }
 }

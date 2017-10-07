@@ -9,7 +9,7 @@ namespace Astral.Links
 {
     public static class Extensions
     {
-        public static IObservable<IAck<T>> ToObservable<T>(this IEventConsumer<T> consumer)
+        public static IObservable<IAck<T>> ToObservable<T>(this IConsumer<T> consumer)
         {
             return Observable.Create<IAck<T>>(observer =>
             {

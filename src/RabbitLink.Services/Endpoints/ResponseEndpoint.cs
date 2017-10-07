@@ -11,21 +11,19 @@ using RabbitLink.Services.Internals;
 
 namespace RabbitLink.Services
 {
-    internal class ResponseEndpoint<TService, TRequest, TResponse> : BuilderBase, IResponseEndpoint<TService, TRequest, TResponse>
+    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<CallDescription>, 
+        IResponseEndpoint<TService, TRequest, TResponse>
     {
-        private CallDescription Description { get; }
-        private ServiceLink Link { get; }
-
+        
         public ResponseEndpoint(ServiceLink link, CallDescription description)
+            : base(link, description)
         {
-            Description = description;
-            Link = link;
+            
         }
 
-        private ResponseEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) : base(store)
+        private ResponseEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+            : base(link, description, store)
         {
-            Description = description;
-            Link = link;
         }
         
         public ushort PrefetchCount() => GetValue(nameof(PrefetchCount), (ushort) 1);
@@ -33,13 +31,6 @@ namespace RabbitLink.Services
             => new ResponseEndpoint<TService, TRequest, TResponse>(Link, Description, SetValue(nameof(PrefetchCount), value));
         
         
-        public bool Durable() => GetValue(nameof(Durable), false);
-        public IResponseEndpoint<TService, TRequest, TResponse> Durable(bool value)
-            => new ResponseEndpoint<TService, TRequest, TResponse>(Link, Description, SetValue(nameof(Durable), value));
-
-        public bool AutoDelete() => GetValue(nameof(AutoDelete), false);
-        public IResponseEndpoint<TService, TRequest, TResponse> AutoDelete(bool value)
-            => new ResponseEndpoint<TService, TRequest, TResponse>(Link, Description, SetValue(nameof(AutoDelete), value));
         
         public bool ConfirmsMode() => GetValue(nameof(ConfirmsMode), true);
         public IResponseEndpoint<TService, TResponse, TRequest> ConfirmsMode(bool value)
@@ -69,11 +60,11 @@ namespace RabbitLink.Services
         {
             var consumerBuilder =
                 Utils.CreateConsumerBuilder(Link, Description.RequestExchange,
-                    false, false, Description.RpcQueueName, false, null, null, false,
-                    PrefetchCount(), new QueueParameters().Durable(Durable()).AutoDelete(AutoDelete()),
+                    false, false, Description.QueueName, false, null, null, false,
+                    PrefetchCount(), new QueueParameters().Durable(Description.QueueDurable).AutoDelete(Description.QueueAutoDelete),
                     new[] {Description.RoutingKey}, true);
             
-            consumerBuilder.Handler(async msg =>
+            consumerBuilder = consumerBuilder.Handler(async msg =>
             {
                 var data = (TRequest) Link.PayloadManager.Deserialize(msg, typeof(TRequest));
                 var request = new Request<TRequest>(msg.Properties.CorrelationId, msg.Properties.ReplyTo, data);

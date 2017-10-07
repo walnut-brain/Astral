@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace Astral.Links
 {
-    public interface IEventConsumer<out TEvent> 
+    public interface IConsumer<out TEvent> 
     {
         IDisposable Listen(Func<TEvent, CancellationToken, Task<Acknowledge>> listener);
     }
     
-    public interface IEventConsumer<TService, out TEvent> : IEventConsumer<TEvent>
+    public interface IConsumer<TService, out TEvent> : IConsumer<TEvent>
     {
         
     }

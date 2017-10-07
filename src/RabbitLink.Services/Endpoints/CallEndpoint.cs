@@ -10,21 +10,18 @@ using RabbitLink.Services.Internals;
 
 namespace RabbitLink.Services
 {
-    internal class CallEndpoint<TService, TArg, TResult> :  BuilderBase, ICallEndpoint<TService, TArg, TResult> 
+    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<CallDescription>, ICallEndpoint<TService, TArg, TResult> 
     {
-        private CallDescription Description { get; }
-        private ServiceLink Link { get; }
+        
 
         public CallEndpoint(ServiceLink link, CallDescription description)
+            : base(link, description)
         {
-            Description = description;
-            Link = link;
         }
 
-        private CallEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) : base(store)
+        private CallEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+            : base(link, description, store)
         {
-            Description = description;
-            Link = link;
         }
 
         public ushort PrefetchCount() => GetValue(nameof(PrefetchCount), (ushort) 1);
@@ -38,32 +35,25 @@ namespace RabbitLink.Services
             return new CallEndpoint<TService, TArg, TResult>(Link, Description, SetValue(nameof(Timeout), value));
         }
         
-        public TimeSpan? Expires() => GetValue(nameof(Expires), TimeSpan.FromHours(1));
-        public ICallEndpoint<TService, TArg, TResult> Expires(TimeSpan? value)
+        public TimeSpan? ResponseQueueExpires() => GetValue(nameof(ResponseQueueExpires), TimeSpan.FromHours(1));
+        public ICallEndpoint<TService, TArg, TResult> ResponseQueueExpires(TimeSpan? value)
         {
             if(value != null &&  value.Value <= TimeSpan.Zero) throw new ArgumentOutOfRangeException("Timeout must be positive time span");
-            return new CallEndpoint<TService, TArg, TResult>(Link, Description, SetValue(nameof(Expires), value));
+            return new CallEndpoint<TService, TArg, TResult>(Link, Description, SetValue(nameof(ResponseQueueExpires), value));
         }
-        
-        public bool Durable() => GetValue(nameof(Durable), false);
-        public ICallEndpoint<TService, TArg, TResult> Durable(bool value)
-            => new CallEndpoint<TService, TArg, TResult>(Link, Description, SetValue(nameof(Durable), value));
-
-        public bool AutoDelete() => GetValue(nameof(AutoDelete), false);
-        public ICallEndpoint<TService, TArg, TResult> AutoDelete(bool value)
-            => new CallEndpoint<TService, TArg, TResult>(Link, Description, SetValue(nameof(AutoDelete), value));
         
         public IDisposable Process(Func<TArg, CancellationToken, Task<TResult>> processor)
         {
             var consumerBuilder =
                 Utils.CreateConsumerBuilder(Link, Description.RequestExchange,
-                    false, false, Description.RpcQueueName, false, null, null, false,
-                    PrefetchCount(), new QueueParameters().Durable(Durable()).AutoDelete(AutoDelete()),
+                    false, false, Description.QueueName, false, null, null, false,
+                    PrefetchCount(), 
+                    new QueueParameters().Durable(Description.QueueDurable).AutoDelete(Description.QueueAutoDelete),
                     new[] {Description.RoutingKey}, true);
             
             var publisher = Utils.CreateProducer(Link, Description.ResponseExchange, Description.ContentType,
                 false, false);
-            consumerBuilder.Handler(async msg =>
+            consumerBuilder = consumerBuilder.Handler(async msg =>
             {
                 var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
                 var tsk = processor(data, msg.Cancellation);
@@ -108,28 +98,32 @@ namespace RabbitLink.Services
         }
 
 
-        public async Task<TResult> Call(TArg arg, CancellationToken token)
+        private async Task<TResult> Call(TArg arg, CancellationToken token, TimeSpan timeout)
         {
             CancellationTokenSource source = null;
+            TimeSpan? messageTtl = null;
             try
             {
                 if (!token.CanBeCanceled)
                 {
-                    source = new CancellationTokenSource(Timeout());
+                    source = new CancellationTokenSource(timeout);
                     token = source.Token;
+                    messageTtl = timeout;
                 }
                 var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange}.{Guid.NewGuid():D}";
                 var consumer = Link.GetOrAddConsumer(Description.ResponseExchange.Name ?? "",
                     () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange,
                         true, false, queueName, false, null, null, false, PrefetchCount(),
-                        new QueueParameters().Expires(Expires()),
+                        new QueueParameters().Expires(ResponseQueueExpires()),
                         new[] {queueName}, true), queueName));
-                await consumer.WaitReadyAsync(token);
+                //await consumer.WaitReadyAsync(token);
                 var props = new LinkMessageProperties
                 {
                     CorrelationId = Guid.NewGuid().ToString("D"),
                     ReplyTo = queueName
                 };
+                if (messageTtl != null) 
+                    props.Expiration = messageTtl.Value;
                 var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token);
                 var producer = Utils.CreateProducer(Link, Description.RequestExchange, Description.ContentType, true);
                 
@@ -147,23 +141,24 @@ namespace RabbitLink.Services
                 source?.Dispose();
             }
         }
+
+        public Task<TResult> Call(TArg arg, CancellationToken token = default(CancellationToken))
+            => Call(arg, token, Timeout());
+
+        public Task<TResult> Call(TArg arg, TimeSpan timeout)
+            => Call(arg, CancellationToken.None, timeout);
     }
 
-    internal class CallEndpoint<TService, TArg> : BuilderBase, ICallEndpoint<TService, TArg>
+    internal class CallEndpoint<TService, TArg> : Endpoint<CallDescription>, ICallEndpoint<TService, TArg>
     {
-        private CallDescription Description { get; }
-        private ServiceLink Link { get; }
-        
         public CallEndpoint(ServiceLink link, CallDescription description)
+            : base(link, description)
         {
-            Description = description;
-            Link = link;
         }
 
-        private CallEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) : base(store)
+        private CallEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+            : base(link, description, store)
         {
-            Description = description;
-            Link = link;
         }
 
         public ushort PrefetchCount() => GetValue(nameof(PrefetchCount), (ushort) 1);
@@ -177,27 +172,20 @@ namespace RabbitLink.Services
             return new CallEndpoint<TService, TArg>(Link, Description, SetValue(nameof(Timeout), value));
         }
         
-        public TimeSpan? Expires() => GetValue(nameof(Expires), TimeSpan.FromHours(1));
-        public ICallEndpoint<TService, TArg> Expires(TimeSpan? value)
+        public TimeSpan? ResponseQueueExpires() => GetValue(nameof(ResponseQueueExpires), TimeSpan.FromHours(1));
+        public ICallEndpoint<TService, TArg> ResponseQueueExpires(TimeSpan? value)
         {
             if(value != null &&  value.Value <= TimeSpan.Zero) throw new ArgumentOutOfRangeException("Timeout must be positive time span");
-            return new CallEndpoint<TService, TArg>(Link, Description, SetValue(nameof(Expires), value));
+            return new CallEndpoint<TService, TArg>(Link, Description, SetValue(nameof(ResponseQueueExpires), value));
         }
         
-        public bool Durable() => GetValue(nameof(Durable), false);
-        public ICallEndpoint<TService, TArg> Durable(bool value)
-            => new CallEndpoint<TService, TArg>(Link, Description, SetValue(nameof(Durable), value));
-
-        public bool AutoDelete() => GetValue(nameof(AutoDelete), false);
-        public ICallEndpoint<TService, TArg> AutoDelete(bool value)
-            => new CallEndpoint<TService, TArg>(Link, Description, SetValue(nameof(AutoDelete), value));
 
         public IDisposable Process(Func<TArg, CancellationToken, Task> processor)
         {
             var consumerBuilder =
                 Utils.CreateConsumerBuilder(Link, Description.RequestExchange,
-                    false, false, Description.RpcQueueName, false, null, null, false,
-                    PrefetchCount(), new QueueParameters().Durable(Durable()).AutoDelete(AutoDelete()),
+                    false, false, Description.QueueName, false, null, null, false,
+                    PrefetchCount(), new QueueParameters().Durable(Description.QueueDurable).AutoDelete(Description.QueueAutoDelete),
                     new[] {Description.RoutingKey}, true);
             
             var publisher = Utils.CreateProducer(Link, Description.ResponseExchange, Description.ContentType,
@@ -247,28 +235,32 @@ namespace RabbitLink.Services
             return consumerBuilder.Build();
         }
         
-        public async Task Call(TArg arg, CancellationToken token)
+        private async Task Call(TArg arg, CancellationToken token, TimeSpan timeout)
         {
             CancellationTokenSource source = null;
+            TimeSpan? messageTtl = null;
             try
             {
                 if (!token.CanBeCanceled)
                 {
-                    source = new CancellationTokenSource(Timeout());
+                    source = new CancellationTokenSource(timeout);
                     token = source.Token;
+                    messageTtl = timeout;
                 }
                 var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange}.{Guid.NewGuid():D}";
                 var consumer = Link.GetOrAddConsumer(Description.ResponseExchange.Name ?? "",
                     () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange,
                         true, false, queueName, false, null, null, false, PrefetchCount(),
-                        new QueueParameters().Expires(Expires()),
+                        new QueueParameters().Expires(ResponseQueueExpires()),
                         new[] {queueName}, true), queueName));
-                await consumer.WaitReadyAsync(token);
+                //await consumer.WaitReadyAsync(token);
                 var props = new LinkMessageProperties
                 {
                     CorrelationId = Guid.NewGuid().ToString("D"),
                     ReplyTo = queueName
                 };
+                if (messageTtl != null)
+                    props.Expiration = messageTtl.Value;
                 var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token);
                 var producer = Utils.CreateProducer(Link, Description.RequestExchange, Description.ContentType, true);
                 
@@ -286,5 +278,11 @@ namespace RabbitLink.Services
                 source?.Dispose();
             }
         }
+
+        public Task Call(TArg arg, CancellationToken token)
+            => Call(arg, token, Timeout());
+
+        public Task Call(TArg arg, TimeSpan timeout)
+            => Call(arg, CancellationToken.None, timeout);
     }
 }

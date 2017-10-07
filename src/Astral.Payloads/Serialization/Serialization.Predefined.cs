@@ -48,23 +48,23 @@ namespace Astral.Payloads.Serialization
             var encoding = Encoding.GetEncoding(encodingName);
             return encoding.GetString(data);
         }
+
+        public static readonly Serialization<byte[]> JsonRaw =
+            MakeJsonRaw(new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
         
-        public static Serialization<byte[]> JsonRaw =
-            new Serialization<byte[]>(JsonRawSerializeProvider(new JsonSerializerSettings
+        public static Serialization<byte[]> MakeJsonRaw(JsonSerializerSettings settings) =>
+            new Serialization<byte[]>(JsonRawSerializeProvider(settings), JsonRawDeserializeProvider(settings));
+
+        public readonly static Serialization<string> JsonText =
+            MakeJsonText(new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
-            }), JsonRawDeserializeProvider(new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            }));
+            });
         
-        public static Serialization<string> JsonText =
-            new Serialization<string>(JsonTextSerializeProvider(new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            }), JsonTextDeserializeProvider(new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            }));
+        public static Serialization<string> MakeJsonText(JsonSerializerSettings settings) =>
+            new Serialization<string>(JsonTextSerializeProvider(settings), JsonTextDeserializeProvider(settings));
     }
 }

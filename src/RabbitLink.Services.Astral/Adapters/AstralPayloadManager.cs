@@ -10,7 +10,7 @@ using RabbitLink.Serialization;
 
 namespace RabbitLink.Services.Astral.Adapters
 {
-    public class AstralPayloadManager : IPayloadManager
+    internal class AstralPayloadManager : IPayloadManager
     {
         private readonly Serialization<byte[]> _serialization;
         private readonly TypeEncoding _typeEncoding;
