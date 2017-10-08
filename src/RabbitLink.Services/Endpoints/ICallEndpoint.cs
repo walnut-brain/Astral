@@ -10,7 +10,7 @@ namespace RabbitLink.Services
     /// </summary>
     /// <typeparam name="TService">service type</typeparam>
     /// <typeparam name="TArg">call argument contract</typeparam>
-    public interface ICallEndpoint<TService, TArg> : IActionPublisher<TService, TArg>, IActionConsumer<TService, TArg>
+    public interface ICallEndpoint<TService, TArg> : IActionClient<TService, TArg>, IActionServer<TService, TArg>
     {
         /// <summary>
         /// get queues prefetch count
@@ -56,7 +56,7 @@ namespace RabbitLink.Services
     /// <typeparam name="TService">service type</typeparam>
     /// <typeparam name="TArg">call argument contract</typeparam>
     /// <typeparam name="TResult">call result contract</typeparam>
-    public interface ICallEndpoint<TService, TArg, TResult> : ICallPublisher<TService, TArg, TResult>, ICallConsumer<TService, TArg, TResult>
+    public interface ICallEndpoint<TService, TArg, TResult> : ICallClient<TService, TArg, TResult>, ICallServer<TService, TArg, TResult>
     {
         /// <summary>
         /// get queues prefetch count

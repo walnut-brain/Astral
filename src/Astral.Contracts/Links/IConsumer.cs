@@ -4,12 +4,26 @@ using System.Threading.Tasks;
 
 namespace Astral.Links
 {
-    public interface IConsumer<out TEvent> 
+    /// <summary>
+    /// consumer 
+    /// </summary>
+    /// <typeparam name="TMessage">message type</typeparam>
+    public interface IConsumer<out TMessage> 
     {
-        IDisposable Listen(Func<TEvent, CancellationToken, Task<Acknowledge>> listener);
+        /// <summary>
+        /// subsribe to message
+        /// </summary>
+        /// <param name="listener">subscriber</param>
+        /// <returns>dispose to unsubscribe</returns>
+        IDisposable Listen(Func<TMessage, CancellationToken, Task<Acknowledge>> listener);
     }
     
-    public interface IConsumer<TService, out TEvent> : IConsumer<TEvent>
+    /// <summary>
+    /// consumer with service marker
+    /// </summary>
+    /// <typeparam name="TService">service type</typeparam>
+    /// <typeparam name="TMessage">message type</typeparam>
+    public interface IConsumer<TService, out TMessage> : IConsumer<TMessage>
     {
         
     }
