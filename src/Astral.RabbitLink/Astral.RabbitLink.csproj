@@ -24,7 +24,4 @@
     <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
     <ProjectReference Include="..\Astral\Astral.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Adapters" />
-  </ItemGroup>
 </Project>

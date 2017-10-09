@@ -9,9 +9,7 @@ namespace Astral.Markup.RabbitMq
     /// When used on service interface specify default response exchange for calls, when not specified use exchange setup.
     /// Without name specified used default exchange name in format '{Owner}.{Service}.responses'. 
     /// When used on call specify separate exchange, without name specified use name '{Owner}.{Service}.{Endpoint}.reponses'
-    /// When not specified on endpoint level and endpoint have separate exchange, separate exchange of endpoint used for reposes 
-    /// When not specified on endpoint level and endpoint have separate exchange of type Fanout, for responses used 
-    /// service response default response exchange  
+    /// When not specified on endpoint level service response exchange used
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Property)]
     public class ResponseExchangeAttribute : Attribute

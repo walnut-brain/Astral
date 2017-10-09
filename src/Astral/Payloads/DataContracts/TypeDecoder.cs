@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Astral.Markup;
+using Astral.Payloads.DataContracts.Exceptions;
 
 namespace Astral.Payloads.DataContracts
 {

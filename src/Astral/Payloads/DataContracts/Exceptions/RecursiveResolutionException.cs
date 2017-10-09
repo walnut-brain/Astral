@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Astral.Payloads.DataContracts
+namespace Astral.Payloads.DataContracts.Exceptions
 {
     public class RecursiveResolutionException : TypeEncodingException
     {

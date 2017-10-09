@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Mime;
 using Astral.Payloads.DataContracts;
+using Astral.Payloads.DataContracts.Exceptions;
 
 namespace Astral.Payloads
 {

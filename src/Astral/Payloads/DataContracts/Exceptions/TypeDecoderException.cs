@@ -1,4 +1,4 @@
-﻿namespace Astral.Payloads.DataContracts
+﻿namespace Astral.Payloads.DataContracts.Exceptions
 {
     public class TypeDecoderException : TypeEncodingException
     {
