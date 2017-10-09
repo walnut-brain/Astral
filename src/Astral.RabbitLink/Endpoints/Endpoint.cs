@@ -2,27 +2,28 @@
 using System.Net.Mime;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
+using Astral.Schema;
 
 namespace Astral.RabbitLink
 {
-    internal abstract class Endpoint<TDescription> : BuilderBase
-        where TDescription : EndpointDescription
+    internal abstract class Endpoint<TSchema> : BuilderBase
+        where TSchema : EndpointSchema<TSchema>
     {
-        protected TDescription Description { get; }
+        protected TSchema Description { get; }
         protected ServiceLink Link { get; }
 
-        protected Endpoint(ServiceLink link, TDescription description)
+        protected Endpoint(ServiceLink link, TSchema description)
         {
             Description = description;
             Link = link;
         }
 
-        protected Endpoint(ServiceLink link, TDescription description, IReadOnlyDictionary<string, object> store) : base(store)
+        protected Endpoint(ServiceLink link, TSchema description, IReadOnlyDictionary<string, object> store) : base(store)
         {
             Description = description;
             Link = link;
         }
         
-        public ContentType ContentType => Description.ContentType;
+        public ContentType ContentType => Description.ContentType();
     }
 }

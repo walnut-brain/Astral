@@ -190,7 +190,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">event sample value</param>
         /// <returns>event endpoint</returns>
-        IEventEndpoint<TService, TEvent> AddRoutingKeyByExample(TEvent value);
+        //IEventEndpoint<TService, TEvent> AddRoutingKeyByExample(TEvent value);
     }
 
     

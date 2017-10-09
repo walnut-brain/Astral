@@ -17,7 +17,7 @@ namespace Astral.RabbitLink
         
         public ServiceLinkBuilder() : base(new Dictionary<string, object>
         {
-            { nameof(DescriptionFactory), new DefaultDescriptionFactory() },
+            { nameof(DescriptionFactory), new DefaultDescriptionFactory(false) },
             { nameof(PayloadManager), new DefaultPayloadManager()}
         })
         {

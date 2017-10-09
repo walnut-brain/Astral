@@ -5,22 +5,23 @@ using System.Threading.Tasks;
 using Astral.Liaison;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
+using Astral.Schema;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<CallDescription>, 
+    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<CallSchema>, 
         IResponseEndpoint<TService, TRequest, TResponse>
     {
         
-        public ResponseEndpoint(ServiceLink link, CallDescription description)
+        public ResponseEndpoint(ServiceLink link, CallSchema description)
             : base(link, description)
         {
             
         }
 
-        private ResponseEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+        private ResponseEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
             : base(link, description, store)
         {
         }
@@ -37,16 +38,16 @@ namespace Astral.RabbitLink
 
         public async Task PublishAsync(Response<TResponse> message, CancellationToken token = default(CancellationToken))
         {
-            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange, Description.ContentType,
+            var publisher = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(),
                 false, ConfirmsMode());
             var props = new LinkMessageProperties
             {
                 CorrelationId = message.CorrelationId
             };
             var serializer = Link.PayloadManager;
-            var answer = new LinkPublishMessage<byte[]>(message.IsFail ? serializer.Serialize(Description.ContentType, new RpcFail {
+            var answer = new LinkPublishMessage<byte[]>(message.IsFail ? serializer.Serialize(Description.ContentType(), new RpcFail {
                 Kind    = message.Error.GetType().FullName,
-                Message = message.Error.Message }, props) : serializer.Serialize(Description.ContentType, message.Result, props),  
+                Message = message.Error.Message }, props) : serializer.Serialize(Description.ContentType(), message.Result, props),  
                 props,
                 new LinkPublishProperties
                 {
@@ -57,11 +58,12 @@ namespace Astral.RabbitLink
 
         public IDisposable Listen(Func<Request<TRequest>, CancellationToken, Task<Acknowledge>> listener)
         {
+            var queue = Description.RequestQueue();
             var consumerBuilder =
-                Utils.CreateConsumerBuilder(Link, Description.RequestExchange,
-                    false, false, Description.QueueName, false, null, null, false,
-                    PrefetchCount(), new QueueParameters().Durable(Description.QueueDurable).AutoDelete(Description.QueueAutoDelete),
-                    new[] {Description.RoutingKey}, true);
+                Utils.CreateConsumerBuilder(Link, Description.Exchange(),
+                    false, false, queue.Name, false, null, null, false,
+                    PrefetchCount(), new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
+                    new[] {Description.RoutingKey()}, true);
             
             consumerBuilder = consumerBuilder.Handler(async msg =>
             {

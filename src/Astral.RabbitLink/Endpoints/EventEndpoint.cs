@@ -5,22 +5,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Liaison;
-using Astral.RabbitLink.Descriptions;
+using Astral.Markup.RabbitMq;
 using Astral.RabbitLink.Internals;
+using Astral.Schema;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
-using RabbitLink.Topology;
 
 namespace Astral.RabbitLink
 {
-    internal class EventEndpoint<TService, TEvent> : Endpoint<EventDescription>, IEventEndpoint<TService, TEvent> 
+    internal class EventEndpoint<TService, TEvent> : Endpoint<EventSchema>, IEventEndpoint<TService, TEvent> 
     {
-        public EventEndpoint(ServiceLink link, EventDescription description)
+        public EventEndpoint(ServiceLink link, EventSchema description)
             : base(link, description)
         {
         }
 
-        private EventEndpoint(ServiceLink link, EventDescription description, IReadOnlyDictionary<string, object> store) 
+        private EventEndpoint(ServiceLink link, EventSchema description, IReadOnlyDictionary<string, object> store) 
             : base(link, description, store)
         {
             
@@ -90,26 +90,27 @@ namespace Astral.RabbitLink
                 Description, SetParameter<IEnumerable<string>>(nameof(RoutingKeys), new ReadOnlyCollection<string>(lst)));
         }
 
+        /*
         public IEventEndpoint<TService, TEvent> AddRoutingKeyByExample(TEvent value)
         {
             if(Description.RoutingKeyExtractor == null)
                 throw new InvalidOperationException($"Routing key by example not supported!");
             return AddRoutingKey(Description.RoutingKeyExtractor(value));
         }
-
+        */
         public IDisposable Listen(Func<TEvent, CancellationToken, Task<Acknowledge>> listener)
         {
             var routingKeys = new List<string>();
-            if (Description.RoutingKey != null)
-                routingKeys.Add(Description.RoutingKey);
-            else
+            /*if (Description.RoutingKey != null)*/
+                routingKeys.Add(Description.RoutingKey());
+            /*else
             {
                 var t = RoutingKeys();
                 if(t != null)
                     routingKeys.AddRange(t);
-            }
+            }*/
 
-            var consumerBuilder = Utils.CreateConsumerBuilder(Link, Description.Exchange,
+            var consumerBuilder = Utils.CreateConsumerBuilder(Link, Description.Exchange(),
                 ExchangePassive(), QueuePassive(), QueueName(), AutoAck(), CancelOnHaFailover(), ErrorStrategy(),
                 Exclusive(), PrefetchCount(), QueueParameters(), routingKeys, Bind());
             
@@ -139,10 +140,10 @@ namespace Astral.RabbitLink
             var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
             {
                 RoutingKey =
-                    Description.Exchange.Type == LinkExchangeType.Fanout ? null :
-                        Description.RoutingKey ?? Description.RoutingKeyExtractor(message)
+                    Description.Exchange().Type == ExchangeKind.Fanout ? null :
+                        Description.RoutingKey() //?? Description.RoutingKeyExtractor(message)
             });
-            var publisher = Utils.CreateProducer(Link, Description.Exchange, Description.ContentType, ExchangePassive(),
+            var publisher = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), ExchangePassive(),
                 ConfirmsMode(), NamedProducer());
             return publisher.PublishAsync(msg, token);
         }

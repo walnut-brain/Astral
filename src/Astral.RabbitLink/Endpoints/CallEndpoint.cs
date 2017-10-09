@@ -5,21 +5,22 @@ using System.Threading.Tasks;
 using Astral.Liaison;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
+using Astral.Schema;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<CallDescription>, ICallEndpoint<TService, TArg, TResult> 
+    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<CallSchema>, ICallEndpoint<TService, TArg, TResult> 
     {
         
 
-        public CallEndpoint(ServiceLink link, CallDescription description)
+        public CallEndpoint(ServiceLink link, CallSchema description)
             : base(link, description)
         {
         }
 
-        private CallEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+        private CallEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
             : base(link, description, store)
         {
         }
@@ -44,14 +45,15 @@ namespace Astral.RabbitLink
         
         public IDisposable Process(Func<TArg, CancellationToken, Task<TResult>> processor)
         {
+            var queue = Description.RequestQueue();
             var consumerBuilder =
-                Utils.CreateConsumerBuilder(Link, Description.RequestExchange,
-                    false, false, Description.QueueName, false, null, null, false,
+                Utils.CreateConsumerBuilder(Link, Description.Exchange(),
+                    false, false, queue.Name, false, null, null, false,
                     PrefetchCount(), 
-                    new QueueParameters().Durable(Description.QueueDurable).AutoDelete(Description.QueueAutoDelete),
-                    new[] {Description.RoutingKey}, true);
+                    new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
+                    new[] {Description.RoutingKey()}, true);
             
-            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange, Description.ContentType,
+            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange(), Description.ContentType(),
                 false, false);
             consumerBuilder = consumerBuilder.Handler(async msg =>
             {
@@ -63,7 +65,7 @@ namespace Astral.RabbitLink
                     {
                         CorrelationId = msg.Properties.CorrelationId
                     };
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType, await tsk, props),
+                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), await tsk, props),
                         props,
                         new LinkPublishProperties
                         {
@@ -79,7 +81,7 @@ namespace Astral.RabbitLink
                     {
                         CorrelationId = msg.Properties.CorrelationId
                     };
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType, new RpcFail
+                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), new RpcFail
                         {
                             Kind    = ex.GetType().FullName,
                             Message = ex.Message
@@ -110,9 +112,9 @@ namespace Astral.RabbitLink
                     token = source.Token;
                     messageTtl = timeout;
                 }
-                var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange}.{Guid.NewGuid():D}";
-                var consumer = Link.GetOrAddConsumer(Description.ResponseExchange.Name ?? "",
-                    () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange,
+                var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange()}.{Guid.NewGuid():D}";
+                var consumer = Link.GetOrAddConsumer(Description.ResponseExchange().Name ?? "",
+                    () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange(),
                         true, false, queueName, false, null, null, false, PrefetchCount(),
                         new QueueParameters().Expires(ResponseQueueExpires()),
                         new[] {queueName}, true), queueName));
@@ -125,12 +127,12 @@ namespace Astral.RabbitLink
                 if (messageTtl != null) 
                     props.Expiration = messageTtl.Value;
                 var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token);
-                var producer = Utils.CreateProducer(Link, Description.RequestExchange, Description.ContentType, true);
+                var producer = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), true);
                 
-                var request = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType, arg, props),
+                var request = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), arg, props),
                     props, new LinkPublishProperties
                     {
-                        RoutingKey = Description.RoutingKey
+                        RoutingKey = Description.RoutingKey()
                     });
                 await producer.PublishAsync(request, token);
                 return await waiter;
@@ -149,14 +151,14 @@ namespace Astral.RabbitLink
             => Call(arg, CancellationToken.None, timeout);
     }
 
-    internal class CallEndpoint<TService, TArg> : Endpoint<CallDescription>, ICallEndpoint<TService, TArg>
+    internal class CallEndpoint<TService, TArg> : Endpoint<CallSchema>, ICallEndpoint<TService, TArg>
     {
-        public CallEndpoint(ServiceLink link, CallDescription description)
+        public CallEndpoint(ServiceLink link, CallSchema description)
             : base(link, description)
         {
         }
 
-        private CallEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+        private CallEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
             : base(link, description, store)
         {
         }
@@ -182,13 +184,14 @@ namespace Astral.RabbitLink
 
         public IDisposable Process(Func<TArg, CancellationToken, Task> processor)
         {
+            var queue = Description.RequestQueue();
             var consumerBuilder =
-                Utils.CreateConsumerBuilder(Link, Description.RequestExchange,
-                    false, false, Description.QueueName, false, null, null, false,
-                    PrefetchCount(), new QueueParameters().Durable(Description.QueueDurable).AutoDelete(Description.QueueAutoDelete),
-                    new[] {Description.RoutingKey}, true);
+                Utils.CreateConsumerBuilder(Link, Description.Exchange(),
+                    false, false, queue.Name, false, null, null, false,
+                    PrefetchCount(), new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
+                    new[] {Description.RoutingKey()}, true);
             
-            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange, Description.ContentType,
+            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange(), Description.ContentType(),
                 false, false);
             consumerBuilder.Handler(async msg =>
             {
@@ -201,7 +204,7 @@ namespace Astral.RabbitLink
                         CorrelationId = msg.Properties.CorrelationId
                     };
                     await tsk;
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType, new RpcOk(), props),
+                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), new RpcOk(), props),
                         props,
                         new LinkPublishProperties
                         {
@@ -217,7 +220,7 @@ namespace Astral.RabbitLink
                     {
                         CorrelationId = msg.Properties.CorrelationId
                     };
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType, new RpcFail
+                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), new RpcFail
                         {
                             Kind    = ex.GetType().FullName,
                             Message = ex.Message
@@ -247,9 +250,9 @@ namespace Astral.RabbitLink
                     token = source.Token;
                     messageTtl = timeout;
                 }
-                var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange}.{Guid.NewGuid():D}";
-                var consumer = Link.GetOrAddConsumer(Description.ResponseExchange.Name ?? "",
-                    () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange,
+                var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange()}.{Guid.NewGuid():D}";
+                var consumer = Link.GetOrAddConsumer(Description.ResponseExchange().Name ?? "",
+                    () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange(),
                         true, false, queueName, false, null, null, false, PrefetchCount(),
                         new QueueParameters().Expires(ResponseQueueExpires()),
                         new[] {queueName}, true), queueName));
@@ -262,12 +265,12 @@ namespace Astral.RabbitLink
                 if (messageTtl != null)
                     props.Expiration = messageTtl.Value;
                 var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token);
-                var producer = Utils.CreateProducer(Link, Description.RequestExchange, Description.ContentType, true);
+                var producer = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), true);
                 
-                var request = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType, arg, props),
+                var request = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), arg, props),
                     props, new LinkPublishProperties
                     {
-                        RoutingKey = Description.RoutingKey
+                        RoutingKey = Description.RoutingKey()
                     });
                 await producer.PublishAsync(request, token);
                 await waiter;

@@ -1,4 +1,5 @@
 ﻿using System;
+using Astral.Schema;
 
 namespace Astral.RabbitLink.Descriptions
 {
@@ -12,6 +13,6 @@ namespace Astral.RabbitLink.Descriptions
         /// </summary>
         /// <param name="type">service type</param>
         /// <returns>service description</returns>
-        ServiceDescription GetDescription(Type type);
+        ServiceSchema GetDescription(Type type);
     }
 }

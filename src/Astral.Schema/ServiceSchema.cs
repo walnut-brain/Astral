@@ -42,44 +42,50 @@ namespace Astral.Schema
         
         public static ServiceSchema FromType<T>(bool convertNames = false)
         {
-            if(!typeof(T).IsInterface)
-                throw new SchemaException($"Type of service must be interface");
-            var owner = typeof(T).GetCustomAttribute<OwnerAttribute>()?.OwnerName ??
-                        (convertNames
-                            ? OwnerFromNamespace(typeof(T).Namespace)
-                            : throw new SchemaException($"Type {typeof(T)} has no OwnerAttribute"));
-            var name = typeof(T).GetCustomAttribute<ServiceAttribute>()?.Name ??
-                       (convertNames
-                           ? ServiceNameFromInterfaceName(typeof(T).Name)
-                           : throw new SchemaException($"Type {typeof(T)} has no ServiceAttribute"));
-            
-            var schema = new RootSchema(name, owner)
-                .ServiceType(typeof(T))
-                .CodeName(typeof(T).Name);
+            var serviceType = typeof(T);
+            return FromType(serviceType, convertNames);
+        }
 
-            var contentTypeAttr = typeof(T).GetCustomAttribute<ContentTypeAttribute>();
+        public static ServiceSchema FromType(Type serviceType, bool convertNames)
+        {
+            if (!serviceType.IsInterface)
+                throw new SchemaException($"Type of service must be interface");
+            var owner = serviceType.GetCustomAttribute<OwnerAttribute>()?.OwnerName ??
+                        (convertNames
+                            ? OwnerFromNamespace(serviceType.Namespace)
+                            : throw new SchemaException($"Type {serviceType} has no OwnerAttribute"));
+            var name = serviceType.GetCustomAttribute<ServiceAttribute>()?.Name ??
+                       (convertNames
+                           ? ServiceNameFromInterfaceName(serviceType.Name)
+                           : throw new SchemaException($"Type {serviceType} has no ServiceAttribute"));
+
+            var schema = new RootSchema(name, owner)
+                .ServiceType(serviceType)
+                .CodeName(serviceType.Name);
+
+            var contentTypeAttr = serviceType.GetCustomAttribute<ContentTypeAttribute>();
             if (contentTypeAttr != null)
                 schema = schema.ContentType(contentTypeAttr.ContentType);
-            
-            var exchangeAttr = typeof(T).GetCustomAttribute<ExchangeAttribute>();
+
+            var exchangeAttr = serviceType.GetCustomAttribute<ExchangeAttribute>();
             if (exchangeAttr != null)
             {
                 schema = schema.Exchange(new ExchangeSchema(exchangeAttr.Name, exchangeAttr.Kind, exchangeAttr.Durable,
                     exchangeAttr.AutoDelete,
                     exchangeAttr.Delayed, exchangeAttr.Alternate));
             }
-            var responseExchangeAttr = typeof(T).GetCustomAttribute<ResponseExchangeAttribute>();
+            var responseExchangeAttr = serviceType.GetCustomAttribute<ResponseExchangeAttribute>();
             if (responseExchangeAttr != null)
             {
                 schema = schema.ResponseExchange(new ExchangeSchema(responseExchangeAttr.Name,
                     responseExchangeAttr.Kind, responseExchangeAttr.Durable,
                     responseExchangeAttr.AutoDelete, responseExchangeAttr.Delayed, responseExchangeAttr.Alternate));
             }
-            
+
             var events = new List<EventSchema>();
             var calls = new List<CallSchema>();
-            
-            foreach (var property in typeof(T).GetProperties())
+
+            foreach (var property in serviceType.GetProperties())
             {
                 if (property.PropertyType.IsConstructedGenericType &&
                     property.PropertyType.GetGenericTypeDefinition() == typeof(EventHandler<>))
@@ -88,7 +94,7 @@ namespace Astral.Schema
                                        (convertNames
                                            ? PropertyNameToEndpointName(property.Name)
                                            : throw new SchemaException(
-                                               $"Service {typeof(T)}, event {property.Name} hs no EndpointAttribute"));
+                                               $"Service {serviceType}, event {property.Name} hs no EndpointAttribute"));
                     var endpoint = new EventSchema(schema, endpointName)
                         .ContractType(property.PropertyType.GenericTypeArguments[0])
                         .CodeName(property.Name);
@@ -111,7 +117,7 @@ namespace Astral.Schema
                                        (convertNames
                                            ? PropertyNameToEndpointName(property.Name)
                                            : throw new SchemaException(
-                                               $"Service {typeof(T)}, event {property.Name} hs no EndpointAttribute"));
+                                               $"Service {serviceType}, event {property.Name} hs no EndpointAttribute"));
                     var endpoint = new CallSchema(schema, endpointName)
                         .RequestType(property.PropertyType.GenericTypeArguments[0])
                         .ResponseType(property.PropertyType.GenericTypeArguments.Length > 1

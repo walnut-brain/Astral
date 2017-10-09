@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Mime;
+using Astral.Markup.RabbitMq;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Exceptions;
+using Astral.Schema.RabbitMq;
 using RabbitLink.Builders;
 using RabbitLink.Consumer;
 using RabbitLink.Producer;
@@ -11,7 +14,22 @@ namespace Astral.RabbitLink.Internals
 {
     internal static class Utils
     {
-        public static ILinkProducer CreateProducer(ServiceLink link, ExchangeDescription description,
+        public static LinkExchangeType ToLinkExchangeType(this ExchangeKind kind)
+        {
+            switch (kind)
+            {
+                case ExchangeKind.Fanout:
+                    return LinkExchangeType.Fanout;
+                case ExchangeKind.Direct:
+                    return LinkExchangeType.Direct;
+                case ExchangeKind.Topic:
+                    return LinkExchangeType.Topic;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+            }
+        }
+        
+        public static ILinkProducer CreateProducer(ServiceLink link, ExchangeSchema description,
             ContentType contentType, bool passive = false, bool confirmsMode = true, string named = null)
         {
             return
@@ -25,12 +43,12 @@ namespace Astral.RabbitLink.Internals
                                 : passive
                                     ? cfg.ExchangeDeclarePassive(description.Name)
                                     : cfg.ExchangeDeclare(description.Name,
-                                        description.Type, description.Durable, description.AutoDelete,
+                                        description.Type.ToLinkExchangeType(), description.Durable, description.AutoDelete,
                                         description.Alternate, description.Delayed))
                         .Build());
         }
 
-        public static ILinkConsumerBuilder CreateConsumerBuilder(ServiceLink link, ExchangeDescription exchange,
+        public static ILinkConsumerBuilder CreateConsumerBuilder(ServiceLink link, ExchangeSchema exchange,
             bool exchangePassive, bool queuePassive,
             string queueName, bool autoAck, bool? cancelOnHaFailover, ILinkConsumerErrorStrategy errorStrategy,
             bool exclusive, ushort prefetchCount, QueueParameters queueParameters, ICollection<string> routingKeys,
@@ -46,7 +64,7 @@ namespace Astral.RabbitLink.Internals
             builder = builder.Exclusive(exclusive)
                 .PrefetchCount(prefetchCount);
             if(!string.IsNullOrWhiteSpace(exchange.Name) && 
-               exchange.Type != LinkExchangeType.Fanout && 
+               exchange.Type.ToLinkExchangeType() != LinkExchangeType.Fanout && 
                (routingKeys == null || routingKeys.Count == 0))
                 throw new InvalidConfigurationException($"No routing key for bind specified!");
             builder = builder.Queue(async cfg =>
@@ -57,7 +75,7 @@ namespace Astral.RabbitLink.Internals
                         :
                         exchangePassive  
                             ? await cfg.ExchangeDeclarePassive(exchange.Name)
-                            : await cfg.ExchangeDeclare(exchange.Name, exchange.Type,
+                            : await cfg.ExchangeDeclare(exchange.Name, exchange.Type.ToLinkExchangeType(),
                                 exchange.Durable,
                                 exchange.AutoDelete, exchange.Alternate, exchange.Delayed);
                 var queue = queuePassive
@@ -67,7 +85,7 @@ namespace Astral.RabbitLink.Internals
                         queueParameters.MaxLengthBytes(), queueParameters.DeadLetterExchange(), queueParameters.DeadLetterRoutingKey());
                 if (!string.IsNullOrWhiteSpace(exchange.Name) && bind)
                 {
-                    if (exchange.Type == LinkExchangeType.Fanout)
+                    if (exchange.Type.ToLinkExchangeType() == LinkExchangeType.Fanout)
                         await cfg.Bind(queue, exch);
                     else
                     {

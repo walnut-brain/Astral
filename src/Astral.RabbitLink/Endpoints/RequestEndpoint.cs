@@ -3,25 +3,27 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Liaison;
+using Astral.Markup.RabbitMq;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
+using Astral.Schema;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
 using RabbitLink.Topology;
 
 namespace Astral.RabbitLink
 {
-    internal class RequestEndpoint<TService, TRequest, TResponse> : Endpoint<CallDescription>
+    internal class RequestEndpoint<TService, TRequest, TResponse> : Endpoint<CallSchema>
         , IRequestEndpoint<TService, TRequest, TResponse>
     {
         
 
-        public RequestEndpoint(ServiceLink link, CallDescription description)
+        public RequestEndpoint(ServiceLink link, CallSchema description)
             : base(link, description)
         {
         }
 
-        private RequestEndpoint(ServiceLink link, CallDescription description, IReadOnlyDictionary<string, object> store) 
+        private RequestEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
             : base(link, description, store)
         {
             
@@ -85,7 +87,7 @@ namespace Astral.RabbitLink
             routingKeys.Add(QueueName());
             
 
-            var consumerBuilder = Utils.CreateConsumerBuilder(Link, Description.ResponseExchange,
+            var consumerBuilder = Utils.CreateConsumerBuilder(Link, Description.ResponseExchange(),
                 ExchangePassive(), QueuePassive(), QueueName(), AutoAck(), CancelOnHaFailover(), ErrorStrategy(),
                 Exclusive(), PrefetchCount(), QueueParameters(), routingKeys, Bind());
             
@@ -137,11 +139,11 @@ namespace Astral.RabbitLink
             var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
             {
                 RoutingKey =
-                    Description.RequestExchange.Type == LinkExchangeType.Fanout ? null :
-                        Description.RoutingKey
+                    Description.Exchange().Type == ExchangeKind.Fanout ? null :
+                        Description.RoutingKey()
                 
             });
-            var publisher = Utils.CreateProducer(Link, Description.RequestExchange, Description.ContentType, ExchangePassive(),
+            var publisher = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), ExchangePassive(),
                 ConfirmsMode(), NamedProducer());
             return publisher.PublishAsync(msg, token);
         }

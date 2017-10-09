@@ -1,12 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <Authors>Ivan Simongauz</Authors>
+    <Description>Astral schema</Description>
+    <Copyright>Ivan Simongauz 2017</Copyright>
+    <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageTags>Astral Framework MicroServices RabbitLink</PackageTags>
+    <VersionPrefix>0.3.1-beta</VersionPrefix>
+    <VersionSuffix>
+    </VersionSuffix>
+    <PackageReleaseNotes>
+    </PackageReleaseNotes>
+  </PropertyGroup>
+  <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Astral.Core\Astral.Core.csproj" />
     <ProjectReference Include="..\Astral.Markup\Astral.Markup.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SchemaGenerators" />
   </ItemGroup>
 </Project>
