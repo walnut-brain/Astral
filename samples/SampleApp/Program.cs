@@ -1,15 +1,9 @@
 ﻿﻿using System;
- using System.Linq.Expressions;
- using System.Reflection;
- using System.Reflection.Metadata.Ecma335;
  using System.Threading;
  using System.Threading.Tasks;
- using Astral.Links;
- using RabbitLink;
-using RabbitLink.Messaging;
- using RabbitLink.Services;
- using RabbitLink.Services.Astral;
-using SampleServices;
+ using Astral.Liaison;
+ using Astral.RabbitLink;
+ using SampleServices;
 
 namespace SampleApp
 {
@@ -25,7 +19,6 @@ namespace SampleApp
 
             using (var link =
                 new ServiceLinkBuilder()
-                    .UseAstral()
                     .HolderName("test")
                     .Uri("amqp://localhost")
                     .AutoStart(true)

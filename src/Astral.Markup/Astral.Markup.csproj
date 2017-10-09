@@ -5,8 +5,8 @@
     <Copyright>Ivan Simongauz 2017</Copyright>
     <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageTags>Functional Monads</PackageTags>
-    <VersionPrefix>0.2.12-beta</VersionPrefix>
+    <PackageTags>Astral Framework MicroServices</PackageTags>
+    <VersionPrefix>0.3.0-beta</VersionPrefix>
     <VersionSuffix>
     </VersionSuffix>
     <PackageReleaseNotes>

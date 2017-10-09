@@ -7,7 +7,7 @@
     <PackageReference Include="RabbitLink" Version="0.5.6" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RabbitLink.Services.Astral\RabbitLink.Services.Astral.csproj" />
+    <ProjectReference Include="..\..\src\Astral.RabbitLink\Astral.RabbitLink.csproj" />
     <ProjectReference Include="..\SampleServices\SampleServices.csproj" />
   </ItemGroup>
 </Project>

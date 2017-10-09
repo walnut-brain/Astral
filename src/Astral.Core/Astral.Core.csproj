@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Authors>Ivan Simongauz</Authors>
-    <Description>Astral core interfaces and utilities</Description>
+    <Description>Astral core interfaces and utilites</Description>
     <Copyright>Ivan Simongauz 2017</Copyright>
     <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageTags>Functional Monads</PackageTags>
-    <VersionPrefix>0.2.10-beta</VersionPrefix>
+    <PackageTags>Astral Contracts Framework MicroServices</PackageTags>
+    <VersionPrefix>0.3.0-beta</VersionPrefix>
     <VersionSuffix>
     </VersionSuffix>
     <PackageReleaseNotes>
     </PackageReleaseNotes>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0; net47</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
     <RootNamespace>Astral</RootNamespace>
   </PropertyGroup>
 </Project>
