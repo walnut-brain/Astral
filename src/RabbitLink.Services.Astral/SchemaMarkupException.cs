@@ -2,6 +2,9 @@
 
 namespace RabbitLink.Services.Astral
 {
+    /// <summary>
+    /// Schema astral markup using exception
+    /// </summary>
     public class SchemaMarkupException : Exception
     {
         public SchemaMarkupException()

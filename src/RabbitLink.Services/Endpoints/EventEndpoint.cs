@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net.Mime;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,76 +15,70 @@ using RabbitLink.Topology;
 
 namespace RabbitLink.Services
 {
-
-    internal class EventEndpoint<TService, TEvent> : BuilderBase, IEventEndpoint<TService, TEvent> 
+    internal class EventEndpoint<TService, TEvent> : Endpoint<EventDescription>, IEventEndpoint<TService, TEvent> 
     {
-        private EventDescription Description { get; }
-        private ServiceLink Link { get; }
-
-        public EventEndpoint(EventDescription description, ServiceLink link)
+        public EventEndpoint(ServiceLink link, EventDescription description)
+            : base(link, description)
         {
-            Description = description;
-            Link = link;
         }
 
-        private EventEndpoint(EventDescription description, ServiceLink link, IReadOnlyDictionary<string, object> store) : base(store)
+        private EventEndpoint(ServiceLink link, EventDescription description, IReadOnlyDictionary<string, object> store) 
+            : base(link, description, store)
         {
-            Description = description;
-            Link = link;
+            
         }
 
-        public ContentType ContentType => Description.ContentType;
         public bool ExchangePassive() => GetValue(nameof(ExchangePassive), false);
         public IEventEndpoint<TService, TEvent> ExchangePassive(bool value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(ExchangePassive), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(ExchangePassive), value));
         
-        public string ExchangeNamed() => GetValue(nameof(ExchangeNamed), (string) null);
-        public IEventEndpoint<TService, TEvent> ExchangeNamed(string value) 
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(ExchangeNamed), value));
+        public string NamedProducer() => GetValue(nameof(NamedProducer), (string) null);
+        public IEventEndpoint<TService, TEvent> NamedProducer(string value) 
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(NamedProducer), value));
 
         public bool ConfirmsMode() => GetValue(nameof(ConfirmsMode), true);
         public IEventEndpoint<TService, TEvent> ConfirmsMode(bool value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(ConfirmsMode), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(ConfirmsMode), value));
 
         public string QueueName() => GetValue(nameof(QueueName),
-            $"{Link.ServiceName}.{Description.Service.Owner}.{Description.Service.Name}.{Description.Name}");
+            $"{Link.HolderName}.{Description.Service.Owner}.{Description.Service.Name}.{Description.Name}");
         public IEventEndpoint<TService, TEvent> QueueName(string value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(QueueName), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(QueueName), value));
 
         public ushort PrefetchCount() => GetValue<ushort>(nameof(PrefetchCount), 1);
         public IEventEndpoint<TService, TEvent> PrefetchCount(ushort value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(PrefetchCount), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(PrefetchCount), value));
 
 
         public bool AutoAck() => GetValue(nameof(AutoAck), false);
         public IEventEndpoint<TService, TEvent> AutoAck(bool value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(AutoAck), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(AutoAck), value));
 
         public ILinkConsumerErrorStrategy ErrorStrategy() =>
             GetValue<ILinkConsumerErrorStrategy>(nameof(ErrorStrategy), null);
         public IEventEndpoint<TService, TEvent> ErrorStrategy(ILinkConsumerErrorStrategy value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(ErrorStrategy), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(ErrorStrategy), value));
 
 
         public bool? CancelOnHaFailover() => GetValue<bool?>(nameof(CancelOnHaFailover), null);
         public IEventEndpoint<TService, TEvent> CancelOnHaFailover(bool? value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(CancelOnHaFailover), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(CancelOnHaFailover), value));
 
         public bool Exclusive() => GetValue(nameof(Exclusive), false);
         public IEventEndpoint<TService, TEvent> Exclusive(bool value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(Exclusive), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(Exclusive), value));
 
         public bool QueuePassive() => GetValue(nameof(QueuePassive), false);
         public IEventEndpoint<TService, TEvent> QueuePassive(bool value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(QueuePassive), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(QueuePassive), value));
         
         public bool Bind() => GetValue(nameof(Bind), true);
         public IEventEndpoint<TService, TEvent> Bind(bool value)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(Bind), value));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(Bind), value));
         
         public QueueParameters QueueParameters() => GetValue(nameof(QueueParameters), new QueueParameters());
         public IEventEndpoint<TService, TEvent> QueueParameters(Func<QueueParameters, QueueParameters> setter)
-            => new EventEndpoint<TService, TEvent>(Description, Link, SetValue(nameof(QueueParameters), setter(QueueParameters())));
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetValue(nameof(QueueParameters), setter(QueueParameters())));
 
 
         public IEnumerable<string> RoutingKeys() => GetValue(nameof(RoutingKeys), Enumerable.Empty<string>());
@@ -95,8 +88,8 @@ namespace RabbitLink.Services
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(value));
             var lst = RoutingKeys().ToList();
             lst.Add(value);
-            return new EventEndpoint<TService, TEvent>(Description, Link,
-                SetValue<IEnumerable<string>>(nameof(RoutingKeys), new ReadOnlyCollection<string>(lst)));
+            return new EventEndpoint<TService, TEvent>(Link,
+                Description, SetValue<IEnumerable<string>>(nameof(RoutingKeys), new ReadOnlyCollection<string>(lst)));
         }
 
         public IEventEndpoint<TService, TEvent> AddRoutingKeyByExample(TEvent value)
@@ -121,7 +114,6 @@ namespace RabbitLink.Services
             var consumerBuilder = Utils.CreateConsumerBuilder(Link, Description.Exchange,
                 ExchangePassive(), QueuePassive(), QueueName(), AutoAck(), CancelOnHaFailover(), ErrorStrategy(),
                 Exclusive(), PrefetchCount(), QueueParameters(), routingKeys, Bind());
-            //consumerBuilder.Serializer(Link.PayloadManager.GetSerializer(ContentType));
             
             
             return consumerBuilder.Handler(async msg  =>
@@ -153,7 +145,7 @@ namespace RabbitLink.Services
                         Description.RoutingKey ?? Description.RoutingKeyExtractor(message)
             });
             var publisher = Utils.CreateProducer(Link, Description.Exchange, Description.ContentType, ExchangePassive(),
-                ConfirmsMode(), ExchangeNamed());
+                ConfirmsMode(), NamedProducer());
             return publisher.PublishAsync(msg, token);
         }
     }

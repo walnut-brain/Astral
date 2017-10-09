@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using RabbitLink.Logging;
 
-namespace RabbitLink.Services.Astral.Adapters
+namespace RabbitLink.Services.Logging
 {
     internal class LoggerAdapter : ILinkLogger
     {

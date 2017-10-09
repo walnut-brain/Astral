@@ -1,38 +1,58 @@
 ﻿using System;
 using System.Net.Mime;
-using RabbitLink.Topology;
 
 namespace RabbitLink.Services.Descriptions
 {
-    public class EventDescription
+    /// <summary>
+    /// Event description
+    /// </summary>
+    public class EventDescription : EndpointDescription
     {
-        public EventDescription(ServiceDescription service, string name, ExchangeDescription exchange, Func<object, string> routingKeyExtractor, Type type, ContentType contentType)
+        /// <summary>
+        /// constructor with routing key
+        /// </summary>
+        /// <param name="service">service description</param>
+        /// <param name="name">event name</param>
+        /// <param name="type">event contract type</param>
+        /// <param name="contentType">content type</param>
+        /// <param name="exchange">exchange description</param>
+        /// <param name="routingKey">routing key</param>
+        public EventDescription(ServiceDescription service, string name, Type type, ContentType contentType, ExchangeDescription exchange, string routingKey)
+            : base(service, name, contentType, routingKey)
         {
-            Exchange = exchange;
-            RoutingKeyExtractor = routingKeyExtractor;
-            Type = type;
-            ContentType = contentType;
-            Service = service;
-            Name = name;
+            if (routingKey == null) throw new ArgumentNullException(nameof(routingKey));
+            Exchange = exchange ?? throw new ArgumentNullException(nameof(exchange));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public EventDescription(ServiceDescription service, string name, ExchangeDescription exchange, string routingKey, Type type, ContentType contentType)
+        /// <summary>
+        /// constructor with routing key factory
+        /// </summary>
+        /// <param name="service">service description</param>
+        /// <param name="name">event name</param>
+        /// <param name="type">event contract type</param>
+        /// <param name="contentType">content type</param>
+        /// <param name="exchange">exchange description</param>
+        /// <param name="routingKeyExtractor">routing key from event factory</param>
+        public EventDescription(ServiceDescription service, string name, Type type, ContentType contentType, ExchangeDescription exchange, Func<object, string> routingKeyExtractor) : base(service, name,
+            contentType, null)
         {
-            Exchange = exchange;
-            RoutingKey = routingKey;
-            Type = type;
-            ContentType = contentType;
-            Service = service;
-            Name = name;
+            Exchange = exchange ?? throw new ArgumentNullException(nameof(exchange));
+            RoutingKeyExtractor = routingKeyExtractor ?? throw new ArgumentNullException(nameof(routingKeyExtractor));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-
+        /// <summary>
+        /// exchange description
+        /// </summary>
         public ExchangeDescription Exchange { get; }
-        public string RoutingKey { get; }
+        /// <summary>
+        /// routing key from event extractor
+        /// </summary>
         public Func<object, string> RoutingKeyExtractor { get; }
+        /// <summary>
+        /// event contract type
+        /// </summary>
         public Type Type { get; }
-        public ContentType ContentType { get; }
-        public string Name { get; }
-        public ServiceDescription Service { get; }
     }
 }

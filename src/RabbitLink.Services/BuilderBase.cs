@@ -24,7 +24,10 @@ namespace RabbitLink.Services
         protected T GetValue<T>(string name, T defaults) => _store.TryGetValue(name, out var obj) ? (T) obj : defaults;
 
         protected IReadOnlyDictionary<string, object> SetValue<T>(string name, T value)
-            => new ReadOnlyDictionary<string, object>(_store.Select(p => p.Key == name ? new KeyValuePair<string, object>(name, value) : p).ToDictionary(p => p.Key, p => p.Value));
+            => 
+                _store.ContainsKey(name)
+                    ? new ReadOnlyDictionary<string, object>(_store.Select(p => p.Key == name ? new KeyValuePair<string, object>(name, value) : p).ToDictionary(p => p.Key, p => p.Value))
+                    : new ReadOnlyDictionary<string, object>(_store.Union(new [] { new KeyValuePair<string, object>(name, value) }).ToDictionary(p => p.Key, p => p.Value));
         
     }
 }
