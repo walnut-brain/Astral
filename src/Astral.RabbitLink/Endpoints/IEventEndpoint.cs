@@ -184,7 +184,31 @@ namespace Astral.RabbitLink
         /// <param name="value">routing key</param>
         /// <returns>event endpoint</returns>
         IEventEndpoint<TService, TEvent> AddRoutingKey(string value);
+
+        /// <summary>
+        /// set message ttl, default null - infinite
+        /// </summary>
+        /// <param name="value">message ttl value</param>
+        /// <returns>event endpoint</returns>
+        IEventEndpoint<TService, TEvent> MessageTtl(TimeSpan? value);
+        /// <summary>
+        /// get message ttl
+        /// </summary>
+        /// <returns>message ttl</returns>
+        TimeSpan? MessageTtl();
         
+        /// <summary>
+        /// set message persistent, default - from exchange durable
+        /// </summary>
+        /// <param name="value">persistent value</param>
+        /// <returns>event endpoint</returns>
+        IEventEndpoint<TService, TEvent> Persistent(bool value);
+        /// <summary>
+        /// get messsage persistent
+        /// </summary>
+        /// <returns>message persistent</returns>
+        bool Persisent();
+
         /// <summary>
         /// add routing key by event example value, experimental
         /// </summary>

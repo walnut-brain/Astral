@@ -30,57 +30,69 @@ namespace Astral.RabbitLink
         }
 
         public bool ExchangePassive() => GetParameter(nameof(ExchangePassive), false);
-        public IRequestEndpoint<TService, TResponse, TRequest> ExchangePassive(bool value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(ExchangePassive), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> ExchangePassive(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(ExchangePassive), value));
         
         public string NamedProducer() => GetParameter(nameof(NamedProducer), (string) null);
-        public IRequestEndpoint<TService, TResponse, TRequest> NamedProducer(string value) 
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(NamedProducer), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> NamedProducer(string value) 
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(NamedProducer), value));
 
         public bool ConfirmsMode() => GetParameter(nameof(ConfirmsMode), true);
-        public IRequestEndpoint<TService, TResponse, TRequest> ConfirmsMode(bool value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(ConfirmsMode), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> ConfirmsMode(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(ConfirmsMode), value));
 
         public string QueueName() => GetParameter(nameof(QueueName),
             $"{Link.HolderName}.{Description.Service.Owner}.{Description.Service.Name}.{Description.Name}");
-        public IRequestEndpoint<TService, TResponse, TRequest> QueueName(string value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(QueueName), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> QueueName(string value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(QueueName), value));
 
         public ushort PrefetchCount() => GetParameter<ushort>(nameof(PrefetchCount), 1);
-        public IRequestEndpoint<TService, TResponse, TRequest> PrefetchCount(ushort value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(PrefetchCount), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> PrefetchCount(ushort value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(PrefetchCount), value));
 
 
         public bool AutoAck() => GetParameter(nameof(AutoAck), false);
-        public IRequestEndpoint<TService, TResponse, TRequest> AutoAck(bool value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(AutoAck), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> AutoAck(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(AutoAck), value));
 
         public ILinkConsumerErrorStrategy ErrorStrategy() =>
             GetParameter(nameof(ErrorStrategy), (ILinkConsumerErrorStrategy) null);
-        public IRequestEndpoint<TService, TResponse, TRequest> ErrorStrategy(ILinkConsumerErrorStrategy value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(ErrorStrategy), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> ErrorStrategy(ILinkConsumerErrorStrategy value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(ErrorStrategy), value));
 
 
         public bool? CancelOnHaFailover() => GetParameter(nameof(CancelOnHaFailover), (bool?)null);
-        public IRequestEndpoint<TService, TResponse, TRequest> CancelOnHaFailover(bool? value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(CancelOnHaFailover), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> CancelOnHaFailover(bool? value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(CancelOnHaFailover), value));
 
         public bool Exclusive() => GetParameter(nameof(Exclusive), false);
-        public IRequestEndpoint<TService, TResponse, TRequest> Exclusive(bool value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(Exclusive), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> Exclusive(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(Exclusive), value));
 
         public bool QueuePassive() => GetParameter(nameof(QueuePassive), false);
-        public IRequestEndpoint<TService, TResponse, TRequest> QueuePassive(bool value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(QueuePassive), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> QueuePassive(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(QueuePassive), value));
         
         public bool Bind() => GetParameter(nameof(Bind), true);
-        public IRequestEndpoint<TService, TResponse, TRequest> Bind(bool value)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(Bind), value));
+        public IRequestEndpoint<TService, TRequest, TResponse> Bind(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(Bind), value));
         
         public QueueParameters QueueParameters() => GetParameter(nameof(QueueParameters), new QueueParameters());
-        public IRequestEndpoint<TService, TResponse, TRequest> QueueParameters(Func<QueueParameters, QueueParameters> setter)
-            => new RequestEndpoint<TService, TResponse, TRequest>(Link, Description, SetParameter(nameof(QueueParameters), setter(QueueParameters())));
-        
+        public IRequestEndpoint<TService, TRequest, TResponse> QueueParameters(Func<QueueParameters, QueueParameters> setter)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(QueueParameters), setter(QueueParameters())));
+
+        public IRequestEndpoint<TService, TRequest, TResponse> MessageTtl(TimeSpan? value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(MessageTtl), value));
+
+        public TimeSpan? MessageTtl()
+            => GetParameter(nameof(MessageTtl), (TimeSpan?) null);
+
+        public IRequestEndpoint<TService, TRequest, TResponse> Persistent(bool value)
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(Persisent), value));
+
+        public bool Persisent()
+            => TryGetParameter<bool>(nameof(Persisent)).IfNone(() => Description.Exchange().Durable);
+
         public IDisposable Listen(Func<Response<TResponse>, CancellationToken, Task<Acknowledge>> listener)
         {
             var routingKeys = new List<string>();
@@ -132,7 +144,9 @@ namespace Astral.RabbitLink
             var props = new LinkMessageProperties
             {
                 CorrelationId = message.CorrelationId,
-                ReplyTo = QueueName()
+                ReplyTo = QueueName(),
+                Expiration = MessageTtl(),
+                DeliveryMode = Persisent() ? LinkDeliveryMode.Persistent : LinkDeliveryMode.Transient
             };
             var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
             

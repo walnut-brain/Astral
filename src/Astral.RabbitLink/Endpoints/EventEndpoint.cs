@@ -90,6 +90,18 @@ namespace Astral.RabbitLink
                 Description, SetParameter<IEnumerable<string>>(nameof(RoutingKeys), new ReadOnlyCollection<string>(lst)));
         }
 
+        public IEventEndpoint<TService, TEvent> MessageTtl(TimeSpan? value)
+           => new EventEndpoint<TService, TEvent>(Link, Description, SetParameter(nameof(MessageTtl), value));
+
+        public TimeSpan? MessageTtl() => GetParameter(nameof(MessageTtl), (TimeSpan?) null);
+        
+
+        public IEventEndpoint<TService, TEvent> Persistent(bool value)
+            => new EventEndpoint<TService, TEvent>(Link, Description, SetParameter(nameof(Persisent), value));
+
+        public bool Persisent()
+            => TryGetParameter<bool>(nameof(Persisent)).IfNone(() => Description.Exchange().Durable);
+
         /*
         public IEventEndpoint<TService, TEvent> AddRoutingKeyByExample(TEvent value)
         {
@@ -134,7 +146,11 @@ namespace Astral.RabbitLink
 
         public Task PublishAsync(TEvent message, CancellationToken token = default(CancellationToken))
         {
-            var props = new LinkMessageProperties();
+            var props = new LinkMessageProperties
+            {
+                DeliveryMode = Persisent() ? LinkDeliveryMode.Persistent : LinkDeliveryMode.Transient,
+                Expiration = MessageTtl()
+            };
             var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
             
             var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
@@ -142,7 +158,9 @@ namespace Astral.RabbitLink
                 RoutingKey =
                     Description.Exchange().Type == ExchangeKind.Fanout ? null :
                         Description.RoutingKey() //?? Description.RoutingKeyExtractor(message)
+                
             });
+            
             var publisher = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), ExchangePassive(),
                 ConfirmsMode(), NamedProducer());
             return publisher.PublishAsync(msg, token);

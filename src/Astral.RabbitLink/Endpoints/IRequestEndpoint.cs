@@ -28,7 +28,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">declare exchange passive value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> ExchangePassive(bool value);
+        IRequestEndpoint<TService, TRequest, TResponse> ExchangePassive(bool value);
         
         /// <summary>
         /// get use named producer
@@ -40,7 +40,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">use named producer value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> NamedProducer(string value);
+        IRequestEndpoint<TService, TRequest, TResponse> NamedProducer(string value);
         
         /// <summary>
         /// get producer confirms mode
@@ -52,7 +52,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">producer confirms mode value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> ConfirmsMode(bool value);
+        IRequestEndpoint<TService, TRequest, TResponse> ConfirmsMode(bool value);
         
         /// <summary>
         /// get queue name 
@@ -65,7 +65,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">queue name value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> QueueName(string value);
+        IRequestEndpoint<TService, TRequest, TResponse> QueueName(string value);
         
         /// <summary>
         /// get queue prefetch count
@@ -78,7 +78,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">queue prefetch count value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> PrefetchCount(ushort value);
+        IRequestEndpoint<TService, TRequest, TResponse> PrefetchCount(ushort value);
         
         /// <summary>
         /// get queue auto ack
@@ -91,7 +91,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">queue auto ack value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> AutoAck(bool value);
+        IRequestEndpoint<TService, TRequest, TResponse> AutoAck(bool value);
         
         /// <summary>
         /// get consumer error strategy
@@ -104,7 +104,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">consumer error strategy value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> ErrorStrategy(ILinkConsumerErrorStrategy value);
+        IRequestEndpoint<TService, TRequest, TResponse> ErrorStrategy(ILinkConsumerErrorStrategy value);
         
         /// <summary>
         /// get Cancel On Ha Failover
@@ -117,7 +117,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">CancelOnHaFailover value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> CancelOnHaFailover(bool? value);
+        IRequestEndpoint<TService, TRequest, TResponse> CancelOnHaFailover(bool? value);
         
         /// <summary>
         /// get queue exclusive 
@@ -130,7 +130,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">queue exclusive value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> Exclusive(bool value);
+        IRequestEndpoint<TService, TRequest, TResponse> Exclusive(bool value);
         
         /// <summary>
         /// get declare queue passive
@@ -143,7 +143,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">declare queue passive value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> QueuePassive(bool value);
+        IRequestEndpoint<TService, TRequest, TResponse> QueuePassive(bool value);
         
         /// <summary>
         /// get bind queue to exchange
@@ -156,7 +156,7 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="value">bind queue to exchange value</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> Bind(bool value);
+        IRequestEndpoint<TService, TRequest, TResponse> Bind(bool value);
         
         /// <summary>
         /// get queue parameters
@@ -169,6 +169,30 @@ namespace Astral.RabbitLink
         /// </summary>
         /// <param name="setter">queue parameters changer</param>
         /// <returns>event endpoint</returns>
-        IRequestEndpoint<TService, TResponse, TRequest> QueueParameters(Func<QueueParameters, QueueParameters> setter);
+        IRequestEndpoint<TService, TRequest, TResponse> QueueParameters(Func<QueueParameters, QueueParameters> setter);
+        
+        /// <summary>
+        /// set message ttl, default null - infinite
+        /// </summary>
+        /// <param name="value">message ttl value</param>
+        /// <returns>event endpoint</returns>
+        IRequestEndpoint<TService, TRequest, TResponse> MessageTtl(TimeSpan? value);
+        /// <summary>
+        /// get message ttl
+        /// </summary>
+        /// <returns>message ttl</returns>
+        TimeSpan? MessageTtl();
+        
+        /// <summary>
+        /// set message persistent, default - from exchange durable
+        /// </summary>
+        /// <param name="value">persistent value</param>
+        /// <returns>event endpoint</returns>
+        IRequestEndpoint<TService, TRequest, TResponse> Persistent(bool value);
+        /// <summary>
+        /// get messsage persistent
+        /// </summary>
+        /// <returns>message persistent</returns>
+        bool Persisent();
     }
 }
