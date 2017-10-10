@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Astral.Data;
 using Astral.Logging;
+using Astral.Schema;
 
 namespace Astral
 {
@@ -30,6 +31,10 @@ namespace Astral
             {
                 if (p) action();
             });
+
+        public static Option<T> TryGetProperty<T>(this ISchema schema, string name)
+            => schema.TryGetProperty<T>(name, out var value) ? value.ToOption() : Option.None;
+        
         
         public static IEnumerable<T> AsEnumerable<T>(this T value) => new[] {value};
         

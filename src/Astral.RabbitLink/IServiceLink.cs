@@ -1,4 +1,5 @@
-﻿using Astral.RabbitLink.Descriptions;
+﻿using Astral.Logging;
+using Astral.RabbitLink.Descriptions;
 using RabbitLink;
 
 namespace Astral.RabbitLink
@@ -27,5 +28,7 @@ namespace Astral.RabbitLink
         /// service application holder name
         /// </summary>
         string HolderName { get; }
+        
+        ILogFactory LogFactory { get; }
     }
 }

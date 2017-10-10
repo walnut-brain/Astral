@@ -2,7 +2,7 @@
 
 namespace Astral.Schema.Data
 {
-    public abstract class VariantTypeDesc
+    public abstract class VariantTypeDesc : TypeDesc
     {
         protected VariantTypeDesc(IReadOnlyDictionary<string, TypeDesc> variants)
         {

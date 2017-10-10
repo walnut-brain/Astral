@@ -1,4 +1,5 @@
 ﻿using System;
+using Astral.Logging;
 using Microsoft.Extensions.Logging;
 using RabbitLink.Logging;
 
@@ -6,9 +7,9 @@ namespace Astral.RabbitLink.Logging
 {
     internal class LoggerAdapter : ILinkLogger
     {
-        private readonly ILogger _logger;
+        private readonly ILog _logger;
 
-        public LoggerAdapter(ILogger logger)
+        public LoggerAdapter(ILog logger)
         {
             _logger = logger;
         }
@@ -22,16 +23,16 @@ namespace Astral.RabbitLink.Logging
             switch (level)
             {
                 case LinkLoggerLevel.Error:
-                    _logger.LogError(message);
+                    _logger.Error(message);
                     break;
                 case LinkLoggerLevel.Warning:
-                    _logger.LogWarning(message);
+                    _logger.Warn(message);
                     break;
                 case LinkLoggerLevel.Info:
-                    _logger.LogInformation(message);
+                    _logger.Info(message);
                     break;
                 case LinkLoggerLevel.Debug:
-                    _logger.LogDebug(message);
+                    _logger.Debug(message);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(level), level, null);

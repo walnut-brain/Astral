@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Astral.Schema
 {
-    public class CallSchema : EndpointSchema<CallSchema>
+    public class CallSchema : EndpointSchema<CallSchema>, ICallSchema
     {
         public CallSchema(RootSchema service, string name) : base(service, name)
         {

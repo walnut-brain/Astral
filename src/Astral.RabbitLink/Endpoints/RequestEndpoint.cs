@@ -18,148 +18,192 @@ namespace Astral.RabbitLink
     {
         
 
-        public RequestEndpoint(ServiceLink link, CallSchema description)
-            : base(link, description)
+        public RequestEndpoint(ServiceLink link, CallSchema schema)
+            : base(link, schema)
         {
         }
 
-        private RequestEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
-            : base(link, description, store)
+        private RequestEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+            : base(link, schema, store)
         {
             
         }
 
+        IEndpointSchema IConsumer<Response<TResponse>>.Schema => Schema;
+
+
+        IEndpointSchema IPublisher<Request<TRequest>>.Schema => Schema;
+        
+
         public bool ExchangePassive() => GetParameter(nameof(ExchangePassive), false);
         public IRequestEndpoint<TService, TRequest, TResponse> ExchangePassive(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(ExchangePassive), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(ExchangePassive), value));
         
         public string NamedProducer() => GetParameter(nameof(NamedProducer), (string) null);
         public IRequestEndpoint<TService, TRequest, TResponse> NamedProducer(string value) 
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(NamedProducer), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(NamedProducer), value));
 
         public bool ConfirmsMode() => GetParameter(nameof(ConfirmsMode), true);
         public IRequestEndpoint<TService, TRequest, TResponse> ConfirmsMode(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(ConfirmsMode), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(ConfirmsMode), value));
 
         public string QueueName() => GetParameter(nameof(QueueName),
-            $"{Link.HolderName}.{Description.Service.Owner}.{Description.Service.Name}.{Description.Name}");
+            $"{Link.HolderName}.{Schema.Service.Owner}.{Schema.Service.Name}.{Schema.Name}");
         public IRequestEndpoint<TService, TRequest, TResponse> QueueName(string value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(QueueName), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(QueueName), value));
 
         public ushort PrefetchCount() => GetParameter<ushort>(nameof(PrefetchCount), 1);
         public IRequestEndpoint<TService, TRequest, TResponse> PrefetchCount(ushort value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(PrefetchCount), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(PrefetchCount), value));
 
 
         public bool AutoAck() => GetParameter(nameof(AutoAck), false);
         public IRequestEndpoint<TService, TRequest, TResponse> AutoAck(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(AutoAck), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(AutoAck), value));
 
         public ILinkConsumerErrorStrategy ErrorStrategy() =>
             GetParameter(nameof(ErrorStrategy), (ILinkConsumerErrorStrategy) null);
         public IRequestEndpoint<TService, TRequest, TResponse> ErrorStrategy(ILinkConsumerErrorStrategy value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(ErrorStrategy), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(ErrorStrategy), value));
 
 
         public bool? CancelOnHaFailover() => GetParameter(nameof(CancelOnHaFailover), (bool?)null);
         public IRequestEndpoint<TService, TRequest, TResponse> CancelOnHaFailover(bool? value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(CancelOnHaFailover), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(CancelOnHaFailover), value));
 
         public bool Exclusive() => GetParameter(nameof(Exclusive), false);
         public IRequestEndpoint<TService, TRequest, TResponse> Exclusive(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(Exclusive), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(Exclusive), value));
 
         public bool QueuePassive() => GetParameter(nameof(QueuePassive), false);
         public IRequestEndpoint<TService, TRequest, TResponse> QueuePassive(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(QueuePassive), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(QueuePassive), value));
         
         public bool Bind() => GetParameter(nameof(Bind), true);
         public IRequestEndpoint<TService, TRequest, TResponse> Bind(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(Bind), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(Bind), value));
         
         public QueueParameters QueueParameters() => GetParameter(nameof(QueueParameters), new QueueParameters());
         public IRequestEndpoint<TService, TRequest, TResponse> QueueParameters(Func<QueueParameters, QueueParameters> setter)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(QueueParameters), setter(QueueParameters())));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(QueueParameters), setter(QueueParameters())));
 
         public IRequestEndpoint<TService, TRequest, TResponse> MessageTtl(TimeSpan? value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(MessageTtl), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(MessageTtl), value));
 
         public TimeSpan? MessageTtl()
             => GetParameter(nameof(MessageTtl), (TimeSpan?) null);
 
         public IRequestEndpoint<TService, TRequest, TResponse> Persistent(bool value)
-            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Description, SetParameter(nameof(Persisent), value));
+            => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(Persisent), value));
 
         public bool Persisent()
-            => TryGetParameter<bool>(nameof(Persisent)).IfNone(() => Description.Exchange().Durable);
+            => TryGetParameter<bool>(nameof(Persisent)).IfNone(() => Schema.Exchange().Durable);
 
         public IDisposable Listen(Func<Response<TResponse>, CancellationToken, Task<Acknowledge>> listener)
         {
-            var routingKeys = new List<string>();
-            routingKeys.Add(QueueName());
-            
-
-            var consumerBuilder = Utils.CreateConsumerBuilder(Link, Description.ResponseExchange(),
-                ExchangePassive(), QueuePassive(), QueueName(), AutoAck(), CancelOnHaFailover(), ErrorStrategy(),
-                Exclusive(), PrefetchCount(), QueueParameters(), routingKeys, Bind());
-            
-            
-            return consumerBuilder.Handler(async msg =>
+            Log.Trace($"{nameof(Listen)} enter");
+            try
             {
-                var obj = Link.PayloadManager.Deserialize(msg, typeof(TResponse));
-                Response<TResponse> response;
-                switch (obj)
-                {
-                    case TResponse resp:
-                        response = new Response<TResponse>(resp, msg.Properties.CorrelationId, null);
-                        break;
+                var routingKeys = new List<string>();
+                routingKeys.Add(QueueName());
 
-                    case Exception ex:
-                        response = new Response<TResponse>(ex, msg.Properties.CorrelationId, null);
-                        break;
-                    case RpcFail fail:
-                        response = new Response<TResponse>(new RpcFailException(fail.Message, fail.Kind),
-                            msg.Properties.CorrelationId, null);
-                        break;
-                    default:
-                        return LinkConsumerAckStrategy.Nack;
-                }
 
-                switch (await listener(response, msg.Cancellation))
+                var consumerBuilder = Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange(),
+                    ExchangePassive(), QueuePassive(), QueueName(), AutoAck(), CancelOnHaFailover(), ErrorStrategy(),
+                    Exclusive(), PrefetchCount(), QueueParameters(), routingKeys, Bind());
+
+
+                var consumer = consumerBuilder.Handler(async msg =>
                 {
-                    case Acknowledge.Ack:
-                        return LinkConsumerAckStrategy.Ack;
-                    case Acknowledge.Nack:
-                        return LinkConsumerAckStrategy.Nack;
-                    case Acknowledge.Requeue:
-                        return LinkConsumerAckStrategy.Requeue;                        
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }).Build();
+                    var log = Log.With("@msg", msg);
+                    log.Trace("Message recieving");
+                    try
+                    {
+                        var obj = Link.PayloadManager.Deserialize(msg, typeof(TResponse));
+                        Response<TResponse> response;
+                        switch (obj)
+                        {
+                            case TResponse resp:
+                                response = new Response<TResponse>(resp, msg.Properties.CorrelationId, null);
+                                break;
+
+                            case Exception ex:
+                                response = new Response<TResponse>(ex, msg.Properties.CorrelationId, null);
+                                break;
+                            case RpcFail fail:
+                                response = new Response<TResponse>(new RpcFailException(fail.Message, fail.Kind),
+                                    msg.Properties.CorrelationId, null);
+                                break;
+                            default:
+                                return LinkConsumerAckStrategy.Nack;
+                        }
+
+                        var result = await listener(response, msg.Cancellation);
+                        log.With("ack", result).Trace("Message recieved");
+                        switch (result)
+                        {
+                            case Acknowledge.Ack:
+                                return LinkConsumerAckStrategy.Ack;
+                            case Acknowledge.Nack:
+                                return LinkConsumerAckStrategy.Nack;
+                            case Acknowledge.Requeue:
+                                return LinkConsumerAckStrategy.Requeue;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if(ex.IsCancellation())
+                            log.Trace("Cancelled");
+                        else
+                            log.Error("Message recieving error", ex);
+                        throw;
+                    }
+                }).Build();
+                Log.Trace($"{nameof(Listen)} success");
+                return consumer;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{nameof(Listen)} error", ex);
+                throw;
+            }
         }
 
-        public Task PublishAsync(Request<TRequest> message, CancellationToken token = default(CancellationToken))
+        public async Task PublishAsync(Request<TRequest> message, CancellationToken token = default(CancellationToken))
         {
-            var props = new LinkMessageProperties
+            var log = Log.With("@message", message);
+            log.Trace($"{nameof(PublishAsync)} enter");
+            try
             {
-                CorrelationId = message.CorrelationId,
-                ReplyTo = QueueName(),
-                Expiration = MessageTtl(),
-                DeliveryMode = Persisent() ? LinkDeliveryMode.Persistent : LinkDeliveryMode.Transient
-            };
-            var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
-            
-            var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
+                var props = new LinkMessageProperties
+                {
+                    CorrelationId = message.CorrelationId,
+                    ReplyTo = QueueName()
+                };
+                var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
+
+                var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
+                {
+                    RoutingKey =
+                        Schema.Exchange().Type == ExchangeKind.Fanout ? null : Schema.RoutingKey()
+
+                });
+                var publisher = Utils.CreateProducer(Link, Schema.Exchange(), Schema.ContentType(),
+                    ExchangePassive(),
+                    ConfirmsMode(), NamedProducer());
+                await publisher.PublishAsync(msg, token);
+                log.Trace($"{nameof(PublishAsync)} success");
+            }
+            catch (Exception ex)
             {
-                RoutingKey =
-                    Description.Exchange().Type == ExchangeKind.Fanout ? null :
-                        Description.RoutingKey()
-                
-            });
-            var publisher = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), ExchangePassive(),
-                ConfirmsMode(), NamedProducer());
-            return publisher.PublishAsync(msg, token);
+                if(ex.IsCancellation())
+                    log.Info($"{nameof(PublishAsync)} cancelled");
+                else
+                    log.Error($"{nameof(PublishAsync)} error", ex);
+                throw;
+            }
         }
     }
 }

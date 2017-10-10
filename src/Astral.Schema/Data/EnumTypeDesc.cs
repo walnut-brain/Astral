@@ -1,18 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Astral.Schema.Data
 {
-    public sealed class EnumTypeDesc : TypeDesc
+    public sealed class EnumTypeDesc : NamedTypeDesc
     {
-        public EnumTypeDesc(SimleTypeDesc baseType, IEnumerable<KeyValuePair<string, long>> values)
+        public EnumTypeDesc(string name, string contract, Type dotNetType, SimpleTypeDesc baseType, IEnumerable<KeyValuePair<string, long>> values)
+            : base(name)
         {
+            Contract = contract;
+            DotNetType = dotNetType;
             BaseType = baseType;
             Values = new ReadOnlyDictionary<string, long>(values.ToDictionary(p => p.Key, p => p.Value));
         }
 
-        public SimleTypeDesc BaseType { get; }
+        public SimpleTypeDesc BaseType { get; }
         public IReadOnlyDictionary<string, long> Values { get; }
+
+        public override string Contract { get; }
+        public override Type DotNetType { get; }
     }
 }

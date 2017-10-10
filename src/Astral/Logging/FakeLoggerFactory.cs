@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Reactive.Disposables;
 using Microsoft.Extensions.Logging;
 
-namespace Astral.RabbitLink.Logging
+namespace Astral.Logging
 {
-    internal class FakeLoggerFactory : ILoggerFactory
+    public class FakeLoggerFactory : ILoggerFactory
     {
         public void Dispose()
         {
@@ -20,15 +21,15 @@ namespace Astral.RabbitLink.Logging
         
         private class FakeLogger : ILogger
         {
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
             {
                 
             }
 
-            public bool IsEnabled(LogLevel logLevel) => false;
+            public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => false;
             
 
-            public IDisposable BeginScope<TState>(TState state) => new DelegateDisposable(() => {});
+            public IDisposable BeginScope<TState>(TState state) => Disposable.Empty;
         }
     }
 }

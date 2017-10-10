@@ -1,8 +1,10 @@
 ﻿using System;
+using Astral.Logging;
 using Astral.RabbitLink.Descriptions;
 using Microsoft.Extensions.Logging;
 using RabbitLink;
 using RabbitLink.Connection;
+using RabbitLink.Serialization;
 
 namespace Astral.RabbitLink
 {
@@ -147,10 +149,10 @@ namespace Astral.RabbitLink
         IServiceLinkBuilder DescriptionFactory(IDescriptionFactory value);
         
         /// <summary>
-        /// get logger factory
+        /// get log factory
         /// </summary>
-        /// <returns>logger factory</returns>
-        ILoggerFactory LoggerFactory();
+        /// <returns>log factory</returns>
+        ILogFactory LogFactory();
         
         /// <summary>
         /// set logger factory 
@@ -160,10 +162,19 @@ namespace Astral.RabbitLink
         IServiceLinkBuilder LoggerFactory(ILoggerFactory value);
 
         /// <summary>
+        /// set log factory
+        /// </summary>
+        /// <param name="value">log factory value</param>
+        /// <returns>service link builder</returns>
+        IServiceLinkBuilder LogFactory(ILogFactory value);
+
+        /// <summary>
         /// build service link 
         /// </summary>
         /// <returns>service link</returns>
         IServiceLink Build();
-        
+
+
+        IServiceLinkBuilder Serializer(ILinkSerializer serializer);
     }
 }

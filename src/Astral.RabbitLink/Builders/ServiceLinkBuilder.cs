@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Astral.Logging;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
 using Astral.RabbitLink.Logging;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using RabbitLink;
 using RabbitLink.Builders;
 using RabbitLink.Connection;
+using RabbitLink.Serialization;
 
 namespace Astral.RabbitLink
 {
@@ -84,20 +86,28 @@ namespace Astral.RabbitLink
             GetParameter(nameof(DescriptionFactory), (IDescriptionFactory) null);
         public IServiceLinkBuilder DescriptionFactory(IDescriptionFactory value)
             => new ServiceLinkBuilder(_linkBuilder, SetParameter(nameof(DescriptionFactory), value));
-            
 
-        public ILoggerFactory LoggerFactory() => GetParameter(nameof(LoggerFactory), (ILoggerFactory) null);
+        
+        public IServiceLinkBuilder Serializer(ILinkSerializer serializer)
+            => new ServiceLinkBuilder(_linkBuilder.Serializer(serializer), Store);
+
 
         public IServiceLinkBuilder LoggerFactory(ILoggerFactory value)
+            => LogFactory(new LogFactoryAdapter(value));
+
+        public ILogFactory LogFactory() => GetParameter(nameof(LogFactory), (ILogFactory) null);
+        
+
+        public IServiceLinkBuilder LogFactory(ILogFactory value)
             => new ServiceLinkBuilder(_linkBuilder,
-                SetParameter(nameof(LoggerFactory), value));
+                SetParameter(nameof(LogFactory), value));
 
         public IServiceLink Build()
         {
-            var loggerFactory = LoggerFactory() ?? new FakeLoggerFactory();
-            _linkBuilder.LoggerFactory(new LoggerFactoryAdapter(loggerFactory));
+            var logFactory = LogFactory() ?? new LogFactoryAdapter(new FakeLoggerFactory());
+            _linkBuilder.LoggerFactory(new LoggerFactoryAdapter(logFactory));
             return new ServiceLink(_linkBuilder.Build(), PayloadManager(), DescriptionFactory(), HolderName(),
-                loggerFactory);
+                logFactory);
         }
             
     }

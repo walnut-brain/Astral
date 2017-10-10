@@ -14,6 +14,8 @@ namespace Astral.RabbitLink.Internals
     {
         public string QueueName { get; }
         private readonly ServiceLink _link;
+        private bool _isDisposed;
+        private ReaderWriterLockSlim DisposeLock { get; } = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<ILinkConsumedMessage<byte[]>>>
             _subscribers = new ConcurrentDictionary<string, TaskCompletionSource<ILinkConsumedMessage<byte[]>>>();
@@ -39,10 +41,24 @@ namespace Astral.RabbitLink.Internals
 
         public Task WaitReadyAsync(CancellationToken token) => _consumer.WaitReadyAsync(token);
 
+        private void GuardDispose(Action action)
+        {
+            DisposeLock.EnterReadLock();
+            try
+            {
+                if(_isDisposed) throw new ObjectDisposedException(GetType().Name);
+                action();
+            }
+            finally
+            {
+                DisposeLock.ExitReadLock();
+            }
+        }
+        
         public async Task<T> WaitFor<T>(string correlationId, CancellationToken token)
         {
             var taskSource = new TaskCompletionSource<ILinkConsumedMessage<byte[]>>();
-            _subscribers.TryAdd(correlationId, taskSource);
+            GuardDispose(() => _subscribers.TryAdd(correlationId, taskSource));
 
             try
             {
@@ -68,12 +84,22 @@ namespace Astral.RabbitLink.Internals
 
         public void Dispose()
         {
-            _consumer.Dispose();
-            while (!_subscribers.IsEmpty)
+            DisposeLock.EnterWriteLock();
+            try
             {
-                var code = _subscribers.Keys.FirstOrDefault();
-                if (code != null && _subscribers.TryRemove(code, out var source))
-                    source.TrySetCanceled();
+                if (_isDisposed) return;
+                _isDisposed = true;
+                _consumer.Dispose();
+                while (!_subscribers.IsEmpty)
+                {
+                    var code = _subscribers.Keys.FirstOrDefault();
+                    if (code != null && _subscribers.TryRemove(code, out var source))
+                        source.TrySetCanceled();
+                }
+            }
+            finally
+            {
+                DisposeLock.ExitWriteLock();
             }
         }
     }

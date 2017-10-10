@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Mime;
+using Astral.Logging;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
 using Astral.Schema;
@@ -9,21 +10,26 @@ namespace Astral.RabbitLink
     internal abstract class Endpoint<TSchema> : BuilderBase
         where TSchema : EndpointSchema<TSchema>
     {
-        protected TSchema Description { get; }
+        public TSchema Schema { get; }
         protected ServiceLink Link { get; }
+        protected ILog Log { get; }
 
-        protected Endpoint(ServiceLink link, TSchema description)
+        protected Endpoint(ServiceLink link, TSchema schema)
         {
-            Description = description;
+            Schema = schema;
             Link = link;
+            Log = link.LogFactory.CreateLog(GetType()).With("service", schema.Service.Name)
+                .With("endpoint", schema.Name);
         }
 
-        protected Endpoint(ServiceLink link, TSchema description, IReadOnlyDictionary<string, object> store) : base(store)
+        protected Endpoint(ServiceLink link, TSchema schema, IReadOnlyDictionary<string, object> store) : base(store)
         {
-            Description = description;
+            Schema = schema;
             Link = link;
+            Log = link.LogFactory.CreateLog(GetType()).With("service", schema.Service.Name)
+                .With("endpoint", schema.Name);
         }
         
-        public ContentType ContentType => Description.ContentType();
+        public ContentType ContentType => Schema.ContentType();
     }
 }

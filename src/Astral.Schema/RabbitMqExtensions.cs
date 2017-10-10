@@ -6,7 +6,7 @@ namespace Astral.Schema
 {
     public static class RabbitMqExtensions
     {
-        public static ExchangeSchema Exchange(this RootSchema schema) =>
+        public static ExchangeSchema Exchange(this IServiceSchema schema) =>
             schema.TryGetProperty<ExchangeSchema>(nameof(Exchange))
                 .Map(p => string.IsNullOrWhiteSpace(p.Name) ? new ExchangeSchema($"{schema.Owner}.{schema.Name}", p.Type,
                         p.Durable, p.AutoDelete, p.Delayed, p.Alternate) : p)
@@ -21,7 +21,7 @@ namespace Astral.Schema
         }
 
         public static ExchangeSchema Exchange<T>(this T schema) 
-            where T : EndpointSchema<T> 
+            where T : IEndpointSchema 
             =>
                 schema.TryGetProperty<ExchangeSchema>(nameof(Exchange))
                     .Map(p => string.IsNullOrWhiteSpace(p.Name)
@@ -33,7 +33,7 @@ namespace Astral.Schema
         public static T Exchange<T>(this T schema, ExchangeSchema exchange)
             where T : EndpointSchema<T> => schema.SetProperty(nameof(Exchange), exchange);
 
-        public static ExchangeSchema ResponseExchange(this RootSchema schema) =>
+        public static ExchangeSchema ResponseExchange(this IServiceSchema schema) =>
             schema.TryGetProperty<ExchangeSchema>(nameof(ResponseExchange))
                 .Map(p => string.IsNullOrWhiteSpace(p.Name) 
                     ? p.Name == null 
@@ -49,7 +49,7 @@ namespace Astral.Schema
             return schema.SetProperty(nameof(ResponseExchange), exchange);
         }
 
-        public static ExchangeSchema ResponseExchange(this CallSchema schema) =>
+        public static ExchangeSchema ResponseExchange(this ICallSchema schema) =>
             schema.TryGetProperty<ExchangeSchema>(nameof(ResponseExchange))
                 .Map(p => string.IsNullOrWhiteSpace(p.Name)
                     ? p.Name == null 
@@ -68,14 +68,14 @@ namespace Astral.Schema
         }
 
         public static string RoutingKey<T>(this T schema)
-            where T : EndpointSchema<T>
+            where T : IEndpointSchema
             => schema.TryGetProperty<string>(nameof(RoutingKey)).IfNone(schema.Name);
 
         public static T RoutingKey<T>(this T schema, string value)
             where T : EndpointSchema<T> => schema.SetProperty(nameof(RoutingKey), value);
 
 
-        public static RequestQueueSchema RequestQueue(this CallSchema schema)
+        public static RequestQueueSchema RequestQueue(this ICallSchema schema)
             => schema
                 .TryGetProperty<RequestQueueSchema>(nameof(RequestQueue))
                 .Map(p => p.Name == null

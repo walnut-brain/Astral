@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Astral.Schema;
 
 namespace Astral.Liaison
 {
@@ -9,6 +10,11 @@ namespace Astral.Liaison
     /// <typeparam name="TMessage">message type</typeparam>
     public interface IPublisher<in TMessage> 
     {
+        /// <summary>
+        /// endpoint schema
+        /// </summary>
+        IEndpointSchema Schema { get; }
+        
         /// <summary>
         /// send message async
         /// </summary>

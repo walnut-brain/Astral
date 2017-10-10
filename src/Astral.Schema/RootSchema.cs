@@ -10,7 +10,7 @@ using Astral.Schema.RabbitMq;
 
 namespace Astral.Schema
 {
-    public class RootSchema : SchemaBase<RootSchema>
+    public class RootSchema : SchemaBase<RootSchema>, IServiceSchema
     {
         
 
@@ -27,6 +27,8 @@ namespace Astral.Schema
         }
 
 
+        
+        
         public override RootSchema SetProperty(string property, object value)
             => new RootSchema(Name, Owner, SetParameter(property, value));
         

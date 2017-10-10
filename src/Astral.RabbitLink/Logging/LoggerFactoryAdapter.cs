@@ -1,18 +1,19 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Astral.Logging;
+using Microsoft.Extensions.Logging;
 using RabbitLink.Logging;
 
 namespace Astral.RabbitLink.Logging
 {
     internal class LoggerFactoryAdapter : ILinkLoggerFactory
     {
-        private readonly ILoggerFactory _factory;
+        private readonly ILogFactory _factory;
 
-        public LoggerFactoryAdapter(ILoggerFactory factory)
+        public LoggerFactoryAdapter(ILogFactory factory)
         {
             _factory = factory;
         }
 
         public ILinkLogger CreateLogger(string name)
-            => new LoggerAdapter(_factory.CreateLogger(name));
+            => new LoggerAdapter(_factory.CreateLog(name));
     }
 }

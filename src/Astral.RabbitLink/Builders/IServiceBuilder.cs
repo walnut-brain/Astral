@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using Astral.Liaison;
+using Astral.Schema;
 
 namespace Astral.RabbitLink
 {
@@ -10,6 +11,8 @@ namespace Astral.RabbitLink
     /// <typeparam name="TService">service type</typeparam>
     public interface IServiceBuilder<TService>
     {
+        IComplexServiceSchema Schema { get; }
+        
         /// <summary>
         /// event endpoint factory
         /// </summary>

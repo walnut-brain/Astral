@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using Astral.RabbitLink.Descriptions;
 using Microsoft.Extensions.Logging;
 using RabbitLink;
 using RabbitLink.Builders;
 using RabbitLink.Producer;
+using Astral.Logging;
 
 namespace Astral.RabbitLink.Internals
 {
     internal class ServiceLink : IServiceLink
     {
         private readonly ILink _link;
-        public ILoggerFactory LoggerFactory { get; }
+        private ReaderWriterLockSlim DisposeLock { get; } = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        private bool _isDisposed;
+        
+        public ILogFactory LogFactory { get; }
+        private ILog Log { get; }
 
         private readonly ConcurrentDictionary<(string, bool), ILinkProducer> _producers =
             new ConcurrentDictionary<(string, bool), ILinkProducer>();
@@ -23,21 +29,64 @@ namespace Astral.RabbitLink.Internals
         public IDescriptionFactory DescriptionFactory { get; }
         
 
-        public ServiceLink(ILink link, IPayloadManager payloadManager, IDescriptionFactory descriptionFactory, string serviceName, ILoggerFactory loggerFactory)
+        public ServiceLink(ILink link, IPayloadManager payloadManager, IDescriptionFactory descriptionFactory, string serviceName, ILogFactory logFactory)
         {
             _link = link ?? throw new ArgumentNullException(nameof(link));
-            LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            LogFactory = logFactory ?? throw new ArgumentNullException(nameof(logFactory));
             PayloadManager = payloadManager ?? throw new ArgumentNullException(nameof(payloadManager));
             DescriptionFactory = descriptionFactory ?? throw new ArgumentNullException(nameof(descriptionFactory));
             HolderName = serviceName ?? throw new ArgumentNullException(nameof(serviceName));
+            Log = LogFactory.CreateLog<ServiceLink>();
+        }
+
+        private void GuardDispose(Action action)
+        {
+            DisposeLock.EnterReadLock();
+            try
+            {
+                if(_isDisposed) throw new ObjectDisposedException(GetType().Name);
+                action();
+            }
+            finally
+            {
+                DisposeLock.ExitReadLock();
+            }
+            
+        }
+
+        private T GuardDispose<T>(Func<T> action)
+        {
+            DisposeLock.EnterReadLock();
+            try
+            {
+                if(_isDisposed) throw new ObjectDisposedException(GetType().Name);
+                return action();
+            }
+            finally
+            {
+                DisposeLock.ExitReadLock();
+            }
+            
         }
 
         public void Dispose()
         {
-            _link.Dispose();
-            foreach (var consumer in _consumers)
+            DisposeLock.EnterWriteLock();
+            try
             {
-                consumer.Value.Dispose();
+                if (_isDisposed) return;
+                Log.Trace("Disposing");
+                _isDisposed = true;
+                _link.Dispose();
+                foreach (var consumer in _consumers)
+                {
+                    consumer.Value.Dispose();
+                }
+                Log.Trace("Disposed");
+            }
+            finally
+            {
+                DisposeLock.ExitWriteLock();
             }
         }
 
@@ -66,27 +115,59 @@ namespace Astral.RabbitLink.Internals
             => new ServiceBuilder<TService>(DescriptionFactory.GetDescription(typeof(TService)), this);
 
         public ILinkProducer GetOrAddProducer(string name, bool confirmMode, Func<ILinkProducer> factory)
-        {
-            ILinkProducer created = null;
-            var producer = _producers.GetOrAdd((name, confirmMode), _ =>
-            {
-                created = factory();
-                return created;
-            });
-            if (producer != created) created?.Dispose();
-            return producer;
-        }
+            =>
+                GuardDispose(() =>
+                {
+                    var log = Log.With("name", name).With("confirmMode", confirmMode);
+                    log.Trace($"{nameof(GetOrAddProducer)} enter");
+                    try
+                    {
+                        ILinkProducer created = null;
+                        var producer = _producers.GetOrAdd((name, confirmMode), _ =>
+                        {
+                            created = factory();
+                            return created;
+                        });
+                        if (producer != created) created?.Dispose();
+                        log.With("created", producer == created).Trace($"{nameof(GetOrAddProducer)} success");
+                        return producer;
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"{nameof(GetOrAddProducer)} error", ex);
+                        throw;
+                    }
+                });
+
 
         public RpcConsumer GetOrAddConsumer(string name, Func<RpcConsumer> factory)
-        {
-            RpcConsumer created = null;
-            var consumer = _consumers.GetOrAdd(name, _ =>
+            => GuardDispose(() =>
             {
-                created = factory();
-                return created;
+                var log = Log.With("name", name);
+                log.Trace($"{nameof(GetOrAddConsumer)} enter");
+                try
+                {
+                    RpcConsumer created = null;
+                    var consumer = _consumers.GetOrAdd(name, _ =>
+                    {
+                        created = factory();
+                        return created;
+                    });
+                    if (consumer != created) created?.Dispose();
+                    log.With("created", consumer == created).Trace($"{nameof(GetOrAddConsumer)} success");
+                    return consumer;
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"{nameof(GetOrAddConsumer)} error", ex);
+                    throw;
+                }
+                
             });
-            if(consumer != created) created?.Dispose();
-            return consumer;
+
+        ~ServiceLink()
+        {
+            Dispose();
         }
     }
 }

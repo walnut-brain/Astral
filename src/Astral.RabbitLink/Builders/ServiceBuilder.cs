@@ -11,7 +11,10 @@ namespace Astral.RabbitLink
     {
         private ServiceSchema Schema { get; }
         private ServiceLink Link { get; }
+
+        IComplexServiceSchema IServiceBuilder<T>.Schema => Schema;
         
+
         public ServiceBuilder(ServiceSchema schema, ServiceLink link) 
         {
             Schema = schema;

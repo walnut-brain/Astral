@@ -2,7 +2,7 @@
 
 namespace Astral.Schema
 {
-    public abstract class SchemaBase<T> : BuilderBase
+    public abstract class SchemaBase<T> : BuilderBase, ISchema
         where T : SchemaBase<T>
     {
         protected SchemaBase(IReadOnlyDictionary<string, object> store) : base(store)
@@ -18,5 +18,16 @@ namespace Astral.Schema
 
         public abstract T SetProperty(string name, object value);
 
+        bool ISchema.TryGetProperty<TValue>(string property, out TValue value)
+        {
+            var val = default(TValue);
+            var result = TryGetProperty<TValue>(property).Match(p =>
+            {
+                val = p;
+                return true;
+            }, () => false);
+            value = val;
+            return result;
+        }
     }
 }

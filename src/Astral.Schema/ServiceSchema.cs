@@ -9,13 +9,18 @@ using Astral.Markup;
 using Astral.Markup.RabbitMq;
 using Astral.Schema.Data;
 using Astral.Schema.RabbitMq;
+using Newtonsoft.Json.Linq;
 
 namespace Astral.Schema
 {
 
-    public class ServiceSchema
+    public class ServiceSchema : IComplexServiceSchema
     {
         private readonly RootSchema _root;
+        private string _name;
+        private string _owner;
+        private IEnumerable<IEventSchema> _events;
+        private IEnumerable<ICallSchema> _calls;
 
         public ServiceSchema(RootSchema root, IEnumerable<EventSchema> events, IEnumerable<CallSchema> calls, IEnumerable<TypeDesc> contracts)
         {
@@ -28,6 +33,26 @@ namespace Astral.Schema
             CallByPropertyName = new ReadOnlyDictionary<string, CallSchema>(
                 Calls.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value));
         }
+
+        bool ISchema.TryGetProperty<T>(string property, out T value)
+            => ((ISchema) _root).TryGetProperty(property, out value);
+
+        string IServiceSchema.Name => _root.Name;
+
+
+        string IServiceSchema.Owner => _root.Owner;
+
+
+        string IServiceSchema.CodeName() => _root.CodeName();
+
+
+        Type IServiceSchema.ServiceType() => _root.ServiceType();
+
+        IEnumerable<IEventSchema> IComplexServiceSchema.Events => Events.Values;
+
+
+        IEnumerable<ICallSchema> IComplexServiceSchema.Calls => Calls.Values;
+
 
         public IReadOnlyDictionary<string, EventSchema> Events { get; }
 
@@ -84,6 +109,7 @@ namespace Astral.Schema
 
             var events = new List<EventSchema>();
             var calls = new List<CallSchema>();
+            var types = new List<(Type[], Action<string[]>)>();
 
             foreach (var property in serviceType.GetProperties())
             {
@@ -107,7 +133,11 @@ namespace Astral.Schema
                             exchangeAttr.Durable,
                             exchangeAttr.AutoDelete,
                             exchangeAttr.Delayed, exchangeAttr.Alternate));
-                    events.Add(endpoint);
+                    types.Add((new [] {endpoint.ContractType() }, p =>
+                    {
+                        var ep = endpoint.ContractName(p[0]);
+                        events.Add(ep);
+                    }));
                 }
                 else if (property.PropertyType.IsConstructedGenericType &&
                          (property.PropertyType.GetGenericTypeDefinition() == typeof(Action<>) ||
@@ -157,7 +187,7 @@ namespace Astral.Schema
         private static string ServiceNameFromInterfaceName(string name)
         {
             var n1 = name.Substring(1);
-            return n1.SelectMany((p, i) => char.IsUpper(p) && i > 0 ? new[] {'.', p} : new[] {p})
+            return n1.SelectMany((p, i) => char.IsUpper(p) && i > 0 ? new[] {'.', char.ToLower(p)} : new[] {p})
                 .Aggregate(new StringBuilder(), (sb, ch) => sb.Append(ch), sb => sb.ToString());
         }
 
@@ -169,5 +199,10 @@ namespace Astral.Schema
             var lastPart = nameSpace.Substring(pos + 1);
             return lastPart.ToLower();
         }
+
+        /*public JObject ToJson()
+        {
+            
+        }*/
     }
 }

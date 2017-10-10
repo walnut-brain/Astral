@@ -1,6 +1,6 @@
 ﻿namespace Astral.Schema.Data
 {
-    public enum SimleTypeKind
+    public enum SimpleTypeKind
     {
         Unit,
         Bool,

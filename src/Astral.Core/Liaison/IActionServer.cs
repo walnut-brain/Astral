@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Astral.Schema;
 
 namespace Astral.Liaison
 {
@@ -10,6 +11,11 @@ namespace Astral.Liaison
     /// <typeparam name="TArg">argument type</typeparam>
     public interface IActionServer<TArg>
     {
+        /// <summary>
+        /// call endpoint schema
+        /// </summary>
+        ICallSchema Schema { get; }
+        
         /// <summary>
         /// set request processing handler 
         /// </summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Astral.Schema;
 
 namespace Astral.Liaison
 {
@@ -11,6 +12,11 @@ namespace Astral.Liaison
     /// <typeparam name="TResult">result type</typeparam>
     public interface ICallClient<TArg, TResult>
     {
+        /// <summary>
+        /// call endpoint schema
+        /// </summary>
+        ICallSchema Schema { get; }
+        
         /// <summary>
         /// call server
         /// </summary>

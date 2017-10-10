@@ -13,134 +13,188 @@ namespace Astral.RabbitLink
 {
     internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<CallSchema>, ICallEndpoint<TService, TArg, TResult> 
     {
+
+        public CallEndpoint(ServiceLink link, CallSchema schema)
+            : base(link, schema)
+        {
+        }
+
+        private CallEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+            : base(link, schema, store)
+        {
+        }
+
+        ICallSchema ICallClient<TArg, TResult>.Schema => Schema;
+
+        ICallSchema ICallServer<TArg, TResult>.Schema => Schema;
         
 
-        public CallEndpoint(ServiceLink link, CallSchema description)
-            : base(link, description)
-        {
-        }
-
-        private CallEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
-            : base(link, description, store)
-        {
-        }
 
         public ushort PrefetchCount() => GetParameter(nameof(PrefetchCount), (ushort) 1);
         public ICallEndpoint<TService, TArg, TResult> PrefetchCount(ushort value)
-            => new CallEndpoint<TService, TArg, TResult>(Link, Description, SetParameter(nameof(PrefetchCount), value));
+            => new CallEndpoint<TService, TArg, TResult>(Link, Schema, SetParameter(nameof(PrefetchCount), value));
         
         public TimeSpan Timeout() => GetParameter(nameof(Timeout), TimeSpan.FromMinutes(10));
         public ICallEndpoint<TService, TArg, TResult> Timeout(TimeSpan value)
         {
             if(value <= TimeSpan.Zero) throw new ArgumentOutOfRangeException("Timeout must be positive time span");
-            return new CallEndpoint<TService, TArg, TResult>(Link, Description, SetParameter(nameof(Timeout), value));
+            return new CallEndpoint<TService, TArg, TResult>(Link, Schema, SetParameter(nameof(Timeout), value));
         }
         
         public TimeSpan? ResponseQueueExpires() => GetParameter(nameof(ResponseQueueExpires), TimeSpan.FromHours(1));
         public ICallEndpoint<TService, TArg, TResult> ResponseQueueExpires(TimeSpan? value)
         {
             if(value != null &&  value.Value <= TimeSpan.Zero) throw new ArgumentOutOfRangeException("Timeout must be positive time span");
-            return new CallEndpoint<TService, TArg, TResult>(Link, Description, SetParameter(nameof(ResponseQueueExpires), value));
+            return new CallEndpoint<TService, TArg, TResult>(Link, Schema, SetParameter(nameof(ResponseQueueExpires), value));
         }
         
         public IDisposable Process(Func<TArg, CancellationToken, Task<TResult>> processor)
         {
-            var queue = Description.RequestQueue();
-            var consumerBuilder =
-                Utils.CreateConsumerBuilder(Link, Description.Exchange(),
-                    false, false, queue.Name, false, null, null, false,
-                    PrefetchCount(), 
-                    new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
-                    new[] {Description.RoutingKey()}, true);
-            
-            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange(), Description.ContentType(),
-                false, false);
-            consumerBuilder = consumerBuilder.Handler(async msg =>
+            Log.Trace($"{nameof(Process)} enter");
+            try
             {
-                var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
-                var tsk = processor(data, msg.Cancellation);
-                try
-                {
-                    var props = new LinkMessageProperties
-                    {
-                        CorrelationId = msg.Properties.CorrelationId
-                    };
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), await tsk, props),
-                        props,
-                        new LinkPublishProperties
-                        {
-                            RoutingKey = msg.Properties.ReplyTo
-                        });
-                    await publisher.PublishAsync(answer, msg.Cancellation);
-                }
-                catch(Exception ex)
-                {
-                    if (tsk.IsCanceled)
-                        return LinkConsumerAckStrategy.Requeue;
-                    var props = new LinkMessageProperties
-                    {
-                        CorrelationId = msg.Properties.CorrelationId
-                    };
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), new RpcFail
-                        {
-                            Kind    = ex.GetType().FullName,
-                            Message = ex.Message
-                        }, props),
-                        props,
-                        new LinkPublishProperties
-                        {
-                            RoutingKey = msg.Properties.ReplyTo
-                        });
-                    await publisher.PublishAsync(answer, msg.Cancellation);
-                }
-                return LinkConsumerAckStrategy.Ack;
-            });
+                var queue = Schema.RequestQueue();
+                var consumerBuilder =
+                    Utils.CreateConsumerBuilder(Link, Schema.Exchange(),
+                        false, false, queue.Name, false, null, null, false,
+                        PrefetchCount(),
+                        new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
+                        new[] {Schema.RoutingKey()}, true);
 
-            return consumerBuilder.Build();
+                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange(), Schema.ContentType(),
+                    false, false);
+                consumerBuilder = consumerBuilder.Handler(async msg =>
+                {
+                    var log = Log.With("@msg", msg);
+                    log.Trace("Call receiving");
+                    try
+                    {
+                        var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
+                        var tsk = processor(data, msg.Cancellation);
+                        try
+                        {
+                            var props = new LinkMessageProperties
+                            {
+                                CorrelationId = msg.Properties.CorrelationId
+                            };
+                            var result = await tsk;
+                            var answer = new LinkPublishMessage<byte[]>(
+                                Link.PayloadManager.Serialize(Schema.ContentType(), result, props),
+                                props,
+                                new LinkPublishProperties
+                                {
+                                    RoutingKey = msg.Properties.ReplyTo
+                                });
+                            await publisher.PublishAsync(answer, msg.Cancellation);
+                            log.With("@result", result).Trace("Call executed");
+                        }
+                        catch (Exception ex)
+                        {
+
+                            if (tsk.IsCanceled)
+                                return LinkConsumerAckStrategy.Requeue;
+                            var props = new LinkMessageProperties
+                            {
+                                CorrelationId = msg.Properties.CorrelationId
+                            };
+                            var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(
+                                    Schema.ContentType(), new RpcFail
+                                    {
+                                        Kind = ex.GetType().FullName,
+                                        Message = ex.Message
+                                    }, props),
+                                props,
+                                new LinkPublishProperties
+                                {
+                                    RoutingKey = msg.Properties.ReplyTo
+                                });
+                            await publisher.PublishAsync(answer, msg.Cancellation);
+                            log.Trace("Call executed with exception", ex);
+                        }
+                        return LinkConsumerAckStrategy.Ack;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.IsCancellation())
+                            log.Info("Cancelled");
+                        else
+                            log.Error("Error receiving", ex);
+                        throw;
+                    }
+                });
+
+                var consumer = consumerBuilder.Build();
+                Log.Trace($"{nameof(Process)} success");
+                return consumer;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{nameof(Process)} error", ex);
+                throw;
+            }
+
+            
         }
 
 
         private async Task<TResult> Call(TArg arg, CancellationToken token, TimeSpan timeout)
         {
-            CancellationTokenSource source = null;
-            TimeSpan? messageTtl = null;
+            var log = Log.With("@message", arg);
+            log.Trace($"{nameof(Call)} enter");
             try
             {
-                if (!token.CanBeCanceled)
+                CancellationTokenSource source = null;
+                TimeSpan? messageTtl = null;
+                try
                 {
-                    source = new CancellationTokenSource(timeout);
-                    token = source.Token;
-                    messageTtl = timeout;
-                }
-                var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange()}.{Guid.NewGuid():D}";
-                var consumer = Link.GetOrAddConsumer(Description.ResponseExchange().Name ?? "",
-                    () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange(),
-                        true, false, queueName, false, null, null, false, PrefetchCount(),
-                        new QueueParameters().Expires(ResponseQueueExpires()),
-                        new[] {queueName}, true), queueName));
-                //await consumer.WaitReadyAsync(token);
-                var props = new LinkMessageProperties
-                {
-                    CorrelationId = Guid.NewGuid().ToString("D"),
-                    ReplyTo = queueName
-                };
-                if (messageTtl != null) 
-                    props.Expiration = messageTtl.Value;
-                var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token);
-                var producer = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), true);
-                
-                var request = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), arg, props),
-                    props, new LinkPublishProperties
+                    if (!token.CanBeCanceled)
                     {
-                        RoutingKey = Description.RoutingKey()
-                    });
-                await producer.PublishAsync(request, token);
-                return await waiter;
+                        source = new CancellationTokenSource(timeout);
+                        token = source.Token;
+                        messageTtl = timeout;
+                    }
+                    var queueName = $"{Schema.Service.Owner}.{Schema.ResponseExchange()}.{Guid.NewGuid():D}";
+                    var consumer = Link.GetOrAddConsumer(Schema.ResponseExchange().Name ?? "",
+                        () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange(),
+                            true, false, queueName, false, null, null, false, PrefetchCount(),
+                            new QueueParameters().Expires(ResponseQueueExpires()),
+                            new[] {queueName}, true), queueName));
+                    await consumer.WaitReadyAsync(token);
+                    var props = new LinkMessageProperties
+                    {
+                        CorrelationId = Guid.NewGuid().ToString("D"),
+                        ReplyTo = queueName
+                    };
+                    if (messageTtl != null)
+                        props.Expiration = messageTtl.Value;
+                    var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token);
+                    var producer =
+                        Utils.CreateProducer(Link, Schema.Exchange(), Schema.ContentType(), true);
 
+                    var request = new LinkPublishMessage<byte[]>(
+                        Link.PayloadManager.Serialize(Schema.ContentType(), arg, props),
+                        props, new LinkPublishProperties
+                        {
+                            RoutingKey = Schema.RoutingKey()
+                        });
+                    await producer.PublishAsync(request, token);
+                    var result = await waiter;
+                    log.With("@result", result).Trace($"{nameof(Call)} executed");
+                    return result;
+
+                }
+                finally
+                {
+                    source?.Dispose();
+                }
             }
-            finally
+            catch (Exception ex)
             {
-                source?.Dispose();
+                if(ex.IsCancellation())
+                    log.Info($"{nameof(Call)} cancelled");
+                else
+                    log.Error($"{nameof(Call)} error", ex);
+                throw;
             }
         }
 
@@ -153,132 +207,180 @@ namespace Astral.RabbitLink
 
     internal class CallEndpoint<TService, TArg> : Endpoint<CallSchema>, ICallEndpoint<TService, TArg>
     {
-        public CallEndpoint(ServiceLink link, CallSchema description)
-            : base(link, description)
+        public CallEndpoint(ServiceLink link, CallSchema schema)
+            : base(link, schema)
         {
         }
 
-        private CallEndpoint(ServiceLink link, CallSchema description, IReadOnlyDictionary<string, object> store) 
-            : base(link, description, store)
+        private CallEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+            : base(link, schema, store)
         {
         }
+
+        ICallSchema IActionClient<TArg>.Schema => Schema;
+
+
+        ICallSchema IActionServer<TArg>.Schema => Schema;
+        
 
         public ushort PrefetchCount() => GetParameter(nameof(PrefetchCount), (ushort) 1);
         public ICallEndpoint<TService, TArg> PrefetchCount(ushort value)
-            => new CallEndpoint<TService, TArg>(Link, Description, SetParameter(nameof(PrefetchCount), value));
+            => new CallEndpoint<TService, TArg>(Link, Schema, SetParameter(nameof(PrefetchCount), value));
         
         public TimeSpan Timeout() => GetParameter(nameof(Timeout), TimeSpan.FromMinutes(10));
         public ICallEndpoint<TService, TArg> Timeout(TimeSpan value)
         {
             if(value <= TimeSpan.Zero) throw new ArgumentOutOfRangeException("Timeout must be positive time span");
-            return new CallEndpoint<TService, TArg>(Link, Description, SetParameter(nameof(Timeout), value));
+            return new CallEndpoint<TService, TArg>(Link, Schema, SetParameter(nameof(Timeout), value));
         }
         
         public TimeSpan? ResponseQueueExpires() => GetParameter(nameof(ResponseQueueExpires), TimeSpan.FromHours(1));
         public ICallEndpoint<TService, TArg> ResponseQueueExpires(TimeSpan? value)
         {
             if(value != null &&  value.Value <= TimeSpan.Zero) throw new ArgumentOutOfRangeException("Timeout must be positive time span");
-            return new CallEndpoint<TService, TArg>(Link, Description, SetParameter(nameof(ResponseQueueExpires), value));
+            return new CallEndpoint<TService, TArg>(Link, Schema, SetParameter(nameof(ResponseQueueExpires), value));
         }
         
 
         public IDisposable Process(Func<TArg, CancellationToken, Task> processor)
         {
-            var queue = Description.RequestQueue();
-            var consumerBuilder =
-                Utils.CreateConsumerBuilder(Link, Description.Exchange(),
-                    false, false, queue.Name, false, null, null, false,
-                    PrefetchCount(), new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
-                    new[] {Description.RoutingKey()}, true);
-            
-            var publisher = Utils.CreateProducer(Link, Description.ResponseExchange(), Description.ContentType(),
-                false, false);
-            consumerBuilder.Handler(async msg =>
+            Log.Trace($"{nameof(Process)} enter");
+            try
             {
-                var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
-                var tsk = processor(data, msg.Cancellation);
-                try
-                {
-                    var props = new LinkMessageProperties
-                    {
-                        CorrelationId = msg.Properties.CorrelationId
-                    };
-                    await tsk;
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), new RpcOk(), props),
-                        props,
-                        new LinkPublishProperties
-                        {
-                            RoutingKey = msg.Properties.ReplyTo
-                        });
-                    await publisher.PublishAsync(answer, msg.Cancellation);
-                }
-                catch(Exception ex)
-                {
-                    if (tsk.IsCanceled)
-                        return LinkConsumerAckStrategy.Requeue;
-                    var props = new LinkMessageProperties
-                    {
-                        CorrelationId = msg.Properties.CorrelationId
-                    };
-                    var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), new RpcFail
-                        {
-                            Kind    = ex.GetType().FullName,
-                            Message = ex.Message
-                        }, props),
-                        props,
-                        new LinkPublishProperties
-                        {
-                            RoutingKey = msg.Properties.ReplyTo
-                        });
-                    await publisher.PublishAsync(answer, msg.Cancellation);
-                }
-                return LinkConsumerAckStrategy.Ack;
-            });
+                var queue = Schema.RequestQueue();
+                var consumerBuilder =
+                    Utils.CreateConsumerBuilder(Link, Schema.Exchange(),
+                        false, false, queue.Name, false, null, null, false,
+                        PrefetchCount(),
+                        new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
+                        new[] {Schema.RoutingKey()}, true);
 
-            return consumerBuilder.Build();
+                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange(), Schema.ContentType(),
+                    false, false);
+                consumerBuilder.Handler(async msg =>
+                {
+                    var log = Log.With("@msg", msg);
+                    log.Trace("Message receiving");
+                    try
+                    {
+                        var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
+                        var tsk = processor(data, msg.Cancellation);
+                        try
+                        {
+                            var props = new LinkMessageProperties
+                            {
+                                CorrelationId = msg.Properties.CorrelationId
+                            };
+                            await tsk;
+                            var answer = new LinkPublishMessage<byte[]>(
+                                Link.PayloadManager.Serialize(Schema.ContentType(), new RpcOk(), props),
+                                props,
+                                new LinkPublishProperties
+                                {
+                                    RoutingKey = msg.Properties.ReplyTo
+                                });
+                            await publisher.PublishAsync(answer, msg.Cancellation);
+                            log.Trace("Receive success");
+                        }
+                        catch (Exception ex)
+                        {
+                            if (tsk.IsCanceled)
+                                return LinkConsumerAckStrategy.Requeue;
+                            var props = new LinkMessageProperties
+                            {
+                                CorrelationId = msg.Properties.CorrelationId
+                            };
+                            var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(
+                                    Schema.ContentType(), new RpcFail
+                                    {
+                                        Kind = ex.GetType().FullName,
+                                        Message = ex.Message
+                                    }, props),
+                                props,
+                                new LinkPublishProperties
+                                {
+                                    RoutingKey = msg.Properties.ReplyTo
+                                });
+                            await publisher.PublishAsync(answer, msg.Cancellation);
+                            log.Trace("Receive success with error", ex);
+                        }
+                        return LinkConsumerAckStrategy.Ack;
+                    }
+                    catch (Exception ex)
+                    {
+                        if(ex.IsCancellation())
+                            log.Info("Cancelled");
+                        else
+                            log.Error("Message receive", ex);
+                        throw;
+                    }
+                });
+
+                return consumerBuilder.Build();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{nameof(Process)} error", ex);
+                throw;
+            }
         }
         
         private async Task Call(TArg arg, CancellationToken token, TimeSpan timeout)
         {
-            CancellationTokenSource source = null;
-            TimeSpan? messageTtl = null;
+            var log = Log.With("@message", arg);
+            log.Trace($"{nameof(Call)} enter");
             try
             {
-                if (!token.CanBeCanceled)
+                CancellationTokenSource source = null;
+                TimeSpan? messageTtl = null;
+                try
                 {
-                    source = new CancellationTokenSource(timeout);
-                    token = source.Token;
-                    messageTtl = timeout;
-                }
-                var queueName = $"{Description.Service.Owner}.{Description.ResponseExchange()}.{Guid.NewGuid():D}";
-                var consumer = Link.GetOrAddConsumer(Description.ResponseExchange().Name ?? "",
-                    () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Description.ResponseExchange(),
-                        true, false, queueName, false, null, null, false, PrefetchCount(),
-                        new QueueParameters().Expires(ResponseQueueExpires()),
-                        new[] {queueName}, true), queueName));
-                //await consumer.WaitReadyAsync(token);
-                var props = new LinkMessageProperties
-                {
-                    CorrelationId = Guid.NewGuid().ToString("D"),
-                    ReplyTo = queueName
-                };
-                if (messageTtl != null)
-                    props.Expiration = messageTtl.Value;
-                var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token);
-                var producer = Utils.CreateProducer(Link, Description.Exchange(), Description.ContentType(), true);
-                
-                var request = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(Description.ContentType(), arg, props),
-                    props, new LinkPublishProperties
+                    if (!token.CanBeCanceled)
                     {
-                        RoutingKey = Description.RoutingKey()
-                    });
-                await producer.PublishAsync(request, token);
-                await waiter;
+                        source = new CancellationTokenSource(timeout);
+                        token = source.Token;
+                        messageTtl = timeout;
+                    }
+                    var queueName = $"{Schema.Service.Owner}.{Schema.ResponseExchange()}.{Guid.NewGuid():D}";
+                    var consumer = Link.GetOrAddConsumer(Schema.ResponseExchange().Name ?? "",
+                        () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange(),
+                            true, false, queueName, false, null, null, false, PrefetchCount(),
+                            new QueueParameters().Expires(ResponseQueueExpires()),
+                            new[] {queueName}, true), queueName));
+                    await consumer.WaitReadyAsync(token);
+                    var props = new LinkMessageProperties
+                    {
+                        CorrelationId = Guid.NewGuid().ToString("D"),
+                        ReplyTo = queueName
+                    };
+                    if (messageTtl != null)
+                        props.Expiration = messageTtl.Value;
+                    var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token);
+                    var producer =
+                        Utils.CreateProducer(Link, Schema.Exchange(), Schema.ContentType(), true);
 
+                    var request = new LinkPublishMessage<byte[]>(
+                        Link.PayloadManager.Serialize(Schema.ContentType(), arg, props),
+                        props, new LinkPublishProperties
+                        {
+                            RoutingKey = Schema.RoutingKey()
+                        });
+                    await producer.PublishAsync(request, token);
+                    await waiter;
+                    log.Trace($"{nameof(Call)} success");
+                }
+                finally
+                {
+                    source?.Dispose();
+                }
             }
-            finally
+            catch (Exception ex)
             {
-                source?.Dispose();
+                if(ex.IsCancellation())
+                    log.Info($"{nameof(Call)} cancelled");
+                else
+                    log.Error($"{nameof(Call)} error", ex);
+                throw;
             }
         }
 

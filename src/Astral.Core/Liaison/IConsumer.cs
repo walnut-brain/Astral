@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Astral.Schema;
 
 namespace Astral.Liaison
 {
@@ -10,6 +11,11 @@ namespace Astral.Liaison
     /// <typeparam name="TMessage">message type</typeparam>
     public interface IConsumer<out TMessage> 
     {
+        /// <summary>
+        /// endpoint schema
+        /// </summary>
+        IEndpointSchema Schema { get; }
+        
         /// <summary>
         /// subsribe to message
         /// </summary>
