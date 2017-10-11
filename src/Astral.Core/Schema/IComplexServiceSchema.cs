@@ -6,5 +6,8 @@ namespace Astral.Schema
     {
         IEnumerable<IEventSchema> Events { get; }
         IEnumerable<ICallSchema> Calls { get; }
+        IEnumerable<ITypeSchema> Types { get; }
+        IReadOnlyDictionary<string, IEventSchema> EventByCodeName { get; }
+        IReadOnlyDictionary<string, ICallSchema> CallByCodeName { get; }
     }
 }

@@ -11,15 +11,15 @@ using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<CallSchema>, ICallEndpoint<TService, TArg, TResult> 
+    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<ICallSchema>, ICallEndpoint<TService, TArg, TResult> 
     {
 
-        public CallEndpoint(ServiceLink link, CallSchema schema)
+        public CallEndpoint(ServiceLink link, ICallSchema schema)
             : base(link, schema)
         {
         }
 
-        private CallEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private CallEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
         }
@@ -205,14 +205,14 @@ namespace Astral.RabbitLink
             => Call(arg, CancellationToken.None, timeout);
     }
 
-    internal class CallEndpoint<TService, TArg> : Endpoint<CallSchema>, ICallEndpoint<TService, TArg>
+    internal class CallEndpoint<TService, TArg> : Endpoint<ICallSchema>, ICallEndpoint<TService, TArg>
     {
-        public CallEndpoint(ServiceLink link, CallSchema schema)
+        public CallEndpoint(ServiceLink link, ICallSchema schema)
             : base(link, schema)
         {
         }
 
-        private CallEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private CallEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
         }

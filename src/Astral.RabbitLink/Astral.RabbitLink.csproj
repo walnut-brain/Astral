@@ -1,14 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Authors>Ivan Simongauz</Authors>
     <Description>Rabbit link astral contracts implementation</Description>
-    <Copyright>Ivan Simongauz 2017</Copyright>
-    <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>Astral Framework MicroServices RabbitLink</PackageTags>
-    <VersionPrefix>0.3.1-beta</VersionPrefix>
-    <VersionSuffix>
-    </VersionSuffix>
     <PackageReleaseNotes>
     </PackageReleaseNotes>
   </PropertyGroup>

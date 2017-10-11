@@ -4,7 +4,10 @@
  using System.Threading.Tasks;
  using Astral.Liaison;
  using Astral.RabbitLink;
+ using Astral.Schema;
+ using Astral.Schema.Json;
  using Microsoft.Extensions.Logging;
+ using Newtonsoft.Json;
  using RabbitLink.Messaging;
  using RabbitLink.Serialization.Json;
  using SampleServices;
@@ -44,6 +47,7 @@ namespace SampleApp
                     .Build())
             {
                 var service = link.Service<IFirstService>().Schema;
+                var json = service.ToYaml();
                 link.Service<IFirstService>().Event(p => p.Event)
                     .Listen(async (p, ct) =>
                     {

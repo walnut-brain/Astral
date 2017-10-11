@@ -11,7 +11,7 @@ namespace SampleServices
         [Endpoint("event")]
         EventHandler<EventContract> Event { get; }
         
-        [Exchange("test.call.exchange")]
+        [Exchange("test.call.exchange", Durable = false)]
         [Endpoint("test.call")]
         Func<int, int> Call { get; }
     }

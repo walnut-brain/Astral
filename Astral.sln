@@ -1,9 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.15
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFD8E592-8E24-4442-98E6-E105850659CE}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B8943705-69CD-4A40-9DB4-EBCE30BC7478}"
 EndProject
@@ -13,17 +16,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.Schema", "src\Astral
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchemaTests", "tests\SchemaTests\SchemaTests.csproj", "{654D90F5-7966-4B0A-937F-17DF5A6E786E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Markup", "src\Astral.Markup\Astral.Markup.csproj", "{18B33233-D7D3-440E-97FB-360E0C413546}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.Markup", "src\Astral.Markup\Astral.Markup.csproj", "{18B33233-D7D3-440E-97FB-360E0C413546}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral", "src\Astral\Astral.csproj", "{9E02617C-4A5E-444E-9A54-0929CF3A8B96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleServices", "samples\SampleServices\SampleServices.csproj", "{EE8E0BD7-D576-4D5F-AA57-8C2ACC11E572}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleServices", "samples\SampleServices\SampleServices.csproj", "{EE8E0BD7-D576-4D5F-AA57-8C2ACC11E572}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.RabbitLink", "src\Astral.RabbitLink\Astral.RabbitLink.csproj", "{34AC85A2-1BFC-465C-BC5C-437DA2B3D9D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.RabbitLink", "src\Astral.RabbitLink\Astral.RabbitLink.csproj", "{34AC85A2-1BFC-465C-BC5C-437DA2B3D9D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "samples\SampleApp\SampleApp.csproj", "{2A9EB2D5-75AA-4F45-BB91-C39210935551}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "samples\SampleApp\SampleApp.csproj", "{2A9EB2D5-75AA-4F45-BB91-C39210935551}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Core", "src\Astral.Core\Astral.Core.csproj", "{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.Core", "src\Astral.Core\Astral.Core.csproj", "{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.Json", "src\Astral.Schema.Json\Astral.Schema.Json.csproj", "{A8F2A192-EE51-4E44-8371-26C5241714BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.Yaml", "src\Astral.Schema.Yaml\Astral.Schema.Yaml.csproj", "{EC7EA201-5034-48D2-83E8-255B70BE3F65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +70,14 @@ Global
 		{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F2A192-EE51-4E44-8371-26C5241714BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F2A192-EE51-4E44-8371-26C5241714BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F2A192-EE51-4E44-8371-26C5241714BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F2A192-EE51-4E44-8371-26C5241714BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +91,8 @@ Global
 		{34AC85A2-1BFC-465C-BC5C-437DA2B3D9D3} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{2A9EB2D5-75AA-4F45-BB91-C39210935551} = {B8943705-69CD-4A40-9DB4-EBCE30BC7478}
 		{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED} = {AFD8E592-8E24-4442-98E6-E105850659CE}
+		{A8F2A192-EE51-4E44-8371-26C5241714BA} = {AFD8E592-8E24-4442-98E6-E105850659CE}
+		{EC7EA201-5034-48D2-83E8-255B70BE3F65} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}

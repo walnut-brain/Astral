@@ -11,17 +11,17 @@ using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<CallSchema>, 
+    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<ICallSchema>, 
         IResponseEndpoint<TService, TRequest, TResponse>
     {
         
-        public ResponseEndpoint(ServiceLink link, CallSchema schema)
+        public ResponseEndpoint(ServiceLink link, ICallSchema schema)
             : base(link, schema)
         {
             
         }
 
-        private ResponseEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private ResponseEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
         }

@@ -21,16 +21,16 @@ namespace Astral.Schema.Data
                 ProcessType(type, null, contractFromName, knownMaps);
             }
 
+            var duplicate = knownMaps.Values.OfType<NamedTypeDesc>().GroupBy(p => p.Name).Select(p => (p.Key, p.Count())).Where(p => p.Item2 > 1).Select(p => p.Item1).FirstOrDefault();
+            if(duplicate != null)
+                throw new SchemaException($"Duplicate type name {duplicate}");
+
             foreach (var (typeToCall, action) in types)
             {
                 var desc =  typeToCall.Select(p => knownMaps[p]).ToArray();
-
-                var noContract = desc.First(p => p.Contract == null);
-                if(noContract != null)
-                    throw new SchemaException($"Unknown contract name for {noContract.DotNetType}");
                 action(desc.Select(p => p.Contract).ToArray());
             }
-            return knownMaps.Values.Where(p => !(p is SimpleTypeDesc || p is ArrayTypeDesc));
+            return knownMaps.Values.Where(p => p is NamedTypeDesc);
 
         }
 
@@ -43,6 +43,12 @@ namespace Astral.Schema.Data
             {
                 known.Add(type, simple.Unwrap());
                 return simple.Unwrap();
+            }
+            if (type.IsConstructedGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                var desc = new NullableTypeDesc(type, ProcessType(type.GenericTypeArguments[0], null, contractFromName, known));
+                known.Add(type, desc);
+                return desc;
             }
             if (type.IsArray)
             {
@@ -60,12 +66,13 @@ namespace Astral.Schema.Data
                 known.Add(type, desc);
                 return desc;
             }
+            
             if (type.IsEnum)
             {
                 var baseType = (SimpleTypeDesc) ProcessType(Enum.GetUnderlyingType(type), null, contractFromName, known);
                 var contract = contractName ?? type.GetCustomAttribute<ContractAttribute>()?.Name ??
                                (contractFromName ? ContractFromName(type.Name) : null);
-                var enumType = new EnumTypeDesc(type.Name, contract, type, baseType, Enum.GetValues(type).Cast<object>().Select(p => (p, Convert.ToInt64(p))).Select(p => new KeyValuePair<string, long>(Enum.GetName(type, p.Item1), p.Item2)));
+                var enumType = new EnumTypeDesc(type, NormalizeName(type), contract, baseType, Enum.GetValues(type).Cast<object>().Select(p => (p, Convert.ToInt64(p))).Select(p => new KeyValuePair<string, long>(Enum.GetName(type, p.Item1), p.Item2)));
                 known.Add(type, enumType);
                 return enumType;
             }
@@ -81,10 +88,10 @@ namespace Astral.Schema.Data
                 var propQuery = type.GetProperties().Where(p => p.DeclaringType == type)
                     .Select(p => (p.Name, ProcessType(p.PropertyType, null, contractFromName, known)));
                 if (baseDesc != null)
-                    typeDesc = new ComplexTypeDesc(type.Name, contract, type, baseDesc,
+                    typeDesc = new ComplexTypeDesc(type, NormalizeName(type), contract, baseDesc,
                         propQuery.Select(p => new KeyValuePair<string, TypeDesc>(p.Item1, p.Item2)));
                 else
-                    typeDesc = new ComplexTypeDesc(type.Name, contract, type, propQuery.ToDictionary(p => p.Item1, p => p.Item2));
+                    typeDesc = new ComplexTypeDesc(type, NormalizeName(type), contract, propQuery.ToDictionary(p => p.Item1, p => p.Item2));
                     
                 known.Add(type, typeDesc);
                 foreach (var attribute in type.GetCustomAttributes<KnownContractAttribute>())
@@ -100,11 +107,22 @@ namespace Astral.Schema.Data
                                (contractFromName ? ContractFromName(type.Name) : null);
                 var propQuery = type.GetProperties()
                     .Select(p => (p.Name, ProcessType(p.PropertyType, null, contractFromName, known)));
-                var typeDesc = new ComplexTypeDesc(type.Name, contract, type, propQuery.ToDictionary(p => p.Item1, p => p.Item2));
+                var typeDesc = new ComplexTypeDesc(type, NormalizeName(type), contract, propQuery.ToDictionary(p => p.Item1, p => p.Item2));
                 known.Add(type, typeDesc);
                 return typeDesc;
             }
+            
+            
             throw new SchemaException($"Cannot create schema for type {type}");
+        }
+
+        private static string NormalizeName(Type type)
+        {
+            var fn = type.FullName;
+            var dotPos = fn.LastIndexOf(".", StringComparison.InvariantCulture);
+            if (dotPos >= 0)
+                fn = fn.Substring(dotPos + 1);
+            return fn.Replace("+", ".");
         }
 
         private static string ContractFromName(string name)

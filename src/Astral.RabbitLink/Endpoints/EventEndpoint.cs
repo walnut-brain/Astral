@@ -13,14 +13,14 @@ using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class EventEndpoint<TService, TEvent> : Endpoint<EventSchema>, IEventEndpoint<TService, TEvent> 
+    internal class EventEndpoint<TService, TEvent> : Endpoint<IEventSchema>, IEventEndpoint<TService, TEvent> 
     {
-        public EventEndpoint(ServiceLink link, EventSchema schema)
+        public EventEndpoint(ServiceLink link, IEventSchema schema)
             : base(link, schema)
         {
         }
 
-        private EventEndpoint(ServiceLink link, EventSchema schema, IReadOnlyDictionary<string, object> store) 
+        private EventEndpoint(ServiceLink link, IEventSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
             

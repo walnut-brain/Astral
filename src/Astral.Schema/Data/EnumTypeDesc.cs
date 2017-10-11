@@ -7,11 +7,10 @@ namespace Astral.Schema.Data
 {
     public sealed class EnumTypeDesc : NamedTypeDesc
     {
-        public EnumTypeDesc(string name, string contract, Type dotNetType, SimpleTypeDesc baseType, IEnumerable<KeyValuePair<string, long>> values)
-            : base(name)
+        public EnumTypeDesc(Type dotNetType, string name, string contract, SimpleTypeDesc baseType, IEnumerable<KeyValuePair<string, long>> values)
+            : base(dotNetType, name, contract)
         {
-            Contract = contract;
-            DotNetType = dotNetType;
+
             BaseType = baseType;
             Values = new ReadOnlyDictionary<string, long>(values.ToDictionary(p => p.Key, p => p.Value));
         }
@@ -19,7 +18,5 @@ namespace Astral.Schema.Data
         public SimpleTypeDesc BaseType { get; }
         public IReadOnlyDictionary<string, long> Values { get; }
 
-        public override string Contract { get; }
-        public override Type DotNetType { get; }
     }
 }

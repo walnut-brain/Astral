@@ -21,5 +21,11 @@ namespace Astral.Schema
 
         public Type ResponseType() => TryGetProperty<Type>(nameof(ResponseType)).IfNoneDefault();
         public CallSchema ResponseType(Type value) => SetProperty(nameof(ResponseType), value);
+        
+        public string RequestContract() => TryGetProperty<string>(nameof(RequestContract)).IfNoneDefault();
+        public CallSchema RequestContract(string value) => SetProperty(nameof(RequestContract), value);
+
+        public string ResponseContract() => TryGetProperty<string>(nameof(ResponseContract)).IfNoneDefault();
+        public CallSchema ResponseContract(string value) => SetProperty(nameof(ResponseContract), value);
     }
 }

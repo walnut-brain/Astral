@@ -13,17 +13,17 @@ using RabbitLink.Topology;
 
 namespace Astral.RabbitLink
 {
-    internal class RequestEndpoint<TService, TRequest, TResponse> : Endpoint<CallSchema>
+    internal class RequestEndpoint<TService, TRequest, TResponse> : Endpoint<ICallSchema>
         , IRequestEndpoint<TService, TRequest, TResponse>
     {
         
 
-        public RequestEndpoint(ServiceLink link, CallSchema schema)
+        public RequestEndpoint(ServiceLink link, ICallSchema schema)
             : base(link, schema)
         {
         }
 
-        private RequestEndpoint(ServiceLink link, CallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private RequestEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
             

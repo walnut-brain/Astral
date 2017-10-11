@@ -6,5 +6,7 @@ namespace Astral.Schema
     {
         Type RequestType();
         Type ResponseType();
+        string RequestContract();
+        string ResponseContract();
     }
 }

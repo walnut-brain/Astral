@@ -9,7 +9,6 @@ using Astral.Markup;
 using Astral.Markup.RabbitMq;
 using Astral.Schema.Data;
 using Astral.Schema.RabbitMq;
-using Newtonsoft.Json.Linq;
 
 namespace Astral.Schema
 {
@@ -17,10 +16,8 @@ namespace Astral.Schema
     public class ServiceSchema : IComplexServiceSchema
     {
         private readonly RootSchema _root;
-        private string _name;
-        private string _owner;
-        private IEnumerable<IEventSchema> _events;
-        private IEnumerable<ICallSchema> _calls;
+        private readonly IReadOnlyDictionary<string, IEventSchema> _eventByCodeName;
+        private readonly IReadOnlyDictionary<string, ICallSchema> _callByCodeName;
 
         public ServiceSchema(RootSchema root, IEnumerable<EventSchema> events, IEnumerable<CallSchema> calls, IEnumerable<TypeDesc> contracts)
         {
@@ -28,10 +25,14 @@ namespace Astral.Schema
             Events = new ReadOnlyDictionary<string, EventSchema>(events.ToDictionary(p => p.Name, p => p));
             Calls = new ReadOnlyDictionary<string, CallSchema>(calls.ToDictionary(p => p.Name, p => p));
             Contracts = new ReadOnlyCollection<TypeDesc>(contracts.ToList());
+            var eventSchemata = Events.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value);
             EventByPropertyName = new ReadOnlyDictionary<string, EventSchema>(
-                Events.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value));
+                eventSchemata);
+            var callSchemata = Calls.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value);
             CallByPropertyName = new ReadOnlyDictionary<string, CallSchema>(
-                Calls.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value));
+                callSchemata);
+            _eventByCodeName = new ReadOnlyDictionary<string, IEventSchema>(eventSchemata.ToDictionary(p => p.Key, p => (IEventSchema) p.Value));
+            _callByCodeName = new ReadOnlyDictionary<string, ICallSchema>(callSchemata.ToDictionary(p => p.Key, p => (ICallSchema) p.Value));
         }
 
         bool ISchema.TryGetProperty<T>(string property, out T value)
@@ -41,6 +42,14 @@ namespace Astral.Schema
 
 
         string IServiceSchema.Owner => _root.Owner;
+
+        IEnumerable<ITypeSchema> IComplexServiceSchema.Types => Contracts;
+
+        IReadOnlyDictionary<string, IEventSchema> IComplexServiceSchema.EventByCodeName => _eventByCodeName;
+
+
+        IReadOnlyDictionary<string, ICallSchema> IComplexServiceSchema.CallByCodeName => _callByCodeName;
+        
 
 
         string IServiceSchema.CodeName() => _root.CodeName();
@@ -174,10 +183,19 @@ namespace Astral.Schema
                     if (responseQueueAttr != null)
                         endpoint = endpoint.RequestQueue(new RequestQueueSchema(responseQueueAttr.Name,
                             responseQueueAttr.Durable, responseQueueAttr.AutoDelete));
-                    calls.Add(endpoint);
+                    
+                    if(property.PropertyType.GenericTypeArguments.Length > 1)
+                        types.Add((
+                            new [] {property.PropertyType.GenericTypeArguments[0], property.PropertyType.GenericTypeArguments[1]},
+                            m =>
+                            {
+                                var ep = endpoint.RequestContract(m[0]).ResponseContract(m[1]);
+                                calls.Add(ep);
+                            }));
                 }
             }
-            return new ServiceSchema(schema, events, calls, Enumerable.Empty<TypeDesc>());
+            var typeDescs = SchemaMaker.FromTypeList(types, false).ToList();
+            return new ServiceSchema(schema, events, calls, typeDescs);
         }
 
         public static string PropertyNameToEndpointName(string propertyName)
@@ -200,9 +218,6 @@ namespace Astral.Schema
             return lastPart.ToLower();
         }
 
-        /*public JObject ToJson()
-        {
-            
-        }*/
+        
     }
 }

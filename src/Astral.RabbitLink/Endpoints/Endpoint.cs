@@ -8,7 +8,7 @@ using Astral.Schema;
 namespace Astral.RabbitLink
 {
     internal abstract class Endpoint<TSchema> : BuilderBase
-        where TSchema : EndpointSchema<TSchema>
+        where TSchema : IEndpointSchema
     {
         public TSchema Schema { get; }
         protected ServiceLink Link { get; }

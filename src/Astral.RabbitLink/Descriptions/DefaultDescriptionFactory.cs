@@ -27,13 +27,13 @@ namespace Astral.RabbitLink.Descriptions
         /// </summary>
         /// <param name="type">service interface type</param>
         /// <returns>service description</returns>
-        protected virtual ServiceSchema GenerateDescription(Type type)
+        protected virtual IComplexServiceSchema GenerateDescription(Type type)
             => ServiceSchema.FromType(type, _useMemberNames);
         
         
-        private readonly ConcurrentDictionary<Type, ServiceSchema> _cache = new ConcurrentDictionary<Type, ServiceSchema>();
+        private readonly ConcurrentDictionary<Type, IComplexServiceSchema> _cache = new ConcurrentDictionary<Type, IComplexServiceSchema>();
 
-        public ServiceSchema GetDescription(Type type)
+        public IComplexServiceSchema GetDescription(Type type)
         {
             return _cache.GetOrAdd(type, GenerateDescription);
         }

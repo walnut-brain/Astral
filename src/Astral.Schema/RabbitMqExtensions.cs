@@ -6,6 +6,15 @@ namespace Astral.Schema
 {
     public static class RabbitMqExtensions
     {
+        public static bool HasExchange(this ISchema schema)
+            => schema.TryGetProperty<ExchangeSchema>(nameof(Exchange)).IsSome;
+        
+        public static ExchangeSchema Exchange(this IComplexServiceSchema schema) =>
+            schema.TryGetProperty<ExchangeSchema>(nameof(Exchange))
+                .Map(p => string.IsNullOrWhiteSpace(p.Name) ? new ExchangeSchema($"{schema.Owner}.{schema.Name}", p.Type,
+                    p.Durable, p.AutoDelete, p.Delayed, p.Alternate) : p)
+                .IfNone(() => new ExchangeSchema($"{schema.Owner}.{schema.Name}"));
+        
         public static ExchangeSchema Exchange(this IServiceSchema schema) =>
             schema.TryGetProperty<ExchangeSchema>(nameof(Exchange))
                 .Map(p => string.IsNullOrWhiteSpace(p.Name) ? new ExchangeSchema($"{schema.Owner}.{schema.Name}", p.Type,
@@ -33,6 +42,10 @@ namespace Astral.Schema
         public static T Exchange<T>(this T schema, ExchangeSchema exchange)
             where T : EndpointSchema<T> => schema.SetProperty(nameof(Exchange), exchange);
 
+
+        public static bool HasResponseExchange(this ISchema schema) =>
+            schema.TryGetProperty<ExchangeSchema>(nameof(ResponseExchange)).IsSome;
+        
         public static ExchangeSchema ResponseExchange(this IServiceSchema schema) =>
             schema.TryGetProperty<ExchangeSchema>(nameof(ResponseExchange))
                 .Map(p => string.IsNullOrWhiteSpace(p.Name) 
@@ -67,6 +80,10 @@ namespace Astral.Schema
             return schema;
         }
 
+        public static bool HasRoutingKey<T>(this T schema)
+            where T : IEndpointSchema
+            => schema.TryGetProperty<string>(nameof(RoutingKey)).IsSome;
+        
         public static string RoutingKey<T>(this T schema)
             where T : IEndpointSchema
             => schema.TryGetProperty<string>(nameof(RoutingKey)).IfNone(schema.Name);
@@ -75,6 +92,10 @@ namespace Astral.Schema
             where T : EndpointSchema<T> => schema.SetProperty(nameof(RoutingKey), value);
 
 
+        public static bool HasRequestQueue(this ICallSchema schema)
+            => schema
+                .TryGetProperty<RequestQueueSchema>(nameof(RequestQueue)).IsSome;
+        
         public static RequestQueueSchema RequestQueue(this ICallSchema schema)
             => schema
                 .TryGetProperty<RequestQueueSchema>(nameof(RequestQueue))
