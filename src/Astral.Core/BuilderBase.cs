@@ -7,17 +7,22 @@ namespace Astral
 {
     public abstract class BuilderBase
     {
-        protected IReadOnlyDictionary<string, object> Store { get; }
+        private IReadOnlyDictionary<string, object> Store { get; }
+        protected ISet<string> ReadOnlyProps { get; }
 
-        protected BuilderBase(IReadOnlyDictionary<string, object> store)
+        protected BuilderBase(IEnumerable<string> readonlyProperties, IReadOnlyDictionary<string, object> store)
         {
-            Store = store;
+            if (readonlyProperties == null) throw new ArgumentNullException(nameof(readonlyProperties));
+            ReadOnlyProps = new SortedSet<string>(readonlyProperties.Distinct());
+            Store = store ?? throw new ArgumentNullException(nameof(store));
         }
-
         
+        
+
         protected BuilderBase()
         {
             Store = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>());
+            ReadOnlyProps = new SortedSet<string>();
         }
 
 
@@ -30,6 +35,9 @@ namespace Astral
 
         protected IReadOnlyDictionary<string, object> SetParameter<T>(string name, T value)
         {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if(ReadOnlyProps.Contains(name))
+                throw new ArgumentException($"Property {name} declared as readonly");
             var dict = Store.ToDictionary(p => p.Key, p => p.Value);
             dict[name] = value;
             return new ReadOnlyDictionary<string, object>(dict);

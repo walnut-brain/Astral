@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Mime;
@@ -8,72 +9,112 @@ using System.Text;
 using Astral.Markup;
 using Astral.Markup.RabbitMq;
 using Astral.Schema.Data;
-using Astral.Schema.RabbitMq;
+using Astral.Schema.Green;
 
 namespace Astral.Schema
 {
 
-    public class ServiceSchema : IComplexServiceSchema
+    public class ServiceSchema
     {
-        private readonly RootSchema _root;
-        private readonly IReadOnlyDictionary<string, IEventSchema> _eventByCodeName;
-        private readonly IReadOnlyDictionary<string, ICallSchema> _callByCodeName;
-
-        public ServiceSchema(RootSchema root, IEnumerable<EventSchema> events, IEnumerable<CallSchema> calls, IEnumerable<TypeDesc> contracts)
+        private readonly ImmutableDictionary<string, Lazy<CallSchema>> _lazyCallByName;
+        private readonly ImmutableDictionary<string, string> _callNameToCodeName;
+        private readonly Lazy<ExchangeSchema> _lazyExchange;
+        private readonly Lazy<ExchangeSchema> _lazyResponseExchange;
+        
+        public ServiceSchema(ServiceSchemaGreen greenSchema)
         {
-            _root = root;
-            Events = new ReadOnlyDictionary<string, EventSchema>(events.ToDictionary(p => p.Name, p => p));
-            Calls = new ReadOnlyDictionary<string, CallSchema>(calls.ToDictionary(p => p.Name, p => p));
-            Contracts = new ReadOnlyCollection<TypeDesc>(contracts.ToList());
-            var eventSchemata = Events.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value);
-            EventByPropertyName = new ReadOnlyDictionary<string, EventSchema>(
-                eventSchemata);
-            var callSchemata = Calls.Where(p => !string.IsNullOrWhiteSpace(p.Value.CodeName())).ToDictionary(p => p.Value.CodeName(), p => p.Value);
-            CallByPropertyName = new ReadOnlyDictionary<string, CallSchema>(
-                callSchemata);
-            _eventByCodeName = new ReadOnlyDictionary<string, IEventSchema>(eventSchemata.ToDictionary(p => p.Key, p => (IEventSchema) p.Value));
-            _callByCodeName = new ReadOnlyDictionary<string, ICallSchema>(callSchemata.ToDictionary(p => p.Key, p => (ICallSchema) p.Value));
+            Green = greenSchema;
+            var builder = ImmutableDictionary.CreateBuilder<string, Lazy<CallSchema>>();
+            builder.AddRange(greenSchema.Calls.Select(
+                p => new KeyValuePair<string, Lazy<CallSchema>>(p.Key,
+                    new Lazy<CallSchema>(() => new CallSchema(this, p.Value)))));
+            _lazyCallByName = builder.ToImmutable();
+            var nameBuilder = ImmutableDictionary.CreateBuilder<string, string>();
+            nameBuilder.AddRange(greenSchema.Calls.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
+            _callNameToCodeName = nameBuilder.ToImmutable();
+            _lazyExchange = new Lazy<ExchangeSchema>(() =>
+            {
+                var exchange = Green.Exchange;
+                if (exchange == null) 
+                    return new ExchangeSchema($"{Green.Owner}.{Green.Name}".ToLowerInvariant());
+                if(string.IsNullOrWhiteSpace(exchange.Name))
+                    return new ExchangeSchema($"{Green.Owner}.{Green.Name}".ToLowerInvariant(), exchange.Type,
+                        exchange.Durable, exchange.AutoDelete,
+                        exchange.Delayed, exchange.Alternate);
+                return exchange;
+            });
+            
+            _lazyResponseExchange = new Lazy<ExchangeSchema>(() =>
+            {
+                var exchange = Green.ResponseExchange;
+                if (exchange == null)
+                    return _lazyExchange.Value;
+                
+                if(exchange.Name == null)
+                    return new ExchangeSchema($"{Green.Owner}.{Green.Name}.responses".ToLowerInvariant(), exchange.Type,
+                        exchange.Durable, exchange.AutoDelete,
+                        exchange.Delayed, exchange.Alternate);
+                return exchange;
+            });
         }
 
-        bool ISchema.TryGetProperty<T>(string property, out T value)
-            => ((ISchema) _root).TryGetProperty(property, out value);
-
-        string IServiceSchema.Name => _root.Name;
-
-
-        string IServiceSchema.Owner => _root.Owner;
-
-        IEnumerable<ITypeSchema> IComplexServiceSchema.Types => Contracts;
-
-        IReadOnlyDictionary<string, IEventSchema> IComplexServiceSchema.EventByCodeName => _eventByCodeName;
-
-
-        IReadOnlyDictionary<string, ICallSchema> IComplexServiceSchema.CallByCodeName => _callByCodeName;
+        internal ServiceSchemaGreen Green { get; }
         
-
-
-        string IServiceSchema.CodeName() => _root.CodeName();
-
-
-        Type IServiceSchema.ServiceType() => _root.ServiceType();
-
-        IEnumerable<IEventSchema> IComplexServiceSchema.Events => Events.Values;
-
-
-        IEnumerable<ICallSchema> IComplexServiceSchema.Calls => Calls.Values;
-
-
-        public IReadOnlyDictionary<string, EventSchema> Events { get; }
-
-        public IReadOnlyDictionary<string, CallSchema> Calls { get; }
-
-        public IReadOnlyDictionary<string, EventSchema> EventByPropertyName { get; }
         
-        public IReadOnlyDictionary<string, CallSchema> CallByPropertyName { get; }
-        
+        public ContentType ContentType => Green.ContentType ?? new ContentType("text/json;charset=utf-8");
+        public bool HasContentType => Green.ContentType != null;
 
-        public ICollection<TypeDesc> Contracts { get; }
+        public CallSchema CallByName(string name) => _lazyCallByName[name].Value;
+
+        public bool TryCallByName(string name, out CallSchema callSchema)
+        {
+            if (_lazyCallByName.TryGetValue(name, out var value))
+            {
+                callSchema = value.Value;
+                return true;
+            }
+            callSchema = null;
+            return false;
+        }
+
+        public bool ContainsCallName(string name) => _lazyCallByName.ContainsKey(name);
         
+        public CallSchema CallByCodeName(string codeName) => _lazyCallByName[_callNameToCodeName[codeName]].Value;
+
+        public bool TryCallByCodeName(string codeName, out CallSchema callSchema)
+        {
+            if (_callNameToCodeName.TryGetValue(codeName, out var name))
+            {
+                callSchema = _lazyCallByName[name].Value;
+                return true;
+            }
+            callSchema = null;
+            return false;
+        }
+
+        public bool ContainsCallCodeName(string codeName) => _callNameToCodeName.ContainsKey(codeName);
+
+        
+        public ExchangeSchema Exchange => _lazyExchange.Value;
+        public bool HasExchange => Green.Exchange != null;
+        
+        public ExchangeSchema ResponseExchange => _lazyResponseExchange.Value;
+        public bool HasResponseExchange => Green.ResponseExchange != null;
+
+        public string Name => Green.Name;
+        public string Owner => Green.Owner;
+
+        public string CodeName => Green.CodeName;
+
+        public ServiceSchema SetCodeName(string value)
+        {
+            return new ServiceSchema(new ServiceSchemaGreen(Green.Name, Green.Owner, value, Green.Events, Green.Calls, Green.Types,
+                Green.ContentType, Green.Exchange, Green.ResponseExchange));
+        }
+        
+        public ITypeDeclarationSchema TypeById(int id) => throw new NotImplementedException();
+
+        /*
         public static ServiceSchema FromType<T>(bool convertNames = false)
         {
             var serviceType = typeof(T);
@@ -217,7 +258,7 @@ namespace Astral.Schema
             var lastPart = nameSpace.Substring(pos + 1);
             return lastPart.ToLower();
         }
+        */
 
-        
     }
 }
