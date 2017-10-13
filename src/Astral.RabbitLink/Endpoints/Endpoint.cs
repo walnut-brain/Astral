@@ -30,6 +30,6 @@ namespace Astral.RabbitLink
                 .With("endpoint", schema.Name);
         }
         
-        public ContentType ContentType => Schema.ContentType();
+        public ContentType ContentType => Schema.ContentType;
     }
 }

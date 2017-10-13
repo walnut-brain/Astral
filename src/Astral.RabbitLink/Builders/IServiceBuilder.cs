@@ -11,7 +11,7 @@ namespace Astral.RabbitLink
     /// <typeparam name="TService">service type</typeparam>
     public interface IServiceBuilder<TService>
     {
-        IComplexServiceSchema Schema { get; }
+        IServiceSchema Schema { get; }
         
         /// <summary>
         /// event endpoint factory

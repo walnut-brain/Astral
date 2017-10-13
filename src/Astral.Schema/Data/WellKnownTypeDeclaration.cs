@@ -4,22 +4,22 @@ using Astral.Schema.Green;
 
 namespace Astral.Schema.Data
 {
-    public class WellKnownTypeDeclaration : ITypeDeclarationSchema
+    public class WellKnownTypeSchema : ITypeDeclarationSchema
     {
-        private readonly WellKnownTypeDescriptionSchemaGreen _green;
+        private readonly WellKnownTypeSchemaGreen _green;
 
-        public WellKnownTypeDeclaration(WellKnownTypeDescriptionSchemaGreen green)
+        public WellKnownTypeSchema(WellKnownTypeSchemaGreen green)
         {
             _green = green;
         }
 
-        public string Name => _green.Name;
+        public string SchemaName => _green.SchemaName;
 
-        public string CodeName => _green.DotNetType.FullName;
+        public string CodeName => _green.SchemaName;
 
-        public string Code => _green.Name;
+        public string ContractName => _green.SchemaName;
 
-        public Type DotNetType => _green.DotNetType;
+        public Type DotNetType => _green.DotNetType.IfNoneDefault();
 
         public bool IsWellKnown => true;
     }

@@ -6,22 +6,23 @@ using Astral.Liaison;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
 using Astral.Schema;
+using Astral.Schema.RabbitMq;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<ICallSchema>, 
+    internal class ResponseEndpoint<TService, TRequest, TResponse> : Endpoint<IRabbitMqCallSchema>, 
         IResponseEndpoint<TService, TRequest, TResponse>
     {
         
-        public ResponseEndpoint(ServiceLink link, ICallSchema schema)
+        public ResponseEndpoint(ServiceLink link, IRabbitMqCallSchema schema)
             : base(link, schema)
         {
             
         }
 
-        private ResponseEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private ResponseEndpoint(ServiceLink link, IRabbitMqCallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
         }
@@ -48,7 +49,7 @@ namespace Astral.RabbitLink
             log.Trace($"{nameof(PublishAsync)} enter");
             try
             {
-                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange(), Schema.ContentType(),
+                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange, Schema.ContentType,
                     false, ConfirmsMode());
                 var props = new LinkMessageProperties
                 {
@@ -56,12 +57,12 @@ namespace Astral.RabbitLink
                 };
                 var serializer = Link.PayloadManager;
                 var answer = new LinkPublishMessage<byte[]>(message.IsFail
-                        ? serializer.Serialize(Schema.ContentType(), new RpcFail
+                        ? serializer.Serialize(Schema.ContentType, new RpcFail
                         {
                             Kind = message.Error.GetType().FullName,
                             Message = message.Error.Message
                         }, props)
-                        : serializer.Serialize(Schema.ContentType(), message.Result, props),
+                        : serializer.Serialize(Schema.ContentType, message.Result, props),
                     props,
                     new LinkPublishProperties
                     {
@@ -85,13 +86,13 @@ namespace Astral.RabbitLink
             Log.Trace($"{nameof(Listen)} enter");
             try
             {
-                var queue = Schema.RequestQueue();
+                var queue = Schema.RequestQueue;
                 var consumerBuilder =
-                    Utils.CreateConsumerBuilder(Link, Schema.Exchange(),
+                    Utils.CreateConsumerBuilder(Link, Schema.Exchange,
                         false, false, queue.Name, false, null, null, false,
                         PrefetchCount(),
                         new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
-                        new[] {Schema.RoutingKey()}, true);
+                        new[] {Schema.RoutingKey}, true);
 
                 consumerBuilder = consumerBuilder.Handler(async msg =>
                 {

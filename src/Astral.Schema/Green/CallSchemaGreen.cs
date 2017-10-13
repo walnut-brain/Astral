@@ -20,10 +20,21 @@ namespace Astral.Schema.Green
             ResponseTypeId = responseTypeId;
         }
 
+        public CallSchemaGreen(CallSchemaGreen @base,string name, string codeName, int requestTypeId, int? responseTypeId = null,
+            ContentType contentType = null, string routingKey = null, RequestQueueSchema requestQueue = null,
+            ExchangeSchema exchange = null, ExchangeSchema responseExchange = null) : base(name, codeName, contentType,
+            routingKey, exchange)
+        {
+            ResponseExchange = responseExchange;
+            RequestQueue = requestQueue;
+            RequestTypeId = requestTypeId;
+            ResponseTypeId = responseTypeId;
+        }
+
         public ExchangeSchema ResponseExchange { get; }
         public RequestQueueSchema RequestQueue { get; }
-        public int RequestTypeId { get; };
-        public int? ResponseTypeId { get; };
+        public int RequestTypeId { get; }
+        public int? ResponseTypeId { get; }
     }
 
 

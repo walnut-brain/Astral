@@ -7,23 +7,24 @@ using Astral.Markup.RabbitMq;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
 using Astral.Schema;
+using Astral.Schema.RabbitMq;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
 using RabbitLink.Topology;
 
 namespace Astral.RabbitLink
 {
-    internal class RequestEndpoint<TService, TRequest, TResponse> : Endpoint<ICallSchema>
+    internal class RequestEndpoint<TService, TRequest, TResponse> : Endpoint<IRabbitMqCallSchema>
         , IRequestEndpoint<TService, TRequest, TResponse>
     {
         
 
-        public RequestEndpoint(ServiceLink link, ICallSchema schema)
+        public RequestEndpoint(ServiceLink link, IRabbitMqCallSchema schema)
             : base(link, schema)
         {
         }
 
-        private RequestEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private RequestEndpoint(ServiceLink link, IRabbitMqCallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
             
@@ -97,7 +98,7 @@ namespace Astral.RabbitLink
             => new RequestEndpoint<TService, TRequest, TResponse>(Link, Schema, SetParameter(nameof(Persisent), value));
 
         public bool Persisent()
-            => TryGetParameter<bool>(nameof(Persisent)).IfNone(() => Schema.Exchange().Durable);
+            => TryGetParameter<bool>(nameof(Persisent)).IfNone(() => Schema.Exchange.Durable);
 
         public IDisposable Listen(Func<Response<TResponse>, CancellationToken, Task<Acknowledge>> listener)
         {
@@ -108,7 +109,7 @@ namespace Astral.RabbitLink
                 routingKeys.Add(QueueName());
 
 
-                var consumerBuilder = Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange(),
+                var consumerBuilder = Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange,
                     ExchangePassive(), QueuePassive(), QueueName(), AutoAck(), CancelOnHaFailover(), ErrorStrategy(),
                     Exclusive(), PrefetchCount(), QueueParameters(), routingKeys, Bind());
 
@@ -180,17 +181,19 @@ namespace Astral.RabbitLink
                 var props = new LinkMessageProperties
                 {
                     CorrelationId = message.CorrelationId,
-                    ReplyTo = QueueName()
+                    ReplyTo = QueueName(),
+                    Expiration = MessageTtl(),
+                    DeliveryMode = Persisent() ? LinkDeliveryMode.Persistent : LinkDeliveryMode.Transient
                 };
                 var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
 
                 var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
                 {
                     RoutingKey =
-                        Schema.Exchange().Type == ExchangeKind.Fanout ? null : Schema.RoutingKey()
+                        Schema.Exchange.Type == ExchangeKind.Fanout ? null : Schema.RoutingKey
 
                 });
-                var publisher = Utils.CreateProducer(Link, Schema.Exchange(), Schema.ContentType(),
+                var publisher = Utils.CreateProducer(Link, Schema.Exchange, Schema.ContentType,
                     ExchangePassive(),
                     ConfirmsMode(), NamedProducer());
                 await publisher.PublishAsync(msg, token);

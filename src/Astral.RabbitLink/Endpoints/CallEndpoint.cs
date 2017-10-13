@@ -6,20 +6,21 @@ using Astral.Liaison;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Internals;
 using Astral.Schema;
+using Astral.Schema.RabbitMq;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
 
 namespace Astral.RabbitLink
 {
-    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<ICallSchema>, ICallEndpoint<TService, TArg, TResult> 
+    internal class CallEndpoint<TService, TArg, TResult> :  Endpoint<IRabbitMqCallSchema>, ICallEndpoint<TService, TArg, TResult> 
     {
 
-        public CallEndpoint(ServiceLink link, ICallSchema schema)
+        public CallEndpoint(ServiceLink link, IRabbitMqCallSchema schema)
             : base(link, schema)
         {
         }
 
-        private CallEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private CallEndpoint(ServiceLink link, IRabbitMqCallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
         }
@@ -53,15 +54,15 @@ namespace Astral.RabbitLink
             Log.Trace($"{nameof(Process)} enter");
             try
             {
-                var queue = Schema.RequestQueue();
+                var queue = Schema.RequestQueue;
                 var consumerBuilder =
-                    Utils.CreateConsumerBuilder(Link, Schema.Exchange(),
+                    Utils.CreateConsumerBuilder(Link, Schema.Exchange,
                         false, false, queue.Name, false, null, null, false,
                         PrefetchCount(),
                         new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
-                        new[] {Schema.RoutingKey()}, true);
+                        new[] {Schema.RoutingKey}, true);
 
-                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange(), Schema.ContentType(),
+                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange, Schema.ContentType,
                     false, false);
                 consumerBuilder = consumerBuilder.Handler(async msg =>
                 {
@@ -79,7 +80,7 @@ namespace Astral.RabbitLink
                             };
                             var result = await tsk;
                             var answer = new LinkPublishMessage<byte[]>(
-                                Link.PayloadManager.Serialize(Schema.ContentType(), result, props),
+                                Link.PayloadManager.Serialize(Schema.ContentType, result, props),
                                 props,
                                 new LinkPublishProperties
                                 {
@@ -98,7 +99,7 @@ namespace Astral.RabbitLink
                                 CorrelationId = msg.Properties.CorrelationId
                             };
                             var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(
-                                    Schema.ContentType(), new RpcFail
+                                    Schema.ContentType, new RpcFail
                                     {
                                         Kind = ex.GetType().FullName,
                                         Message = ex.Message
@@ -153,9 +154,9 @@ namespace Astral.RabbitLink
                         token = source.Token;
                         messageTtl = timeout;
                     }
-                    var queueName = $"{Schema.Service.Owner}.{Schema.ResponseExchange()}.{Guid.NewGuid():D}";
-                    var consumer = Link.GetOrAddConsumer(Schema.ResponseExchange().Name ?? "",
-                        () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange(),
+                    var queueName = $"{Schema.Service.Owner}.{Schema.ResponseExchange}.{Guid.NewGuid():D}";
+                    var consumer = Link.GetOrAddConsumer(Schema.ResponseExchange.Name ?? "",
+                        () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange,
                             true, false, queueName, false, null, null, false, PrefetchCount(),
                             new QueueParameters().Expires(ResponseQueueExpires()),
                             new[] {queueName}, true), queueName));
@@ -169,13 +170,13 @@ namespace Astral.RabbitLink
                         props.Expiration = messageTtl.Value;
                     var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token);
                     var producer =
-                        Utils.CreateProducer(Link, Schema.Exchange(), Schema.ContentType(), true);
+                        Utils.CreateProducer(Link, Schema.Exchange, Schema.ContentType, true);
 
                     var request = new LinkPublishMessage<byte[]>(
-                        Link.PayloadManager.Serialize(Schema.ContentType(), arg, props),
+                        Link.PayloadManager.Serialize(Schema.ContentType, arg, props),
                         props, new LinkPublishProperties
                         {
-                            RoutingKey = Schema.RoutingKey()
+                            RoutingKey = Schema.RoutingKey
                         });
                     await producer.PublishAsync(request, token);
                     var result = await waiter;
@@ -205,14 +206,14 @@ namespace Astral.RabbitLink
             => Call(arg, CancellationToken.None, timeout);
     }
 
-    internal class CallEndpoint<TService, TArg> : Endpoint<ICallSchema>, ICallEndpoint<TService, TArg>
+    internal class CallEndpoint<TService, TArg> : Endpoint<IRabbitMqCallSchema>, ICallEndpoint<TService, TArg>
     {
-        public CallEndpoint(ServiceLink link, ICallSchema schema)
+        public CallEndpoint(ServiceLink link, IRabbitMqCallSchema schema)
             : base(link, schema)
         {
         }
 
-        private CallEndpoint(ServiceLink link, ICallSchema schema, IReadOnlyDictionary<string, object> store) 
+        private CallEndpoint(ServiceLink link, IRabbitMqCallSchema schema, IReadOnlyDictionary<string, object> store) 
             : base(link, schema, store)
         {
         }
@@ -247,15 +248,15 @@ namespace Astral.RabbitLink
             Log.Trace($"{nameof(Process)} enter");
             try
             {
-                var queue = Schema.RequestQueue();
+                var queue = Schema.RequestQueue;
                 var consumerBuilder =
-                    Utils.CreateConsumerBuilder(Link, Schema.Exchange(),
+                    Utils.CreateConsumerBuilder(Link, Schema.Exchange,
                         false, false, queue.Name, false, null, null, false,
                         PrefetchCount(),
                         new QueueParameters().Durable(queue.Durable).AutoDelete(queue.AutoDelete),
-                        new[] {Schema.RoutingKey()}, true);
+                        new[] {Schema.RoutingKey}, true);
 
-                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange(), Schema.ContentType(),
+                var publisher = Utils.CreateProducer(Link, Schema.ResponseExchange, Schema.ContentType,
                     false, false);
                 consumerBuilder.Handler(async msg =>
                 {
@@ -273,7 +274,7 @@ namespace Astral.RabbitLink
                             };
                             await tsk;
                             var answer = new LinkPublishMessage<byte[]>(
-                                Link.PayloadManager.Serialize(Schema.ContentType(), new RpcOk(), props),
+                                Link.PayloadManager.Serialize(Schema.ContentType, new RpcOk(), props),
                                 props,
                                 new LinkPublishProperties
                                 {
@@ -291,7 +292,7 @@ namespace Astral.RabbitLink
                                 CorrelationId = msg.Properties.CorrelationId
                             };
                             var answer = new LinkPublishMessage<byte[]>(Link.PayloadManager.Serialize(
-                                    Schema.ContentType(), new RpcFail
+                                    Schema.ContentType, new RpcFail
                                     {
                                         Kind = ex.GetType().FullName,
                                         Message = ex.Message
@@ -341,9 +342,9 @@ namespace Astral.RabbitLink
                         token = source.Token;
                         messageTtl = timeout;
                     }
-                    var queueName = $"{Schema.Service.Owner}.{Schema.ResponseExchange()}.{Guid.NewGuid():D}";
-                    var consumer = Link.GetOrAddConsumer(Schema.ResponseExchange().Name ?? "",
-                        () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange(),
+                    var queueName = $"{Schema.Service.Owner}.{Schema.ResponseExchange}.{Guid.NewGuid():D}";
+                    var consumer = Link.GetOrAddConsumer(Schema.ResponseExchange.Name ?? "",
+                        () => new RpcConsumer(Link, Utils.CreateConsumerBuilder(Link, Schema.ResponseExchange,
                             true, false, queueName, false, null, null, false, PrefetchCount(),
                             new QueueParameters().Expires(ResponseQueueExpires()),
                             new[] {queueName}, true), queueName));
@@ -357,13 +358,13 @@ namespace Astral.RabbitLink
                         props.Expiration = messageTtl.Value;
                     var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token);
                     var producer =
-                        Utils.CreateProducer(Link, Schema.Exchange(), Schema.ContentType(), true);
+                        Utils.CreateProducer(Link, Schema.Exchange, Schema.ContentType, true);
 
                     var request = new LinkPublishMessage<byte[]>(
-                        Link.PayloadManager.Serialize(Schema.ContentType(), arg, props),
+                        Link.PayloadManager.Serialize(Schema.ContentType, arg, props),
                         props, new LinkPublishProperties
                         {
-                            RoutingKey = Schema.RoutingKey()
+                            RoutingKey = Schema.RoutingKey
                         });
                     await producer.PublishAsync(request, token);
                     await waiter;

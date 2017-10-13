@@ -14,24 +14,52 @@ using Astral.Schema.Green;
 namespace Astral.Schema
 {
 
-    public class ServiceSchema
+    public class ServiceSchema : IServiceSchema
     {
         private readonly ImmutableDictionary<string, Lazy<CallSchema>> _lazyCallByName;
-        private readonly ImmutableDictionary<string, string> _callNameToCodeName;
+        private readonly ImmutableDictionary<string, string> _callNameByCodeName;
+        private readonly ImmutableDictionary<string, Lazy<EventSchema>> _lazyEventByName;
+        private readonly ImmutableDictionary<string, string> _eventNameByCodeName;
+        private readonly ImmutableDictionary<int, Lazy<ITypeDeclarationSchema>> _lazyTypes;
         private readonly Lazy<ExchangeSchema> _lazyExchange;
         private readonly Lazy<ExchangeSchema> _lazyResponseExchange;
         
         public ServiceSchema(ServiceSchemaGreen greenSchema)
         {
             Green = greenSchema;
-            var builder = ImmutableDictionary.CreateBuilder<string, Lazy<CallSchema>>();
-            builder.AddRange(greenSchema.Calls.Select(
+            _lazyCallByName = ImmutableDictionary.CreateRange(greenSchema.Calls.Select(
                 p => new KeyValuePair<string, Lazy<CallSchema>>(p.Key,
                     new Lazy<CallSchema>(() => new CallSchema(this, p.Value)))));
-            _lazyCallByName = builder.ToImmutable();
-            var nameBuilder = ImmutableDictionary.CreateBuilder<string, string>();
-            nameBuilder.AddRange(greenSchema.Calls.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
-            _callNameToCodeName = nameBuilder.ToImmutable();
+             
+            _callNameByCodeName = ImmutableDictionary.CreateRange(greenSchema.Calls.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
+             
+            _lazyEventByName = ImmutableDictionary.CreateRange(greenSchema.Events.Select(
+                p => new KeyValuePair<string, Lazy<EventSchema>>(p.Key,
+                    new Lazy<EventSchema>(() => new EventSchema(this, p.Value)))));
+            _eventNameByCodeName = ImmutableDictionary.CreateRange(greenSchema.Events.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
+
+            _lazyTypes = ImmutableDictionary.CreateRange(greenSchema.Types.Select(p =>
+                new KeyValuePair<int, Lazy<ITypeDeclarationSchema>>(
+                    p.Key, new Lazy<ITypeDeclarationSchema>(() =>
+                    {
+                        switch (p.Value)
+                        {
+                            case ArrayTypeSchemaGreen arrayTypeSchemaGreen:
+                                return new ArrayTypeSchema(this, arrayTypeSchemaGreen);
+                            case ComplexTypeSchemaGreen complexTypeSchemaGreen:
+                                return new ComplexTypeSchema(this, complexTypeSchemaGreen);
+                            case EnumTypeSchemaGreen enumTypeSchemaGreen:
+                                return new EnumTypeSchema(this, enumTypeSchemaGreen);
+                            case NullableTypeSchemaGreen nullableTypeSchemaGreen:
+                                return new NullableTypeSchema(this, nullableTypeSchemaGreen);
+                            case WellKnownTypeSchemaGreen wellKnownTypeSchemaGreen:
+                                return new WellKnownTypeSchema(wellKnownTypeSchemaGreen);
+                            default:
+                                throw new ArgumentOutOfRangeException(
+                                    $"Unknown green type name schema {p.Value?.GetType()}");
+                        }
+                    }))));
+            
             _lazyExchange = new Lazy<ExchangeSchema>(() =>
             {
                 var exchange = Green.Exchange;
@@ -60,7 +88,6 @@ namespace Astral.Schema
 
         internal ServiceSchemaGreen Green { get; }
         
-        
         public ContentType ContentType => Green.ContentType ?? new ContentType("text/json;charset=utf-8");
         public bool HasContentType => Green.ContentType != null;
 
@@ -79,11 +106,11 @@ namespace Astral.Schema
 
         public bool ContainsCallName(string name) => _lazyCallByName.ContainsKey(name);
         
-        public CallSchema CallByCodeName(string codeName) => _lazyCallByName[_callNameToCodeName[codeName]].Value;
+        public CallSchema CallByCodeName(string codeName) => _lazyCallByName[_callNameByCodeName[codeName]].Value;
 
         public bool TryCallByCodeName(string codeName, out CallSchema callSchema)
         {
-            if (_callNameToCodeName.TryGetValue(codeName, out var name))
+            if (_callNameByCodeName.TryGetValue(codeName, out var name))
             {
                 callSchema = _lazyCallByName[name].Value;
                 return true;
@@ -91,8 +118,38 @@ namespace Astral.Schema
             callSchema = null;
             return false;
         }
+        
+        public EventSchema EventByName(string name) => _lazyEventByName[name].Value;
 
-        public bool ContainsCallCodeName(string codeName) => _callNameToCodeName.ContainsKey(codeName);
+        public bool TryEventByName(string name, out EventSchema eventSchema)
+        {
+            if (_lazyEventByName.TryGetValue(name, out var value))
+            {
+                eventSchema = value.Value;
+                return true;
+            }
+            eventSchema = null;
+            return false;
+        }
+
+        public bool ContainsEventName(string name) => _lazyEventByName.ContainsKey(name);
+        
+        public EventSchema EventByCodeName(string codeName) => _lazyEventByName[_eventNameByCodeName[codeName]].Value;
+
+        public bool TryEventByCodeName(string codeName, out EventSchema eventSchema)
+        {
+            if (_eventNameByCodeName.TryGetValue(codeName, out var name))
+            {
+                eventSchema = _lazyEventByName[name].Value;
+                return true;
+            }
+            eventSchema = null;
+            return false;
+        }
+
+        public bool ContainsEventCodeName(string codeName) => _eventNameByCodeName.ContainsKey(codeName);
+
+        public bool ContainsCallCodeName(string codeName) => _callNameByCodeName.ContainsKey(codeName);
 
         
         public ExchangeSchema Exchange => _lazyExchange.Value;
@@ -112,9 +169,9 @@ namespace Astral.Schema
                 Green.ContentType, Green.Exchange, Green.ResponseExchange));
         }
         
-        public ITypeDeclarationSchema TypeById(int id) => throw new NotImplementedException();
+        public ITypeDeclarationSchema TypeById(int id) => _lazyTypes[id].Value;
 
-        /*
+        
         public static ServiceSchema FromType<T>(bool convertNames = false)
         {
             var serviceType = typeof(T);
@@ -134,32 +191,23 @@ namespace Astral.Schema
                            ? ServiceNameFromInterfaceName(serviceType.Name)
                            : throw new SchemaException($"Type {serviceType} has no ServiceAttribute"));
 
-            var schema = new RootSchema(name, owner)
-                .ServiceType(serviceType)
-                .CodeName(serviceType.Name);
+            var serviceExchangeAttr = serviceType.GetCustomAttribute<ExchangeAttribute>();
+            var serviceExchange = serviceExchangeAttr != null
+                ? new ExchangeSchema(serviceExchangeAttr.Name, serviceExchangeAttr.Kind, serviceExchangeAttr.Durable,
+                    serviceExchangeAttr.AutoDelete,
+                    serviceExchangeAttr.Delayed, serviceExchangeAttr.Alternate)
+                : null;
+            var sResponseExchangeAttr = serviceType.GetCustomAttribute<ResponseExchangeAttribute>();
+            var serviceResponseExchange = sResponseExchangeAttr != null
+                ? new ExchangeSchema(sResponseExchangeAttr.Name,
+                    sResponseExchangeAttr.Kind, sResponseExchangeAttr.Durable,
+                    sResponseExchangeAttr.AutoDelete, sResponseExchangeAttr.Delayed, sResponseExchangeAttr.Alternate)
+                : null;
+        
 
-            var contentTypeAttr = serviceType.GetCustomAttribute<ContentTypeAttribute>();
-            if (contentTypeAttr != null)
-                schema = schema.ContentType(contentTypeAttr.ContentType);
-
-            var exchangeAttr = serviceType.GetCustomAttribute<ExchangeAttribute>();
-            if (exchangeAttr != null)
-            {
-                schema = schema.Exchange(new ExchangeSchema(exchangeAttr.Name, exchangeAttr.Kind, exchangeAttr.Durable,
-                    exchangeAttr.AutoDelete,
-                    exchangeAttr.Delayed, exchangeAttr.Alternate));
-            }
-            var responseExchangeAttr = serviceType.GetCustomAttribute<ResponseExchangeAttribute>();
-            if (responseExchangeAttr != null)
-            {
-                schema = schema.ResponseExchange(new ExchangeSchema(responseExchangeAttr.Name,
-                    responseExchangeAttr.Kind, responseExchangeAttr.Durable,
-                    responseExchangeAttr.AutoDelete, responseExchangeAttr.Delayed, responseExchangeAttr.Alternate));
-            }
-
-            var events = new List<EventSchema>();
-            var calls = new List<CallSchema>();
-            var types = new List<(Type[], Action<string[]>)>();
+            var events = new List<EventSchemaGreen>();
+            var calls = new List<CallSchemaGreen>();
+            var types = new List<(Type[], Action<int[]>)>();
 
             foreach (var property in serviceType.GetProperties())
             {
@@ -171,22 +219,21 @@ namespace Astral.Schema
                                            ? PropertyNameToEndpointName(property.Name)
                                            : throw new SchemaException(
                                                $"Service {serviceType}, event {property.Name} hs no EndpointAttribute"));
-                    var endpoint = new EventSchema(schema, endpointName)
-                        .ContractType(property.PropertyType.GenericTypeArguments[0])
-                        .CodeName(property.Name);
-                    contentTypeAttr = property.GetCustomAttribute<ContentTypeAttribute>();
-                    if (contentTypeAttr != null)
-                        endpoint = endpoint.ContentType(contentTypeAttr.ContentType);
-                    exchangeAttr = property.GetCustomAttribute<ExchangeAttribute>();
-                    if (exchangeAttr != null)
-                        endpoint = endpoint.Exchange(new ExchangeSchema(exchangeAttr.Name, exchangeAttr.Kind,
+                    var type = property.PropertyType.GenericTypeArguments[0];
+                    var prop = property;
+                    var exchangeAttr = property.GetCustomAttribute<ExchangeAttribute>();
+                    var exchange = exchangeAttr != null
+                        ? new ExchangeSchema(exchangeAttr.Name, exchangeAttr.Kind,
                             exchangeAttr.Durable,
                             exchangeAttr.AutoDelete,
-                            exchangeAttr.Delayed, exchangeAttr.Alternate));
-                    types.Add((new [] {endpoint.ContractType() }, p =>
+                            exchangeAttr.Delayed, exchangeAttr.Alternate)
+                        : null;
+                    types.Add((new [] {type}, p =>
                     {
-                        var ep = endpoint.ContractName(p[0]);
-                        events.Add(ep);
+                        events.Add(new EventSchemaGreen(endpointName, prop.Name, p[0], 
+                            prop.GetCustomAttribute<ContentTypeAttribute>()?.ContentType,
+                            prop.GetCustomAttribute<RoutingKeyAttribute>()?.Key,
+                            exchange));
                     }));
                 }
                 else if (property.PropertyType.IsConstructedGenericType &&
@@ -198,45 +245,59 @@ namespace Astral.Schema
                                            ? PropertyNameToEndpointName(property.Name)
                                            : throw new SchemaException(
                                                $"Service {serviceType}, event {property.Name} hs no EndpointAttribute"));
-                    var endpoint = new CallSchema(schema, endpointName)
-                        .RequestType(property.PropertyType.GenericTypeArguments[0])
-                        .ResponseType(property.PropertyType.GenericTypeArguments.Length > 1
+                    
+                    var requestType = property.PropertyType.GenericTypeArguments[0];
+                    var responseType = property.PropertyType.GenericTypeArguments.Length > 1
                             ? property.PropertyType.GenericTypeArguments[1]
-                            : null)
-                        .CodeName(property.Name);
-                    contentTypeAttr = property.GetCustomAttribute<ContentTypeAttribute>();
-                    if (contentTypeAttr != null)
-                        endpoint = endpoint.ContentType(contentTypeAttr.ContentType);
-                    exchangeAttr = property.GetCustomAttribute<ExchangeAttribute>();
-                    if (exchangeAttr != null)
-                        endpoint = endpoint.Exchange(new ExchangeSchema(exchangeAttr.Name, exchangeAttr.Kind,
+                            : null;
+                    var exchangeAttr = property.GetCustomAttribute<ExchangeAttribute>();
+                    var exchange = exchangeAttr != null
+                        ? new ExchangeSchema(exchangeAttr.Name, exchangeAttr.Kind,
                             exchangeAttr.Durable,
                             exchangeAttr.AutoDelete,
-                            exchangeAttr.Delayed, exchangeAttr.Alternate));
-                    responseExchangeAttr = property.GetCustomAttribute<ResponseExchangeAttribute>();
-                    if (responseExchangeAttr != null)
-                    {
-                        endpoint = endpoint.ResponseExchange(new ExchangeSchema(responseExchangeAttr.Name,
+                            exchangeAttr.Delayed, exchangeAttr.Alternate)
+                        : null;
+                    var responseExchangeAttr = property.GetCustomAttribute<ResponseExchangeAttribute>();
+                    var responseExchange = responseExchangeAttr != null
+                        ? new ExchangeSchema(responseExchangeAttr.Name,
                             responseExchangeAttr.Kind, responseExchangeAttr.Durable,
-                            responseExchangeAttr.AutoDelete, responseExchangeAttr.Delayed, responseExchangeAttr.Alternate));
-                    }
+                            responseExchangeAttr.AutoDelete, responseExchangeAttr.Delayed,
+                            responseExchangeAttr.Alternate)
+                        : null;
                     var responseQueueAttr = property.GetCustomAttribute<RpcQueueAttribute>();
-                    if (responseQueueAttr != null)
-                        endpoint = endpoint.RequestQueue(new RequestQueueSchema(responseQueueAttr.Name,
-                            responseQueueAttr.Durable, responseQueueAttr.AutoDelete));
-                    
-                    if(property.PropertyType.GenericTypeArguments.Length > 1)
+                    var responseQueue = responseQueueAttr != null
+                        ? new RequestQueueSchema(responseQueueAttr.Name,
+                            responseQueueAttr.Durable, responseQueueAttr.AutoDelete)
+                        : null;
+                    var prop = property;
+                    if(responseType != null)
                         types.Add((
-                            new [] {property.PropertyType.GenericTypeArguments[0], property.PropertyType.GenericTypeArguments[1]},
+                            new [] {requestType, responseType},
                             m =>
                             {
-                                var ep = endpoint.RequestContract(m[0]).ResponseContract(m[1]);
-                                calls.Add(ep);
+                                calls.Add(new CallSchemaGreen(endpointName, prop.Name, m[0], m[1], 
+                                    prop.GetCustomAttribute<ContentTypeAttribute>()?.ContentType,
+                                    prop.GetCustomAttribute<RoutingKeyAttribute>()?.Key,
+                                    responseQueue, exchange, responseExchange));
+                            }));
+                    else
+                        types.Add((
+                            new [] {requestType},
+                            m =>
+                            {
+                                calls.Add(new CallSchemaGreen(endpointName, prop.Name, m[0], null, 
+                                    prop.GetCustomAttribute<ContentTypeAttribute>()?.ContentType,
+                                    prop.GetCustomAttribute<RoutingKeyAttribute>()?.Key,
+                                    responseQueue, exchange, responseExchange));
                             }));
                 }
             }
-            var typeDescs = SchemaMaker.FromTypeList(types, false).ToList();
-            return new ServiceSchema(schema, events, calls, typeDescs);
+            var typeDescs = SchemaMaker.FromTypeList(types, false);
+            return new ServiceSchema(new ServiceSchemaGreen(name, owner, serviceType.Name, 
+                ImmutableDictionary.CreateRange(events.Select(p => new KeyValuePair<string, EventSchemaGreen>(p.Name, p))), 
+                ImmutableDictionary.CreateRange(calls.Select(p => new KeyValuePair<string, CallSchemaGreen>(p.Name, p))),
+                typeDescs, serviceType.GetCustomAttribute<ContentTypeAttribute>()?.ContentType,
+                serviceExchange, serviceResponseExchange));
         }
 
         public static string PropertyNameToEndpointName(string propertyName)
@@ -258,7 +319,23 @@ namespace Astral.Schema
             var lastPart = nameSpace.Substring(pos + 1);
             return lastPart.ToLower();
         }
-        */
 
+        public IEnumerable<EventSchema> Events => _lazyEventByName.Values.Select(p => p.Value);
+        public IEnumerable<CallSchema> Calls => _lazyCallByName.Values.Select(p => p.Value);
+        public IEnumerable<ITypeDeclarationSchema> Types => _lazyTypes.Values.Select(p => p.Value);
+        
+        IEnumerable<IEventSchema> IServiceSchema.Events => _lazyEventByName.Values.Select(p => p.Value);
+
+
+        IEnumerable<ICallSchema> IServiceSchema.Calls => _lazyCallByName.Values.Select(p => p.Value);
+
+
+        IEnumerable<ITypeDeclarationSchema> IServiceSchema.Types => _lazyTypes.Values.Select(p => p.Value);
+
+
+        IEventSchema IServiceSchema.EventByCodeName(string codeName) => EventByCodeName(codeName);
+
+        ICallSchema IServiceSchema.CallByCodeName(string codeName) => CallByCodeName(codeName);
+        
     }
 }

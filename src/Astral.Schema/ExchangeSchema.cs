@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using Astral.Markup.RabbitMq;
+using Astral.Schema.RabbitMq;
 
 namespace Astral.Schema
 {
-    public class ExchangeSchema
+    public class ExchangeSchema : IExchangeSchema
     {
         public ExchangeSchema(string name, ExchangeKind type = ExchangeKind.Direct, bool durable = true,
             bool autoDelete = false, bool delayed = false, string alternate = null)

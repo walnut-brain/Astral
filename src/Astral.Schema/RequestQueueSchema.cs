@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using Astral.Schema.RabbitMq;
 
 namespace Astral.Schema
 {
-    public class RequestQueueSchema 
+    public class RequestQueueSchema : IRequestQueueSchema
     {
         public RequestQueueSchema(string name, bool durable = false, bool autoDelete = true)
         {

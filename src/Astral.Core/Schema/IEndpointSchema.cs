@@ -1,9 +1,12 @@
-﻿namespace Astral.Schema
+﻿using System.Net.Mime;
+
+namespace Astral.Schema
 {
-    public interface IEndpointSchema : ISchema
+    public interface IEndpointSchema 
     {
         IServiceSchema Service { get; }
         string Name { get; }
-        string CodeName();
+        string CodeName { get; }
+        ContentType ContentType { get; }
     }
 }

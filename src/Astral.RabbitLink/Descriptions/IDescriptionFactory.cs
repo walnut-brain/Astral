@@ -13,6 +13,6 @@ namespace Astral.RabbitLink.Descriptions
         /// </summary>
         /// <param name="type">service type</param>
         /// <returns>service description</returns>
-        IComplexServiceSchema GetDescription(Type type);
+        IServiceSchema GetDescription(Type type);
     }
 }

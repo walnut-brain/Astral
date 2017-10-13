@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Net.Mime;
 using Astral.Markup.RabbitMq;
 
@@ -11,7 +8,7 @@ namespace Astral.Schema.Green
     public class ServiceSchemaGreen 
     {
         public ServiceSchemaGreen(string name, string owner, string codeName, ImmutableDictionary<string, EventSchemaGreen> events,
-            ImmutableDictionary<string, CallSchemaGreen> calls, ImmutableDictionary<int, TypeDescriptionSchemaGreen> types, ContentType contentType = null,
+            ImmutableDictionary<string, CallSchemaGreen> calls, ImmutableDictionary<int, TypeSchemaGreen> types, ContentType contentType = null,
             ExchangeSchema exchange = null, ExchangeSchema responseExchange = null)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -21,7 +18,7 @@ namespace Astral.Schema.Green
             Name = name;
             Owner = owner;
             CodeName = codeName;
-            Events = events ?? throw new ArgumentNullException(nameof(events))
+            Events = events ?? throw new ArgumentNullException(nameof(events));
             Calls = calls ?? throw new ArgumentNullException(nameof(calls));
             ContentType = contentType;
             if(exchange != null && exchange.Type == ExchangeKind.Fanout)
@@ -40,9 +37,9 @@ namespace Astral.Schema.Green
         public string CodeName { get; }
         public ExchangeSchema Exchange { get; }
         public ExchangeSchema ResponseExchange { get; }
-        public ImmutableDictionary<string, EventSchemaGreen> Events { get; };
-        public ImmutableDictionary<string, CallSchemaGreen> Calls { get; };
-        public ImmutableDictionary<int, TypeDescriptionSchemaGreen> Types { get; }
+        public ImmutableDictionary<string, EventSchemaGreen> Events { get; }
+        public ImmutableDictionary<string, CallSchemaGreen> Calls { get; }
+        public ImmutableDictionary<int, TypeSchemaGreen> Types { get; }
         public ContentType ContentType { get; }
     }
 

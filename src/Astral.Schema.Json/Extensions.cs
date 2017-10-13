@@ -8,7 +8,7 @@ namespace Astral.Schema.Json
 {
     public static class Extensions
     {
-        public static JObject ToJson(this IComplexServiceSchema schema)
+        public static JObject ToJson(this ServiceSchema schema)
         {
             Option<JToken> ExchangeToJson(ExchangeSchema exchange)
             {
@@ -60,61 +60,65 @@ namespace Astral.Schema.Json
                 return obj;
             }
 
-            JObject EventToJson(IEventSchema eventSchema)
+            JObject EventToJson(EventSchema eventSchema)
             {
                 var obj = new JObject
                 {
-                    {"contract", eventSchema.ContractName()}, 
-                    {"title", eventSchema.CodeName()}
+                    {"contract", eventSchema.EventType.SchemaName}, 
+                    {"title", eventSchema.CodeName}
                 };
-                if(eventSchema.HasExchange())
-                    ExchangeToJson(eventSchema.Exchange()).IfSome(p => obj.Add("exchange", p));
-                if(eventSchema.HasRoutingKey())
-                    obj.Add("routingKey", eventSchema.RoutingKey());
-                if(eventSchema.HasContentType())
-                    obj.Add("contentType", eventSchema.ContentType().ToString());
+                
+                if(eventSchema.HasExchange)
+                    ExchangeToJson(eventSchema.Exchange).IfSome(p => obj.Add("exchange", p));
+                if(eventSchema.HasRoutingKey)
+                    obj.Add("routingKey", eventSchema.RoutingKey);
+                if(eventSchema.HasContentType)
+                    obj.Add("contentType", eventSchema.ContentType.ToString());
                 return obj;
             }
             
-            JObject CallToJson(ICallSchema callSchema)
+            JObject CallToJson(CallSchema callSchema)
             {
                 var obj = new JObject
                 {
-                    {"request", callSchema.RequestContract()},
-                    {"title", callSchema.CodeName()}
+                    {"request", callSchema.RequestType.SchemaName},
+                    {"title", callSchema.CodeName}
                 };
-                if (callSchema.ResponseContract() != null)
-                    obj.Add("response", callSchema.ResponseContract());
+                if (callSchema.ResponseType != null)
+                    obj.Add("response", callSchema.ResponseType.SchemaName);
                 
-                if(callSchema.HasExchange())
-                    ExchangeToJson(callSchema.Exchange()).IfSome(p => obj.Add("exchange", p));
-                if(callSchema.HasResponseExchange())
-                    ExchangeToJson(callSchema.ResponseExchange()).IfSome(p => obj.Add("responseExchange", p));
-                if(callSchema.HasRoutingKey())
-                    obj.Add("routingKey", callSchema.RoutingKey());
-                if(callSchema.HasContentType())
-                    obj.Add("contentType", callSchema.ContentType().ToString());
-                if(callSchema.HasRequestQueue())
-                    RequestQueueToJson(callSchema.RequestQueue()).IfSome(p => obj.Add("queue", p));
+                if(callSchema.HasExchange)
+                    ExchangeToJson(callSchema.Exchange).IfSome(p => obj.Add("exchange", p));
+                if(callSchema.HasResponseExchange)
+                    ExchangeToJson(callSchema.ResponseExchange).IfSome(p => obj.Add("responseExchange", p));
+                if(callSchema.HasRoutingKey)
+                    obj.Add("routingKey", callSchema.RoutingKey);
+                if(callSchema.HasContentType)
+                    obj.Add("contentType", callSchema.ContentType.ToString());
+                if(callSchema.HasRequestQueue)
+                    RequestQueueToJson(callSchema.RequestQueue).IfSome(p => obj.Add("queue", p));
                 return obj;
             }
 
-            JObject TypeToJson(TypeDesc desc)
+            JObject TypeToJson(ITypeDeclarationSchema desc)
             {
                 var obj = new JObject();
+                if (desc.CodeName != null)
+                    obj.Add("title", desc.CodeName);
+                if(desc.ContractName != null && desc.CodeName != desc.SchemaName)
+                        obj.Add("contract", desc.ContractName);
                 switch (desc)
                 {
-                    case ComplexTypeDesc complexTypeDesc:
-                        if(complexTypeDesc.HasContract)
-                            obj.Add("contract", complexTypeDesc.Contract);
-                        if (complexTypeDesc.Parent != null)
-                            obj.Add("base", complexTypeDesc.Parent.Contract);
-                        obj.Add("fields", new JObject(complexTypeDesc.Fields.Select(p => new JProperty(p.Key, p.Value.Contract))));
+                    case IComplexTypeDeclarationSchema complexTypeDesc:
+                        
+                        if (complexTypeDesc.BaseOn != null)
+                            obj.Add("base", complexTypeDesc.BaseOn.SchemaName);
+                        obj.Add("fields", new JObject(complexTypeDesc.Fields.Select(p => new JProperty(p.Key, p.Value.SchemaName))));
                         return obj;
-                    case EnumTypeDesc enumTypeDesc:
-                        if(enumTypeDesc.HasContract)
-                            obj.Add("contract", enumTypeDesc.Contract);
-                        obj.Add("base", enumTypeDesc.BaseType.Contract);
+                    case IEnumTypeDeclarationSchema enumTypeDesc:
+                        obj.Add("base", enumTypeDesc.BaseOn.SchemaName);
+                        if (enumTypeDesc.IsFlags)
+                            obj.Add("flags", true);
                         obj.Add("values", new JObject(enumTypeDesc.Values.Select(p => new JProperty(p.Key, p.Value))));
                         return obj;
                     default:
@@ -126,18 +130,18 @@ namespace Astral.Schema.Json
             {
                 {"name", schema.Name}, 
                 {"owner", schema.Owner}, 
-                {"title", schema.CodeName()}
+                {"title", schema.CodeName}
             };
-            if(schema.HasContentType())
-                jsonSchema.Add("content", schema.ContentType().ToString());
-            if (schema.HasExchange())
-                ExchangeToJson(schema.Exchange()).IfSome(p => jsonSchema.Add("exchange", p));
-            if (schema.HasResponseExchange())
-                ExchangeToJson(schema.ResponseExchange()).IfSome(p => jsonSchema.Add("responseExchange", p));
+            if(schema.HasContentType)
+                jsonSchema.Add("content", schema.ContentType.ToString());
+            if (schema.HasExchange)
+                ExchangeToJson(schema.Exchange).IfSome(p => jsonSchema.Add("exchange", p));
+            if (schema.HasResponseExchange)
+                ExchangeToJson(schema.ResponseExchange).IfSome(p => jsonSchema.Add("responseExchange", p));
             jsonSchema.Add("events", new JObject(schema.Events.Select(p => new JProperty(p.Name, EventToJson(p))).Cast<object>().ToArray()));
             jsonSchema.Add("calls", new JObject(schema.Calls.Select(p => new JProperty(p.Name, CallToJson(p))).Cast<object>().ToArray()));
-            jsonSchema.Add("enums", new JObject(schema.Types.OfType<EnumTypeDesc>().Select(p => new JProperty(p.Name, TypeToJson(p))).Cast<object>().ToArray()));
-            jsonSchema.Add("types", new JObject(schema.Types.OfType<ComplexTypeDesc>().Select(p => new JProperty(p.Name, TypeToJson(p))).Cast<object>().ToArray()));
+            jsonSchema.Add("enums", new JObject(schema.Types.OfType<IEnumTypeDeclarationSchema>().Select(p => new JProperty(p.SchemaName, TypeToJson(p))).Cast<object>().ToArray()));
+            jsonSchema.Add("types", new JObject(schema.Types.OfType<IComplexTypeDeclarationSchema>().Select(p => new JProperty(p.SchemaName, TypeToJson(p))).Cast<object>().ToArray()));
             return jsonSchema;
 
         }

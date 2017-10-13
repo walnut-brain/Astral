@@ -10,7 +10,7 @@ namespace Astral.Schema.Json
 {
     public static class Extensions
     {
-        public static string ToYaml(this IComplexServiceSchema schema)
+        public static string ToYaml(this ServiceSchema schema)
         {
             Option<YamlNode> ExchangeToYaml(ExchangeSchema exchange)
             {
@@ -62,61 +62,64 @@ namespace Astral.Schema.Json
                 return obj;
             }
 
-            YamlMappingNode EventToYaml(IEventSchema eventSchema)
+            YamlMappingNode EventToYaml(EventSchema eventSchema)
             {
                 var obj = new YamlMappingNode
                 {
-                    {"contract", eventSchema.ContractName()}, 
-                    {"title", eventSchema.CodeName()}
+                    {"contract", eventSchema.EventType.SchemaName}, 
+                    {"title", eventSchema.CodeName}
                 };
-                if(eventSchema.HasExchange())
-                    ExchangeToYaml(eventSchema.Exchange()).IfSome(p => obj.Add("exchange", p));
-                if(eventSchema.HasRoutingKey())
-                    obj.Add("routingKey", eventSchema.RoutingKey());
-                if(eventSchema.HasContentType())
-                    obj.Add("contentType", eventSchema.ContentType().ToString());
+                if(eventSchema.HasExchange)
+                    ExchangeToYaml(eventSchema.Exchange).IfSome(p => obj.Add("exchange", p));
+                if(eventSchema.HasRoutingKey)
+                    obj.Add("routingKey", eventSchema.RoutingKey);
+                if(eventSchema.HasContentType)
+                    obj.Add("contentType", eventSchema.ContentType.ToString());
                 return obj;
             }
             
-            YamlMappingNode CallToYaml(ICallSchema callSchema)
+            YamlMappingNode CallToYaml(CallSchema callSchema)
             {
                 var obj = new YamlMappingNode
                 {
-                    {"request", callSchema.RequestContract()},
-                    {"title", callSchema.CodeName()}
+                    {"request", callSchema.RequestType.SchemaName},
+                    {"title", callSchema.CodeName}
                 };
-                if (callSchema.ResponseContract() != null)
-                    obj.Add("response", callSchema.ResponseContract());
+                if (callSchema.ResponseType != null)
+                    obj.Add("response", callSchema.ResponseType.SchemaName);
                 
-                if(callSchema.HasExchange())
-                    ExchangeToYaml(callSchema.Exchange()).IfSome(p => obj.Add("exchange", p));
-                if(callSchema.HasResponseExchange())
-                    ExchangeToYaml(callSchema.ResponseExchange()).IfSome(p => obj.Add("responseExchange", p));
-                if(callSchema.HasRoutingKey())
-                    obj.Add("routingKey", callSchema.RoutingKey());
-                if(callSchema.HasContentType())
-                    obj.Add("contentType", callSchema.ContentType().ToString());
-                if(callSchema.HasRequestQueue())
-                    RequestQueueToYaml(callSchema.RequestQueue()).IfSome(p => obj.Add("queue", p));
+                if(callSchema.HasExchange)
+                    ExchangeToYaml(callSchema.Exchange).IfSome(p => obj.Add("exchange", p));
+                if(callSchema.HasResponseExchange)
+                    ExchangeToYaml(callSchema.ResponseExchange).IfSome(p => obj.Add("responseExchange", p));
+                if(callSchema.HasRoutingKey)
+                    obj.Add("routingKey", callSchema.RoutingKey);
+                if(callSchema.HasContentType)
+                    obj.Add("contentType", callSchema.ContentType.ToString());
+                if(callSchema.HasRequestQueue)
+                    RequestQueueToYaml(callSchema.RequestQueue).IfSome(p => obj.Add("queue", p));
                 return obj;
             }
 
-            YamlMappingNode TypeToYaml(TypeDesc desc)
+            YamlMappingNode TypeToYaml(ITypeDeclarationSchema desc)
             {
                 var obj = new YamlMappingNode();
+                if(desc.ContractName != null)
+                    obj.Add("contract", desc.ContractName);
+                if(desc.CodeName != null && desc.CodeName != desc.SchemaName)
+                    obj.Add("title", desc.CodeName);
                 switch (desc)
                 {
-                    case ComplexTypeDesc complexTypeDesc:
-                        if(complexTypeDesc.HasContract)
-                            obj.Add("contract", complexTypeDesc.Contract);
-                        if (complexTypeDesc.Parent != null)
-                            obj.Add("base", complexTypeDesc.Parent.Contract);
-                        obj.Add("fields", new YamlMappingNode(complexTypeDesc.Fields.Select(p => new KeyValuePair<YamlNode, YamlNode>(new YamlScalarNode(p.Key),new YamlScalarNode(p.Value.Contract) ))));
+                    case IComplexTypeDeclarationSchema complexTypeDesc:
+                        
+                        if (complexTypeDesc.BaseOn != null)
+                            obj.Add("base", complexTypeDesc.BaseOn.SchemaName);
+                        obj.Add("fields", new YamlMappingNode(complexTypeDesc.Fields.Select(p => new KeyValuePair<YamlNode, YamlNode>(new YamlScalarNode(p.Key),new YamlScalarNode(p.Value.SchemaName) ))));
                         return obj;
-                    case EnumTypeDesc enumTypeDesc:
-                        if(enumTypeDesc.HasContract)
-                            obj.Add("contract", enumTypeDesc.Contract);
-                        obj.Add("base", enumTypeDesc.BaseType.Contract);
+                    case IEnumTypeDeclarationSchema enumTypeDesc:
+                        obj.Add("base", enumTypeDesc.BaseOn.SchemaName);
+                        if(enumTypeDesc.IsFlags)
+                            obj.Add("falgs", "true");
                         obj.Add("values", new YamlMappingNode(enumTypeDesc.Values.Select(p => new KeyValuePair<YamlNode, YamlNode>(new YamlScalarNode(p.Key), new YamlScalarNode(p.Value.ToString())))));
                         return obj;
                     default:
@@ -128,19 +131,18 @@ namespace Astral.Schema.Json
             {
                 {"name", schema.Name}, 
                 {"owner", schema.Owner}, 
-                {"title", schema.CodeName()}
+                {"title", schema.CodeName}
             };
-            if(schema.HasContentType())
-                yamlRoot.Add("content", schema.ContentType().ToString());
-            if (schema.HasExchange())
-                ExchangeToYaml(schema.Exchange()).IfSome(p => yamlRoot.Add("exchange", p));
-            if (schema.HasResponseExchange())
-                ExchangeToYaml(schema.ResponseExchange()).IfSome(p => yamlRoot.Add("responseExchange", p));
+            if(schema.HasContentType)
+                yamlRoot.Add("content", schema.ContentType.ToString());
+            if (schema.HasExchange)
+                ExchangeToYaml(schema.Exchange).IfSome(p => yamlRoot.Add("exchange", p));
+            if (schema.HasResponseExchange)
+                ExchangeToYaml(schema.ResponseExchange).IfSome(p => yamlRoot.Add("responseExchange", p));
             yamlRoot.Add("events", new YamlMappingNode(schema.Events.Select(p => new KeyValuePair<YamlNode, YamlNode>(p.Name, EventToYaml(p)))));
             yamlRoot.Add("calls", new YamlMappingNode(schema.Calls.Select(p => new KeyValuePair<YamlNode, YamlNode>(p.Name, CallToYaml(p)))));
-            yamlRoot.Add("enums", new YamlMappingNode(schema.Types.OfType<EnumTypeDesc>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.Name, TypeToYaml(p)))));
-            yamlRoot.Add("types", new YamlMappingNode(schema.Types.OfType<ComplexTypeDesc>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.Name, TypeToYaml(p)))));
-            var document = new YamlDocument(yamlRoot);
+            yamlRoot.Add("enums", new YamlMappingNode(schema.Types.OfType<IEnumTypeDeclarationSchema>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.SchemaName, TypeToYaml(p)))));
+            yamlRoot.Add("types", new YamlMappingNode(schema.Types.OfType<IComplexTypeDeclarationSchema>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.SchemaName, TypeToYaml(p)))));
             var serializer = new SerializerBuilder().Build();
             
             return serializer.Serialize(yamlRoot);

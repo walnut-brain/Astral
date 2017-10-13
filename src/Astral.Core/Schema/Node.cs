@@ -6,15 +6,11 @@ using System.Linq;
 namespace Astral.Schema
 {
 
-    public interface IDeclarationSchema
+    public interface ITypeDeclarationSchema 
     {
-        string Name { get; }
-    }
-    
-    public interface ITypeDeclarationSchema : IDeclarationSchema
-    {
+        string ContractName { get; }
         string CodeName { get; }
-        string Code { get; }
+        string SchemaName { get; }
         Type DotNetType { get; }
         bool IsWellKnown { get; }
     }
@@ -36,7 +32,7 @@ namespace Astral.Schema
     public interface IComplexTypeDeclarationSchema : ITypeDeclarationSchema
     {
         bool IsStruct { get; }
-        Option<IComplexTypeDeclarationSchema> BaseOn { get;  }
+        IComplexTypeDeclarationSchema BaseOn { get;  }
         IReadOnlyDictionary<string, ITypeDeclarationSchema> Fields { get;  }
     }
 
@@ -45,7 +41,7 @@ namespace Astral.Schema
     {
         ITypeDeclarationSchema BaseOn { get;  }
         bool IsFlags { get; }
-        IReadOnlyDictionary<string, object> Values { get; }
+        IReadOnlyDictionary<string, long> Values { get; }
     }
 
 
@@ -54,12 +50,12 @@ namespace Astral.Schema
         IReadOnlyDictionary<string, ITypeDeclarationSchema> Variants { get; }
     }
 
-    public interface IServiceDeclarationSchema : IDeclarationSchema
+    public interface IServiceDeclarationSchema 
     {
         
     }
 
-    public interface IEndpointDeclarationSchema : IDeclarationSchema
+    public interface IEndpointDeclarationSchema 
     {
         
     }

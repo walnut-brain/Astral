@@ -47,7 +47,7 @@ namespace SampleApp
                     .Build())
             {
                 var service = link.Service<IFirstService>().Schema;
-                var json = service.ToYaml();
+                var json = ServiceSchema.FromType<IFirstService>().ToYaml();
                 link.Service<IFirstService>().Event(p => p.Event)
                     .Listen(async (p, ct) =>
                     {

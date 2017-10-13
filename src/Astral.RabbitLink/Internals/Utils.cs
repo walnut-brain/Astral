@@ -4,6 +4,7 @@ using System.Net.Mime;
 using Astral.Markup.RabbitMq;
 using Astral.RabbitLink.Descriptions;
 using Astral.RabbitLink.Exceptions;
+using Astral.Schema;
 using Astral.Schema.RabbitMq;
 using RabbitLink.Builders;
 using RabbitLink.Consumer;
@@ -29,7 +30,7 @@ namespace Astral.RabbitLink.Internals
             }
         }
         
-        public static ILinkProducer CreateProducer(ServiceLink link, ExchangeSchema description,
+        public static ILinkProducer CreateProducer(ServiceLink link, IExchangeSchema description,
             ContentType contentType, bool passive = false, bool confirmsMode = true, string named = null)
         {
             return
@@ -48,7 +49,7 @@ namespace Astral.RabbitLink.Internals
                         .Build());
         }
 
-        public static ILinkConsumerBuilder CreateConsumerBuilder(ServiceLink link, ExchangeSchema exchange,
+        public static ILinkConsumerBuilder CreateConsumerBuilder(ServiceLink link, IExchangeSchema exchange,
             bool exchangePassive, bool queuePassive,
             string queueName, bool autoAck, bool? cancelOnHaFailover, ILinkConsumerErrorStrategy errorStrategy,
             bool exclusive, ushort prefetchCount, QueueParameters queueParameters, ICollection<string> routingKeys,
