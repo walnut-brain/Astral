@@ -3,7 +3,7 @@ using Astral.Schema.Green;
 
 namespace Astral.Schema.Data
 {
-    public class NullableTypeSchema : IOptionTypeDeclarationSchema
+    public class NullableTypeSchema : IOptionTypeSchema
     {
         public ServiceSchema Service { get; }
         private readonly NullableTypeSchemaGreen _green;
@@ -28,7 +28,7 @@ namespace Astral.Schema.Data
 
         public bool IsWellKnown => true;
 
-        public ITypeDeclarationSchema ElementType => Service.TypeById(_green.ElementTypeId);
+        public ITypeSchema ElementType => Service.TypeById(_green.ElementTypeId);
 
     }
 }

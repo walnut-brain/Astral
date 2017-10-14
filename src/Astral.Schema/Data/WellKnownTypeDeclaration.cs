@@ -4,7 +4,7 @@ using Astral.Schema.Green;
 
 namespace Astral.Schema.Data
 {
-    public class WellKnownTypeSchema : ITypeDeclarationSchema
+    public class WellKnownTypeSchema : ITypeSchema
     {
         private readonly WellKnownTypeSchemaGreen _green;
 

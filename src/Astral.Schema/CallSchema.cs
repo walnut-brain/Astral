@@ -93,8 +93,8 @@ namespace Astral.Schema
 
         IRequestQueueSchema IRabbitMqCallSchema.RequestQueue => RequestQueue;
 
-        public ITypeDeclarationSchema RequestType => Service.TypeById(_green.RequestTypeId);
-        public ITypeDeclarationSchema ResponseType 
+        public ITypeSchema RequestType => Service.TypeById(_green.RequestTypeId);
+        public ITypeSchema ResponseType 
             => _green.ResponseTypeId == null ? null : Service.TypeById(_green.ResponseTypeId.Value);
     }
 }

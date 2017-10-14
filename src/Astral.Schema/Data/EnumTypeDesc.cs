@@ -6,7 +6,7 @@ using Astral.Schema.Green;
 
 namespace Astral.Schema.Data
 {
-    public sealed class EnumTypeSchema : IEnumTypeDeclarationSchema
+    public sealed class EnumTypeSchema : IEnumTypeSchema
     {
         private readonly EnumTypeSchemaGreen _green;
         public ServiceSchema Service { get; }
@@ -52,7 +52,7 @@ namespace Astral.Schema.Data
         public bool IsWellKnown => false;
 
 
-        public ITypeDeclarationSchema BaseOn => Service.TypeById(_green.BaseTypeId);
+        public ITypeSchema BaseOn => Service.TypeById(_green.BaseTypeId);
 
         public bool IsFlags => _green.IsFlags;
 

@@ -20,7 +20,7 @@ namespace Astral.Schema
         private readonly ImmutableDictionary<string, string> _callNameByCodeName;
         private readonly ImmutableDictionary<string, Lazy<EventSchema>> _lazyEventByName;
         private readonly ImmutableDictionary<string, string> _eventNameByCodeName;
-        private readonly ImmutableDictionary<int, Lazy<ITypeDeclarationSchema>> _lazyTypes;
+        private readonly ImmutableDictionary<int, Lazy<ITypeSchema>> _lazyTypes;
         private readonly Lazy<ExchangeSchema> _lazyExchange;
         private readonly Lazy<ExchangeSchema> _lazyResponseExchange;
         
@@ -39,8 +39,8 @@ namespace Astral.Schema
             _eventNameByCodeName = ImmutableDictionary.CreateRange(greenSchema.Events.Select(p => new KeyValuePair<string, string>(p.Value.CodeName, p.Key)));
 
             _lazyTypes = ImmutableDictionary.CreateRange(greenSchema.Types.Select(p =>
-                new KeyValuePair<int, Lazy<ITypeDeclarationSchema>>(
-                    p.Key, new Lazy<ITypeDeclarationSchema>(() =>
+                new KeyValuePair<int, Lazy<ITypeSchema>>(
+                    p.Key, new Lazy<ITypeSchema>(() =>
                     {
                         switch (p.Value)
                         {
@@ -169,7 +169,7 @@ namespace Astral.Schema
                 Green.ContentType, Green.Exchange, Green.ResponseExchange));
         }
         
-        public ITypeDeclarationSchema TypeById(int id) => _lazyTypes[id].Value;
+        public ITypeSchema TypeById(int id) => _lazyTypes[id].Value;
 
         
         public static ServiceSchema FromType<T>(bool convertNames = false)
@@ -322,7 +322,7 @@ namespace Astral.Schema
 
         public IEnumerable<EventSchema> Events => _lazyEventByName.Values.Select(p => p.Value);
         public IEnumerable<CallSchema> Calls => _lazyCallByName.Values.Select(p => p.Value);
-        public IEnumerable<ITypeDeclarationSchema> Types => _lazyTypes.Values.Select(p => p.Value);
+        public IEnumerable<ITypeSchema> Types => _lazyTypes.Values.Select(p => p.Value);
         
         IEnumerable<IEventSchema> IServiceSchema.Events => _lazyEventByName.Values.Select(p => p.Value);
 
@@ -330,7 +330,7 @@ namespace Astral.Schema
         IEnumerable<ICallSchema> IServiceSchema.Calls => _lazyCallByName.Values.Select(p => p.Value);
 
 
-        IEnumerable<ITypeDeclarationSchema> IServiceSchema.Types => _lazyTypes.Values.Select(p => p.Value);
+        IEnumerable<ITypeSchema> IServiceSchema.Types => _lazyTypes.Values.Select(p => p.Value);
 
 
         IEventSchema IServiceSchema.EventByCodeName(string codeName) => EventByCodeName(codeName);

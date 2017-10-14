@@ -10,7 +10,7 @@ namespace Astral.Schema
         string CodeName { get; }
         IEnumerable<IEventSchema> Events { get; }
         IEnumerable<ICallSchema> Calls { get; }
-        IEnumerable<ITypeDeclarationSchema> Types { get; }
+        IEnumerable<ITypeSchema> Types { get; }
         IEventSchema EventByCodeName(string codeName);
         ICallSchema CallByCodeName(string codeName);
 

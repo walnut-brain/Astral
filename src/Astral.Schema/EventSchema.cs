@@ -63,7 +63,7 @@ namespace Astral.Schema
         public string RoutingKey => _routingKey.Value;
         public bool HasRoutingKey => _green.RoutingKey != null;
 
-        public ITypeDeclarationSchema EventType => Service.TypeById(_green.TypeId);
+        public ITypeSchema EventType => Service.TypeById(_green.TypeId);
         
         
 
