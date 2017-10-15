@@ -5,8 +5,7 @@ open System.Net.Mime
 open System.Linq
 
 
-type SimpleName = SimpleName of string
-type TypeName = TypeName of string
+     
 
 [<AutoOpen>]
 module internal OptionF =
@@ -30,7 +29,7 @@ module internal Utils =
          
      
         
-
+(*
 type OrdinalType = 
     | U8 | I8 | U16 | I16 | U32 | I32 | U64 | I64
     member __.Name =
@@ -138,28 +137,54 @@ type WellKnownType =
             =?> (RelationalType.TryResolve ->> Relational)
             =?> (DateType.TryResolve ->> Date)
             
+ *)
+
+type DataItemConversionError =
+    | InvalidDataItem of string
+
+    
+type SDataItem<'t> =
+    abstract ToDataItem : 't -> DataItem
+    abstract FromDataItem : DataItem -> Result<'t, DataItemConversionError> 
+    
+module SDataItem =
+    let toDataItem<'t, 's when 's :> SDataItem<'t> and 's : struct> o =
+        Unchecked.defaultof<'s>.ToDataItem(o)
+    let fromDataItem<'t, 's when 's :> SDataItem<'t> and 's : struct> di =
+        Unchecked.defaultof<'s>.FromDataItem(di)  
+
+[<AbstractClass>]
+type WellKnownType internal (name : string) =
+    member __.Name = name
+    abstract DotNetType : Type
+    
+    
+type WellKnownType<'t, 's when 's :> SDataItem<'t> and 's : struct> (name) = 
+    inherit WellKnownType(name)            
+    override __.DotNetType = typeof<'t>
+    
+type WellKnownTypeDictionary =
+    internal {
+        fromType : Type -> Option<WellKnownType>
+    } 
+    
+    
+         
+    
         
     
-    
-type ArrayType = 
-    | Array of Lazy<DataType> 
-    member __.Name  = 
-        let (Array dtr) = __
-        let (TypeName tn) = dtr.Value.Name
-        tn + "[]" |> TypeName
-    member __.Contract  = 
-        let (Array dtr) = __
-        dtr.Value.Contract |> Option.map (fun s -> s + "[]")
+type ArrayType(lazyElement : Func<DataType>) = 
+    let lazyValue = Lazy<_>(lazyElement)
+    member __.ElementType  = lazyValue.Value 
+    member __.Name = __.ElementType.Name + "[]" 
+    member __.Contract  = __.ElementType.Contract  |> Option.map  ( (+) "[]")
+        
 
-type OptionType = 
-    | Option of Lazy<DataType>
-    member __.Name  = 
-        let (Option dtr) = __
-        let (TypeName tn) = dtr.Value.Name
-        tn + "?" |> TypeName
-    member __.Contract  = 
-        let (Option dtr) = __
-        dtr.Value.Contract |> Option.map (fun s -> s + "?")
+type OptionType(lazyElement : Func<DataType>) = 
+    let lazyValue = Lazy<_>(lazyElement)
+    member __.ElementType  = lazyValue.Value 
+    member __.Name = __.ElementType.Name + "?" 
+    member __.Contract  = __.ElementType.Contract |> Option.map  ( (+) "?")
     
 
 
@@ -167,7 +192,7 @@ type OptionType =
 [<CustomComparison>]
 type NameAndIndex = 
     {
-        Name : SimpleName
+        Name : string
         Index : int option
     }
     override __.Equals(other) =
@@ -196,42 +221,39 @@ type NameAndIndex =
 
 type MapType =
     {
-        Name        : TypeName
+        Name        : string
         Contract    : string option
         CodeHint    : string option
         IsStruct    : bool
         DotNetType  : Type option
         Fields      : Map<NameAndIndex, Lazy<DataType>>
-        RemapFields : Map<SimpleName,SimpleName> 
+        RemapFields : Map<string,string> 
     }     
     
 type EnumType =
     {
-        Name        : TypeName
+        Name        : string
         Contract    : string option
         CodeHint    : string option
         DotNetType  : Type option
         BasedOn     : Lazy<DataType>
         IsFlags     : bool
-        Values      : Map<SimpleName, OrdinalItem>
-        RemapValues : Map<SimpleName, SimpleName>
+        Values      : Map<string, OrdinalItem>
+        RemapValues : Map<string, string>
     }
     
 type OneOfType =
     {
-        Name        : TypeName
+        Name        : string
         Contract    : string option
         DotNetType  : Type option
         CodeHint    : string option
         Variants    : Map<NameAndIndex, Lazy<DataType>>
-        RemapValues : Map<SimpleName, SimpleName>
+        RemapValues : Map<string, string>
     }
     
 
-type DataTypeRef =
-    | DataType of DataType
-    | Reference of TypeName
-    
+   
 type DataType =     
     | WellKnown of WellKnownType
     | Array of ArrayType
@@ -250,8 +272,8 @@ type DataType =
         
     member __.Contract =
         match __ with
-        | WellKnown wk  -> let (TypeName tn) = wk.Name in tn |> Some
-        | Array ar      -> ar.Contract
+        | WellKnown wk  -> wk.Name |> Some
+        | Array ar      -> ar.Contract 
         | Option opt    -> opt.Contract
         | Enum en       -> en.Contract
         | Map map       -> map.Contract
@@ -266,7 +288,7 @@ type DataType =
         | OneOf oo      -> oo.CodeHint
     member __.DotNetType =
         match __ with
-        | WellKnown wk  -> wk.DotNetType
+        | WellKnown wk  -> wk.DotNetType |> Some
         | Array ar      -> None
         | Option opt    -> None
         | Enum en       -> en.DotNetType    
@@ -275,14 +297,14 @@ type DataType =
 
 type EventType =
     {
-        CodeHint : SimpleName option
+        CodeHint : string option
         EventType : Lazy<DataType>
         ContentType : ContentType option
         Options : Map<string, DataItem>
     }
 type CallType =
     {
-        CodeHint : SimpleName option
+        CodeHint : string option
         RequestType : Lazy<DataType>
         ResponseType : Lazy<DataType> option
         ContentType : ContentType option
@@ -292,14 +314,15 @@ type CallType =
 type EndpointType =
     | Event of EventType
     | Call of CallType
+    
 
 type ServiceType = 
     {
-        Name : SimpleName
-        Owner : SimpleName
+        Name : string
+        Owner : string
         CodeHint : string option
         ContentType : ContentType option
-        Endpoints : Map<SimpleName, EndpointType> 
+        Endpoints : Map<string, EndpointType> 
         Types : DataType list     
         Options : Map<string, DataItem>            
     }
@@ -342,13 +365,11 @@ type ComplexItem =
 type EnumItem =
     | Enum of OrdinalItem
     
-type OneOfHint =
-    | Index of int
-    | Name of SimpleName    
+ 
     
 type OneOfItem =
     {
-        TypeHint: OneOfHint
+        TypeHint: string
         Value : DataItem
     }
 
@@ -360,6 +381,8 @@ type DataItem =
     | Enum of EnumItem 
     | OneOf of OneOfItem
      
+
+            
 
     
   

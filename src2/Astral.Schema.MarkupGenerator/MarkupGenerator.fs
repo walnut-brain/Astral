@@ -103,12 +103,12 @@ let createEndpoint (extenders : ISchemaExtender list) lazyType (prop : PropertyI
         | Ok options ->
             let et =
                 { 
-                    EventType.CodeHint = prop.Name |> SimpleName |> Some
+                    EventType.CodeHint = prop.Name |> Some
                     ContentType = contentType 
                     Options = options 
                     EventType.EventType = Lazy<DataType>(fun () -> lazyType eventType)
                 } 
-            Ok (Event(et), [eventType])    
+            Ok (Event(et), [eventType], name)    
     | IsCall (requestType, responseType) ->
         let name = getEndpointName prop
         let contentType = prop.tryGetAttribute<ContentTypeAttribute>() |> Option.map (fun a -> a.ContentType)
@@ -121,13 +121,13 @@ let createEndpoint (extenders : ISchemaExtender list) lazyType (prop : PropertyI
         | Ok options ->
             let ct =
                 { 
-                    CallType.CodeHint = prop.Name |> SimpleName |> Some
+                    CallType.CodeHint = prop.Name |> Some
                     ContentType = contentType 
                     Options = options 
                     RequestType = Lazy<DataType>(fun () -> lazyType requestType)
                     ResponseType = responseType |> Option.map (fun t -> Lazy<DataType>(fun () -> lazyType t))
                 } 
-            Ok  (Call(ct), responseType |> Option.map (fun rt -> [requestType; rt]) |> Option.defaultValue [requestType] ) 
+            Ok  (Call(ct), responseType |> Option.map (fun rt -> [requestType; rt]) |> Option.defaultValue [requestType] , name) 
     | _ -> InvalidProperty(prop.Name, "Unknown type of property") |> Error
            
            
@@ -138,11 +138,11 @@ let createEndpoints (extenders : ISchemaExtender list) lazyType (serviceType : T
             match memb with
             | :? PropertyInfo as pi ->
                 match createEndpoint extenders lazyType pi with
-                | Ok (ep, t) -> Ok(ep :: eps, t @ types)  
+                | Ok (ep, t, name) -> Ok(eps |> Map.add name ep , t @ types)  
                 | Error e -> Error e
             | _ -> InvalidMember(memb.Name, "Unknown mebmer") |> Error
         | _ -> state
-    serviceType.GetMembers() |> Seq.fold processMember (Ok([], []))                   
+    serviceType.GetMembers() |> Seq.fold processMember (Ok(Map.empty, []))                   
 
 
     
@@ -177,18 +177,18 @@ let rec genType (dict : IDictionary<Type, DataType>) typ : Result<unit, MarkupGe
     match dict.TryGetValue(typ) with
     | (true, dt) -> Ok()
     | _ -> 
-        match WellKnownType.TryResolve typ with
+        match WellKnownType.tryGetWellKnownType (WellKnownType.createDictionary()) typ with
         | Some t -> dict.Add(typ, DataType.WellKnown t); Ok()
         | _ -> 
             match typ with
             | IsArrayType et -> 
-                dict.Add(typ, ArrayType.Array (Lazy<DataType> (fun () -> dict.[et])) |> DataType.Array); Ok()
+                dict.Add(typ, ArrayType(fun () -> dict.[et]) |> DataType.Array); Ok()
             | _ -> 
                 match typ with 
                 | IsNullable et ->
-                    dict.Add(typ, OptionType.Option (Lazy<DataType> (fun () -> dict.[et])) |> DataType.Option); Ok()
+                    dict.Add(typ, OptionType(fun () -> dict.[et]) |> DataType.Option); Ok()
                 | IsOption et ->
-                    dict.Add(typ, OptionType.Option (Lazy<DataType> (fun () -> dict.[et])) |> DataType.Option); Ok()
+                    dict.Add(typ, OptionType(fun () -> dict.[et]) |> DataType.Option); Ok()
                 | _ -> UnknownType typ |> Error
                      
 let genTypes dict types =
@@ -205,14 +205,15 @@ let generate (extenders : ISchemaExtender list) (serviceType: Type)  =
         else
             let processExtenders (owner, name, contentType) =
                  extenders 
-                     |> List.map (fun a -> a.Name, fun opt -> a.ExtendServiceByType(serviceType, opt)))
+                     |> List.map (fun a -> a.Name, fun opt -> a.ExtendServiceByType(serviceType, opt))
                      |> extendOption Map.empty
                      |> Result.mapError (fun (name, er) -> ExtenderServiceError(name, er)) 
                      |> Result.map (fun opt -> owner, name, contentType, opt)
             let dict = Dictionary<Type, DataType>()
             let findEndpoints (owner, name, contentType, options) =
                 createEndpoints extenders (fun typ -> dict.[typ]) serviceType
-                    |> Result.map (fun (ep, t) -> owner, name, contentType, options, ep, t)
+                    //|> Result.bind (fun (ep, t) -> genTypes dict t |> Result.map (fun g -> (ep, g)))
+                    |> Result.map (fun (ep, t) -> (owner, name, contentType, options, ep, t))
             getServiceOwner serviceType
                  |> Result.map (fun owner -> (owner, getServiceName serviceType)) 
                  |> Result.map (fun (owner, name) -> 
@@ -227,10 +228,11 @@ let generate (extenders : ISchemaExtender list) (serviceType: Type)  =
                                                         {
                                                             ServiceType.CodeHint = serviceType.Name |> Some
                                                             ServiceType.ContentType = contentType
-                                                            ServiceType.Endpoints = endpoints
+                                                            ServiceType.Endpoints = endpoints  
                                                             ServiceType.Name = name
-                                                            ServiceType.Options = optioms
+                                                            ServiceType.Options = options
                                                             ServiceType.Owner = owner
+                                                            ServiceType.Types = t
                                                         })) 
                                       
                  

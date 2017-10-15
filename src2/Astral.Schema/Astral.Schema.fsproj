@@ -5,6 +5,7 @@
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="Extensions.fs" />
+    <Compile Include="TypeUtils.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Astral.Markup\Astral.Markup.csproj" />
