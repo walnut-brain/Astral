@@ -238,7 +238,7 @@ type EnumType =
         DotNetType  : Type option
         BasedOn     : Lazy<DataType>
         IsFlags     : bool
-        Values      : Map<string, OrdinalItem>
+        Values      : Map<string, DataItem>
         RemapValues : Map<string, string>
     }
     
@@ -327,7 +327,7 @@ type ServiceType =
         Options : Map<string, DataItem>            
     }
     
-type OrdinalItem =
+type WellKnownItem =
     | U8 of byte
     | I8 of sbyte
     | U16 of uint16
@@ -336,19 +336,10 @@ type OrdinalItem =
     | I32 of int
     | U64 of uint64
     | I64 of int64
-
-type RationalItem =
     | F32 of float32
     | F64 of double
-
-type DateItem =
-    | DateTime of DateTime
-    | DateTime2 of DateTimeOffset
-    
-type WellKnownItem =
-    | Ordinal of OrdinalItem
-    | Rational of RationalItem
-    | Date of DateItem
+    | DT of DateTime
+    | DTO of DateTimeOffset
     | String of string
     | Uuid of Guid
     | TimeSpan of TimeSpan
@@ -362,10 +353,6 @@ type OptionalItem =
 type ComplexItem =
     | Complex of Map<string, DataItem>
 
-type EnumItem =
-    | Enum of OrdinalItem
-    
- 
     
 type OneOfItem =
     {
@@ -378,7 +365,6 @@ type DataItem =
     | Array of ArrayItem
     | Optional of OptionalItem 
     | Complex of ComplexItem  
-    | Enum of EnumItem 
     | OneOf of OneOfItem
      
 
