@@ -3,11 +3,17 @@
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="HashMap.fs" />
+    <Compile Include="Items.fs" />
+    <Compile Include="Green.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="TypeUtils.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Astral.Markup\Astral.Markup.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
   </ItemGroup>
 </Project>
