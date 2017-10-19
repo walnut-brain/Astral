@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.Json", "src\A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.Yaml", "src\Astral.Schema.Yaml\Astral.Schema.Yaml.csproj", "{EC7EA201-5034-48D2-83E8-255B70BE3F65}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.CSharpGenerator", "src\Astral.Schema.CSharpGenerator\Astral.Schema.CSharpGenerator.csproj", "{AB16A933-F730-4063-9010-382F9A329FDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -78,6 +80,10 @@ Global
 		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC7EA201-5034-48D2-83E8-255B70BE3F65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB16A933-F730-4063-9010-382F9A329FDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB16A933-F730-4063-9010-382F9A329FDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB16A933-F730-4063-9010-382F9A329FDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB16A933-F730-4063-9010-382F9A329FDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +99,7 @@ Global
 		{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{A8F2A192-EE51-4E44-8371-26C5241714BA} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{EC7EA201-5034-48D2-83E8-255B70BE3F65} = {AFD8E592-8E24-4442-98E6-E105850659CE}
+		{AB16A933-F730-4063-9010-382F9A329FDE} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}

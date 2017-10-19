@@ -17,7 +17,7 @@ namespace Astral.Schema.Green
             Values = values;
         }
 
-        public EnumTypeSchemaGreen(EnumTypeSchemaGreen @base, Option<Type> dotNetType, 
+        public EnumTypeSchemaGreen(TypeSchemaGreen @base, Option<Type> dotNetType, 
             string schemaName, string codeName, string contractName, int baseTypeId, bool isFlags, ImmutableDictionary<string, long> values) : base(@base, dotNetType, false)
         {
             SchemaName = schemaName;

@@ -16,7 +16,7 @@ namespace Astral.Schema.Green
             Fields = fields;
         }
 
-        public ComplexTypeSchemaGreen(ComplexTypeSchemaGreen @base, Option<Type> dotNetType, string schemaName,
+        public ComplexTypeSchemaGreen(TypeSchemaGreen @base, Option<Type> dotNetType, string schemaName,
             string codeName, string contractName, int? baseTypeId, bool isStruct,
             ImmutableDictionary<string, int> fields) : base(@base, dotNetType, false)
         {

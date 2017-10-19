@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Astral.Markup;
 
 namespace SampleServices
@@ -13,6 +14,15 @@ namespace SampleServices
         public class Line
         {
             public Sample Num { get; set; }
+
+            public Code Data { get; set; }
+            
+            [Flags]
+            public enum Code
+            {
+                Fl1 = 1,
+                Fl2 = 2
+            }
         }
     }
 

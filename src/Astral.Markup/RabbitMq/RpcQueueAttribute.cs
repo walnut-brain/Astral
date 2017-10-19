@@ -17,7 +17,7 @@ namespace Astral.Markup.RabbitMq
             Name = name;
         }
 
-        public string Name { get; }
+        public string Name { get; set; }
         public bool Durable { get; set; } = false;
         public bool AutoDelete { get; set; } = true;
     }

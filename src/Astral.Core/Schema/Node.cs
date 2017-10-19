@@ -40,8 +40,8 @@ namespace Astral.Schema
     public interface IEnumTypeDeclarationSchema : ITypeDeclarationSchema
     {
         ITypeDeclarationSchema BaseOn { get;  }
-        bool IsFlags { get; }
         IReadOnlyDictionary<string, long> Values { get; }
+        bool IsFlags { get; }
     }
 
 

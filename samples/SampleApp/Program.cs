@@ -5,6 +5,7 @@
  using Astral.Liaison;
  using Astral.RabbitLink;
  using Astral.Schema;
+ using Astral.Schema.CSharpGenerator;
  using Astral.Schema.Json;
  using Microsoft.Extensions.Logging;
  using Newtonsoft.Json;
@@ -47,7 +48,17 @@ namespace SampleApp
                     .Build())
             {
                 var service = link.Service<IFirstService>().Schema;
-                var json = ServiceSchema.FromType<IFirstService>().ToYaml();
+                var json = ServiceSchema.FromType<IFirstService>().Json().ToJObject();
+                var json1 = ServiceSchema.FromType<IFirstService>().Json().ToJson();
+
+                var schema = JsonSchemaStore.FromJObject(json);
+
+                schema = schema
+                    .SetCodeName("IAnotherName");
+                
+                var csharp = new CSharpGenerator("Contract.Test").Generate(schema);
+                var json2 = ServiceSchema.FromType<Contract.Test.IFirstService>().Json().ToJson();
+                
                 link.Service<IFirstService>().Event(p => p.Event)
                     .Listen(async (p, ct) =>
                     {

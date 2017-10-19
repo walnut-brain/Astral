@@ -31,7 +31,7 @@ namespace Astral.Schema.Json
                 if (exchange.Type != ExchangeKind.Direct)
                     obj.Add("type", exchange.Type.ToString().ToLowerInvariant());
                 if (exchange.AutoDelete)
-                    obj.Add("autDelete", new YamlScalarNode("true"));
+                    obj.Add("autoDelete", new YamlScalarNode("true"));
                 if (exchange.Delayed)
                     obj.Add("delayed", new YamlScalarNode("false"));
                 if (!exchange.Durable)
@@ -114,6 +114,8 @@ namespace Astral.Schema.Json
                         
                         if (complexTypeDesc.BaseOn != null)
                             obj.Add("base", complexTypeDesc.BaseOn.SchemaName);
+                        if (complexTypeDesc.IsStruct)
+                            obj.Add("struct", "true");
                         obj.Add("fields", new YamlMappingNode(complexTypeDesc.Fields.Select(p => new KeyValuePair<YamlNode, YamlNode>(new YamlScalarNode(p.Key),new YamlScalarNode(p.Value.SchemaName) ))));
                         return obj;
                     case IEnumTypeDeclarationSchema enumTypeDesc:
