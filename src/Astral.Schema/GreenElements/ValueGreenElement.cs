@@ -2,7 +2,7 @@
 {
     internal abstract class ValueGreenElement : SchemaGreenElement
     {
-        protected ValueGreenElement(long id) : base(id)
+        protected ValueGreenElement(ValueGreenElement @base) : base(@base)
         {
         }
 
