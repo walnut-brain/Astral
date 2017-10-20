@@ -70,7 +70,7 @@ namespace Astral.RabbitLink
                     log.Trace("Call receiving");
                     try
                     {
-                        var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
+                        var data = (TArg) Link.PayloadManager.Deserialize<TArg>(msg, Schema.Service.Types);
                         var tsk = processor(data, msg.Cancellation);
                         try
                         {
@@ -80,7 +80,7 @@ namespace Astral.RabbitLink
                             };
                             var result = await tsk;
                             var answer = new LinkPublishMessage<byte[]>(
-                                Link.PayloadManager.Serialize(Schema.ContentType, result, props),
+                                Link.PayloadManager.Serialize(Schema.ContentType, result, props, Schema.Service.Types),
                                 props,
                                 new LinkPublishProperties
                                 {
@@ -103,7 +103,7 @@ namespace Astral.RabbitLink
                                     {
                                         Kind = ex.GetType().FullName,
                                         Message = ex.Message
-                                    }, props),
+                                    }, props, Schema.Service.Types),
                                 props,
                                 new LinkPublishProperties
                                 {
@@ -168,12 +168,12 @@ namespace Astral.RabbitLink
                     };
                     if (messageTtl != null)
                         props.Expiration = messageTtl.Value;
-                    var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token);
+                    var waiter = consumer.WaitFor<TResult>(props.CorrelationId, token, Schema.Service);
                     var producer =
                         Utils.CreateProducer(Link, Schema.Exchange, Schema.ContentType, true);
 
                     var request = new LinkPublishMessage<byte[]>(
-                        Link.PayloadManager.Serialize(Schema.ContentType, arg, props),
+                        Link.PayloadManager.Serialize(Schema.ContentType, arg, props, Schema.Service.Types),
                         props, new LinkPublishProperties
                         {
                             RoutingKey = Schema.RoutingKey
@@ -264,7 +264,7 @@ namespace Astral.RabbitLink
                     log.Trace("Message receiving");
                     try
                     {
-                        var data = (TArg) Link.PayloadManager.Deserialize(msg, typeof(TArg));
+                        var data = (TArg) Link.PayloadManager.Deserialize<TArg>(msg, Schema.Service.Types);
                         var tsk = processor(data, msg.Cancellation);
                         try
                         {
@@ -274,7 +274,7 @@ namespace Astral.RabbitLink
                             };
                             await tsk;
                             var answer = new LinkPublishMessage<byte[]>(
-                                Link.PayloadManager.Serialize(Schema.ContentType, new RpcOk(), props),
+                                Link.PayloadManager.Serialize(Schema.ContentType, new RpcOk(), props, Schema.Service.Types),
                                 props,
                                 new LinkPublishProperties
                                 {
@@ -296,7 +296,7 @@ namespace Astral.RabbitLink
                                     {
                                         Kind = ex.GetType().FullName,
                                         Message = ex.Message
-                                    }, props),
+                                    }, props, Schema.Service.Types),
                                 props,
                                 new LinkPublishProperties
                                 {
@@ -356,12 +356,12 @@ namespace Astral.RabbitLink
                     };
                     if (messageTtl != null)
                         props.Expiration = messageTtl.Value;
-                    var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token);
+                    var waiter = consumer.WaitFor<RpcOk>(props.CorrelationId, token, Schema.Service);
                     var producer =
                         Utils.CreateProducer(Link, Schema.Exchange, Schema.ContentType, true);
 
                     var request = new LinkPublishMessage<byte[]>(
-                        Link.PayloadManager.Serialize(Schema.ContentType, arg, props),
+                        Link.PayloadManager.Serialize(Schema.ContentType, arg, props, Schema.Service.Types),
                         props, new LinkPublishProperties
                         {
                             RoutingKey = Schema.RoutingKey

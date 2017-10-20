@@ -4,7 +4,7 @@ namespace Astral.Schema
 {
     public interface ICallSchema : IEndpointSchema
     {
-        ITypeDeclarationSchema RequestType { get; }
-        ITypeDeclarationSchema ResponseType { get; }
+        ITypeSchema RequestType { get; }
+        ITypeSchema ResponseType { get; }
     }
 }

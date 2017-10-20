@@ -142,15 +142,15 @@ namespace Astral.Schema.CSharpGenerator
                 
                 writer.WriteLine("}");
 
-                var tp = schema.Types is ICollection<ITypeDeclarationSchema> c ? c : schema.Types.ToList();
+                var tp = schema.Types is ICollection<ITypeSchema> c ? c : schema.Types.ToList();
                 foreach (var type in schema.Types.Where(p => !p.CodeName.Contains(".")))
                 {
                     switch (type)
                     {
-                        case IComplexTypeDeclarationSchema complexTypeDeclarationSchema:
+                        case IComplexTypeSchema complexTypeDeclarationSchema:
                             WriteComplex(complexTypeDeclarationSchema, writer, tp);
                             break;
-                        case IEnumTypeDeclarationSchema enumTypeDeclarationSchema:
+                        case IEnumTypeSchema enumTypeDeclarationSchema:
                             WriteEnum(enumTypeDeclarationSchema, writer);
                             break;
                     }
@@ -162,7 +162,7 @@ namespace Astral.Schema.CSharpGenerator
 
         }
 
-        private void WriteEnum(IEnumTypeDeclarationSchema schema, IndentWriter writer)
+        private void WriteEnum(IEnumTypeSchema schema, IndentWriter writer)
         {
             writer.WriteLine();
             if(!string.IsNullOrWhiteSpace(schema.ContractName))
@@ -189,8 +189,8 @@ namespace Astral.Schema.CSharpGenerator
             writer.WriteLine("}");
         }
 
-        private void WriteComplex(IComplexTypeDeclarationSchema schema, IndentWriter writer,
-            ICollection<ITypeDeclarationSchema> types)
+        private void WriteComplex(IComplexTypeSchema schema, IndentWriter writer,
+            ICollection<ITypeSchema> types)
         {
             writer.WriteLine();
             if (!string.IsNullOrWhiteSpace(schema.ContractName))
@@ -217,10 +217,10 @@ namespace Astral.Schema.CSharpGenerator
                     {
                         switch (subType)
                         {
-                            case IComplexTypeDeclarationSchema complexTypeDeclarationSchema:
+                            case IComplexTypeSchema complexTypeDeclarationSchema:
                                 WriteComplex(complexTypeDeclarationSchema, writer, types);
                                 break;
-                            case IEnumTypeDeclarationSchema enumTypeDeclarationSchema:
+                            case IEnumTypeSchema enumTypeDeclarationSchema:
                                 WriteEnum(enumTypeDeclarationSchema, writer);
                                 break;
                         }
@@ -230,7 +230,7 @@ namespace Astral.Schema.CSharpGenerator
             }
             else
             {
-                foreach (var known in types.OfType<IComplexTypeDeclarationSchema>().Where(p => p.BaseOn == schema))
+                foreach (var known in types.OfType<IComplexTypeSchema>().Where(p => p.BaseOn == schema))
                     if (!string.IsNullOrWhiteSpace(known.ContractName))
                         writer.WriteLine($"[KnownContract(typeof({known.CodeName}), \"{known.ContractName}\")]");
                     else
@@ -252,10 +252,10 @@ namespace Astral.Schema.CSharpGenerator
                     {
                         switch (subType)
                         {
-                            case IComplexTypeDeclarationSchema complexTypeDeclarationSchema:
+                            case IComplexTypeSchema complexTypeDeclarationSchema:
                                 WriteComplex(complexTypeDeclarationSchema, writer, types);
                                 break;
-                            case IEnumTypeDeclarationSchema enumTypeDeclarationSchema:
+                            case IEnumTypeSchema enumTypeDeclarationSchema:
                                 WriteEnum(enumTypeDeclarationSchema, writer);
                                 break;
                         }
@@ -278,10 +278,10 @@ namespace Astral.Schema.CSharpGenerator
                     {
                         switch (subType)
                         {
-                            case IComplexTypeDeclarationSchema complexTypeDeclarationSchema:
+                            case IComplexTypeSchema complexTypeDeclarationSchema:
                                 WriteComplex(complexTypeDeclarationSchema, writer, types);
                                 break;
-                            case IEnumTypeDeclarationSchema enumTypeDeclarationSchema:
+                            case IEnumTypeSchema enumTypeDeclarationSchema:
                                 WriteEnum(enumTypeDeclarationSchema, writer);
                                 break;
                         }
@@ -294,19 +294,19 @@ namespace Astral.Schema.CSharpGenerator
 
         }
 
-        private string ToTypeName(ITypeDeclarationSchema schema)
+        private string ToTypeName(ITypeSchema schema)
         {
             switch (schema)
             {
                 case WellKnownTypeSchema wellKnownTypeSchema:
                     return KnownTypeNames[wellKnownTypeSchema.DotNetType];
-                case IArrayTypeDeclarationSchema arrayTypeDeclarationSchema:
+                case IArrayTypeSchema arrayTypeDeclarationSchema:
                     return ToTypeName(arrayTypeDeclarationSchema.ElementType) + "[]";
-                case IComplexTypeDeclarationSchema complexTypeDeclarationSchema:
+                case IComplexTypeSchema complexTypeDeclarationSchema:
                     return complexTypeDeclarationSchema.CodeName;
-                case IEnumTypeDeclarationSchema enumTypeDeclarationSchema:
+                case IEnumTypeSchema enumTypeDeclarationSchema:
                     return enumTypeDeclarationSchema.CodeName;
-                case IOptionTypeDeclarationSchema optionTypeDeclarationSchema:
+                case IOptionTypeSchema optionTypeDeclarationSchema:
                     return ToTypeName(optionTypeDeclarationSchema.ElementType) + "?";
             }
             throw new ArgumentOutOfRangeException("Unknown type schema");

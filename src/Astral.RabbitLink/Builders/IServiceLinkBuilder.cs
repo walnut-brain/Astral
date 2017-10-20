@@ -127,13 +127,13 @@ namespace Astral.RabbitLink
         /// get link payload manager
         /// </summary>
         /// <returns>link payload manager</returns>
-        IPayloadManager PayloadManager();
+        ILinkPayloadManager PayloadManager();
         /// <summary>
         /// set link payload manager
         /// </summary>
         /// <param name="value">link payload manager value</param>
         /// <returns>service link builder</returns>
-        IServiceLinkBuilder PayloadManager(IPayloadManager value);
+        IServiceLinkBuilder PayloadManager(ILinkPayloadManager value);
         
         /// <summary>
         /// get description factory
@@ -154,13 +154,6 @@ namespace Astral.RabbitLink
         /// <returns>log factory</returns>
         ILogFactory LogFactory();
         
-        /// <summary>
-        /// set logger factory 
-        /// </summary>
-        /// <param name="value">logger factory value</param>
-        /// <returns>service link builder</returns>
-        IServiceLinkBuilder LoggerFactory(ILoggerFactory value);
-
         /// <summary>
         /// set log factory
         /// </summary>

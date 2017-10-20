@@ -817,7 +817,7 @@ namespace Astral.Schema.Json
                 return obj;
             }
 
-            JObject TypeToJson(ITypeDeclarationSchema desc)
+            JObject TypeToJson(ITypeSchema desc)
             {
                 var obj = new JObject();
                 if (desc.CodeName != null)
@@ -826,7 +826,7 @@ namespace Astral.Schema.Json
                     obj.Add("contract", desc.ContractName);
                 switch (desc)
                 {
-                    case IComplexTypeDeclarationSchema complexTypeDesc:
+                    case IComplexTypeSchema complexTypeDesc:
                         
                         if (complexTypeDesc.BaseOn != null)
                             obj.Add("base", complexTypeDesc.BaseOn.SchemaName);
@@ -834,7 +834,7 @@ namespace Astral.Schema.Json
                             obj.Add("struct", true);
                         obj.Add("fields", new JObject(complexTypeDesc.Fields.Select(p => new JProperty(p.Key, p.Value.SchemaName))));
                         return obj;
-                    case IEnumTypeDeclarationSchema enumTypeDesc:
+                    case IEnumTypeSchema enumTypeDesc:
                         obj.Add("base", enumTypeDesc.BaseOn.SchemaName);
                         if (enumTypeDesc.IsFlags)
                             obj.Add("flags", true);
@@ -860,8 +860,8 @@ namespace Astral.Schema.Json
                 ExchangeToJson(_schema.ResponseExchange).IfSome(p => jsonSchema.Add("responseExchange", p));
             jsonSchema.Add("events", new JObject(_schema.Events.Select(p => new JProperty(p.Name, EventToJson(p))).Cast<object>().ToArray()));
             jsonSchema.Add("calls", new JObject(_schema.Calls.Select(p => new JProperty(p.Name, CallToJson(p))).Cast<object>().ToArray()));
-            jsonSchema.Add("enums", new JObject(_schema.Types.OfType<IEnumTypeDeclarationSchema>().Select(p => new JProperty(p.SchemaName, TypeToJson(p))).Cast<object>().ToArray()));
-            jsonSchema.Add("types", new JObject(_schema.Types.OfType<IComplexTypeDeclarationSchema>().Select(p => new JProperty(p.SchemaName, TypeToJson(p))).Cast<object>().ToArray()));
+            jsonSchema.Add("enums", new JObject(_schema.Types.OfType<IEnumTypeSchema>().Select(p => new JProperty(p.SchemaName, TypeToJson(p))).Cast<object>().ToArray()));
+            jsonSchema.Add("types", new JObject(_schema.Types.OfType<IComplexTypeSchema>().Select(p => new JProperty(p.SchemaName, TypeToJson(p))).Cast<object>().ToArray()));
             return jsonSchema;
 
         }

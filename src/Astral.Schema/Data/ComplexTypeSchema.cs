@@ -7,22 +7,22 @@ using Astral.Schema.Green;
 
 namespace Astral.Schema.Data
 {
-    public class ComplexTypeSchema : IComplexTypeDeclarationSchema
+    public class ComplexTypeSchema : IComplexTypeSchema
     {
         private readonly ComplexTypeSchemaGreen _green;
-        private Lazy<ImmutableDictionary<string, ITypeDeclarationSchema>> _lazyFields;
+        private Lazy<ImmutableDictionary<string, ITypeSchema>> _lazyFields;
         public ServiceSchema Service { get; }
 
         public ComplexTypeSchema(ServiceSchema service, ComplexTypeSchemaGreen green)
         {
             _green = green;
             Service = service;
-            _lazyFields = new Lazy<ImmutableDictionary<string, ITypeDeclarationSchema>>(
+            _lazyFields = new Lazy<ImmutableDictionary<string, ITypeSchema>>(
                 () =>
                 {
-                    var builder = ImmutableDictionary.CreateBuilder<string, ITypeDeclarationSchema>();
+                    var builder = ImmutableDictionary.CreateBuilder<string, ITypeSchema>();
                     builder.AddRange(_green.Fields.Select(p =>
-                        new KeyValuePair<string, ITypeDeclarationSchema>(p.Key, Service.TypeById(p.Value))));
+                        new KeyValuePair<string, ITypeSchema>(p.Key, Service.TypeById(p.Value))));
                     return builder.ToImmutable();
                 });
         }
@@ -55,12 +55,12 @@ namespace Astral.Schema.Data
         public bool IsStruct => _green.IsStruct;
 
 
-        public IComplexTypeDeclarationSchema BaseOn =>
-             _green.BaseTypeId == null ? null : (IComplexTypeDeclarationSchema) Service.TypeById(_green.BaseTypeId.Value);
+        public IComplexTypeSchema BaseOn =>
+             _green.BaseTypeId == null ? null : (IComplexTypeSchema) Service.TypeById(_green.BaseTypeId.Value);
 
 
 
-        public IReadOnlyDictionary<string, ITypeDeclarationSchema> Fields => _lazyFields.Value;
+        public IReadOnlyDictionary<string, ITypeSchema> Fields => _lazyFields.Value;
 
     }
 }

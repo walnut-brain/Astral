@@ -8,9 +8,9 @@ namespace Astral.Schema
         string Name { get; }
         string Owner { get; }
         string CodeName { get; }
-        IEnumerable<IEventSchema> Events { get; }
-        IEnumerable<ICallSchema> Calls { get; }
-        IEnumerable<ITypeDeclarationSchema> Types { get; }
+        IReadOnlyCollection<IEventSchema> Events { get; }
+        IReadOnlyCollection<ICallSchema> Calls { get; }
+        IReadOnlyCollection<ITypeSchema> Types { get; }
         IEventSchema EventByCodeName(string codeName);
         ICallSchema CallByCodeName(string codeName);
 

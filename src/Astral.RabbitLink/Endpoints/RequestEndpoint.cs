@@ -120,7 +120,7 @@ namespace Astral.RabbitLink
                     log.Trace("Message recieving");
                     try
                     {
-                        var obj = Link.PayloadManager.Deserialize(msg, typeof(TResponse));
+                        var obj = Link.PayloadManager.Deserialize<TResponse>(msg, Schema.Service.Types);
                         Response<TResponse> response;
                         switch (obj)
                         {
@@ -185,7 +185,7 @@ namespace Astral.RabbitLink
                     Expiration = MessageTtl(),
                     DeliveryMode = Persisent() ? LinkDeliveryMode.Persistent : LinkDeliveryMode.Transient
                 };
-                var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
+                var serialized = Link.PayloadManager.Serialize(ContentType, message, props, Schema.Service.Types);
 
                 var msg = new LinkPublishMessage<byte[]>(serialized, props, new LinkPublishProperties
                 {

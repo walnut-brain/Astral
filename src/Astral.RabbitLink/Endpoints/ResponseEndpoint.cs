@@ -61,8 +61,8 @@ namespace Astral.RabbitLink
                         {
                             Kind = message.Error.GetType().FullName,
                             Message = message.Error.Message
-                        }, props)
-                        : serializer.Serialize(Schema.ContentType, message.Result, props),
+                        }, props, Schema.Service.Types)
+                        : serializer.Serialize(Schema.ContentType, message.Result, props, Schema.Service.Types),
                     props,
                     new LinkPublishProperties
                     {
@@ -100,7 +100,7 @@ namespace Astral.RabbitLink
                     log.Trace("Message receiving");
                     try
                     {
-                        var data = (TRequest) Link.PayloadManager.Deserialize(msg, typeof(TRequest));
+                        var data = (TRequest) Link.PayloadManager.Deserialize<TRequest>(msg, Schema.Service.Types);
                         var request = new Request<TRequest>(msg.Properties.CorrelationId, msg.Properties.ReplyTo, data);
                         var ack = await listener(request, msg.Cancellation);
                         log.With("ack", ack).Trace("Message received");

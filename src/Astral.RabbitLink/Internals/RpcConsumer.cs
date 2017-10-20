@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Astral.Liaison;
+using Astral.Schema;
 using RabbitLink.Builders;
 using RabbitLink.Consumer;
 using RabbitLink.Messaging;
@@ -55,7 +56,7 @@ namespace Astral.RabbitLink.Internals
             }
         }
         
-        public async Task<T> WaitFor<T>(string correlationId, CancellationToken token)
+        public async Task<T> WaitFor<T>(string correlationId, CancellationToken token, IServiceSchema schema)
         {
             var taskSource = new TaskCompletionSource<ILinkConsumedMessage<byte[]>>();
             GuardDispose(() => _subscribers.TryAdd(correlationId, taskSource));
@@ -64,7 +65,7 @@ namespace Astral.RabbitLink.Internals
             {
                 token.Register(() => taskSource.TrySetCanceled(token));
                 var msg = await taskSource.Task;
-                var obj = _link.PayloadManager.Deserialize(msg, typeof(T));
+                var obj = _link.PayloadManager.Deserialize<T>(msg, schema.Types);
                 switch (obj)
                 {
                     case Exception ex:

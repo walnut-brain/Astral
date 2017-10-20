@@ -16,7 +16,7 @@ namespace Astral.RabbitLink
         /// <summary>
         /// payload manager
         /// </summary>
-        IPayloadManager PayloadManager { get; }
+        ILinkPayloadManager PayloadManager { get; }
         /// <summary>
         /// service builder provider
         /// </summary>

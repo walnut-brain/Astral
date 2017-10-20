@@ -1,8 +1,10 @@
 ﻿﻿using System;
+ using System.Collections.Generic;
  using System.Text;
  using System.Threading;
  using System.Threading.Tasks;
  using Astral.Liaison;
+ using Astral.Logging;
  using Astral.RabbitLink;
  using Astral.Schema;
  using Astral.Schema.CSharpGenerator;
@@ -43,7 +45,7 @@ namespace SampleApp
                     .Uri("amqp://youdo:youdo@localhost")
                     .AutoStart(true)
                     .ConnectionName("Test process")
-                    .LoggerFactory(loggerFactory)
+                    .LogFactory(new LogFactoryAdapter(loggerFactory))
                     .Serializer(new LinkJsonSerializer())
                     .Build())
             {
@@ -73,6 +75,7 @@ namespace SampleApp
                 /*
                 link.Service<IFirstService>().Event(p => p.Event)
                     .PublishAsync(new EventContract {Name = "test "});*/
+                
                 link
                     .Producer
                     .Exchange(cfg => cfg.ExchangeDeclarePassive("test.first"))
@@ -80,7 +83,7 @@ namespace SampleApp
                     {
                         RoutingKey = "event"
                     })
-                    .Build().PublishAsync(new LinkPublishMessage<EventContract>(new EventContract {Name = "empty"}));
+                    .Build().PublishAsync(new LinkPublishMessage<EventContract>(new EventContract {Name = "empty", Lines = new List<EventContract.Line>()}));
                 link.Service<IFirstService>().Call(p => p.Call)
                     .ResponseQueueExpires(TimeSpan.FromSeconds(5))
                     .Call(10, CancellationToken.None).ContinueWith(p => Console.WriteLine(p.Result));

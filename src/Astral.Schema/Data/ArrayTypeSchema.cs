@@ -3,7 +3,7 @@ using Astral.Schema.Green;
 
 namespace Astral.Schema.Data
 {
-    public sealed class ArrayTypeSchema : IArrayTypeDeclarationSchema
+    public sealed class ArrayTypeSchema : IArrayTypeSchema
     {
         public ServiceSchema Service { get; }
         private ArrayTypeSchemaGreen Green { get; }
@@ -29,7 +29,7 @@ namespace Astral.Schema.Data
         public bool IsWellKnown => true;
 
 
-        public ITypeDeclarationSchema ElementType => Service.TypeById(Green.ElementId);
+        public ITypeSchema ElementType => Service.TypeById(Green.ElementId);
 
     }
 }

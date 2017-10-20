@@ -101,7 +101,7 @@ namespace Astral.Schema.Json
                 return obj;
             }
 
-            YamlMappingNode TypeToYaml(ITypeDeclarationSchema desc)
+            YamlMappingNode TypeToYaml(ITypeSchema desc)
             {
                 var obj = new YamlMappingNode();
                 if(desc.ContractName != null)
@@ -110,7 +110,7 @@ namespace Astral.Schema.Json
                     obj.Add("title", desc.CodeName);
                 switch (desc)
                 {
-                    case IComplexTypeDeclarationSchema complexTypeDesc:
+                    case IComplexTypeSchema complexTypeDesc:
                         
                         if (complexTypeDesc.BaseOn != null)
                             obj.Add("base", complexTypeDesc.BaseOn.SchemaName);
@@ -118,7 +118,7 @@ namespace Astral.Schema.Json
                             obj.Add("struct", "true");
                         obj.Add("fields", new YamlMappingNode(complexTypeDesc.Fields.Select(p => new KeyValuePair<YamlNode, YamlNode>(new YamlScalarNode(p.Key),new YamlScalarNode(p.Value.SchemaName) ))));
                         return obj;
-                    case IEnumTypeDeclarationSchema enumTypeDesc:
+                    case IEnumTypeSchema enumTypeDesc:
                         obj.Add("base", enumTypeDesc.BaseOn.SchemaName);
                         if(enumTypeDesc.IsFlags)
                             obj.Add("falgs", "true");
@@ -143,8 +143,8 @@ namespace Astral.Schema.Json
                 ExchangeToYaml(schema.ResponseExchange).IfSome(p => yamlRoot.Add("responseExchange", p));
             yamlRoot.Add("events", new YamlMappingNode(schema.Events.Select(p => new KeyValuePair<YamlNode, YamlNode>(p.Name, EventToYaml(p)))));
             yamlRoot.Add("calls", new YamlMappingNode(schema.Calls.Select(p => new KeyValuePair<YamlNode, YamlNode>(p.Name, CallToYaml(p)))));
-            yamlRoot.Add("enums", new YamlMappingNode(schema.Types.OfType<IEnumTypeDeclarationSchema>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.SchemaName, TypeToYaml(p)))));
-            yamlRoot.Add("types", new YamlMappingNode(schema.Types.OfType<IComplexTypeDeclarationSchema>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.SchemaName, TypeToYaml(p)))));
+            yamlRoot.Add("enums", new YamlMappingNode(schema.Types.OfType<IEnumTypeSchema>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.SchemaName, TypeToYaml(p)))));
+            yamlRoot.Add("types", new YamlMappingNode(schema.Types.OfType<IComplexTypeSchema>().Select(p => new KeyValuePair<YamlNode, YamlNode>(p.SchemaName, TypeToYaml(p)))));
             var serializer = new SerializerBuilder().Build();
             
             return serializer.Serialize(yamlRoot);

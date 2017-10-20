@@ -25,15 +25,15 @@ namespace Astral.RabbitLink.Internals
         private readonly ConcurrentDictionary<string, RpcConsumer> _consumers =
             new ConcurrentDictionary<string, RpcConsumer>();
         
-        public IPayloadManager PayloadManager { get; }
+        public ILinkPayloadManager PayloadManager { get; }
         public IDescriptionFactory DescriptionFactory { get; }
         
 
-        public ServiceLink(ILink link, IPayloadManager payloadManager, IDescriptionFactory descriptionFactory, string serviceName, ILogFactory logFactory)
+        public ServiceLink(ILink link, ILinkPayloadManager linkPayloadManager, IDescriptionFactory descriptionFactory, string serviceName, ILogFactory logFactory)
         {
             _link = link ?? throw new ArgumentNullException(nameof(link));
             LogFactory = logFactory ?? throw new ArgumentNullException(nameof(logFactory));
-            PayloadManager = payloadManager ?? throw new ArgumentNullException(nameof(payloadManager));
+            PayloadManager = linkPayloadManager ?? throw new ArgumentNullException(nameof(linkPayloadManager));
             DescriptionFactory = descriptionFactory ?? throw new ArgumentNullException(nameof(descriptionFactory));
             HolderName = serviceName ?? throw new ArgumentNullException(nameof(serviceName));
             Log = LogFactory.CreateLog<ServiceLink>();

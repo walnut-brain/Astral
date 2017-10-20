@@ -145,7 +145,7 @@ namespace Astral.RabbitLink
                     log.Trace("Message receiving");
                     try
                     {
-                        var body = (TEvent) Link.PayloadManager.Deserialize(msg, typeof(TEvent));
+                        var body = (TEvent) Link.PayloadManager.Deserialize<TEvent>(msg, Schema.Service.Types);
                         var ack = await listener(body, msg.Cancellation);
                         log.With("ack", ack).Trace("Message received");
                         switch (ack)
@@ -187,7 +187,7 @@ namespace Astral.RabbitLink
                 var props = new LinkMessageProperties();
                 props.Expiration = MessageTtl();
                 props.DeliveryMode = Persisent() ? LinkDeliveryMode.Persistent : LinkDeliveryMode.Transient;
-                var serialized = Link.PayloadManager.Serialize(ContentType, message, props);
+                var serialized = Link.PayloadManager.Serialize(ContentType, message, props, Schema.Service.Types);
 
                 
                 

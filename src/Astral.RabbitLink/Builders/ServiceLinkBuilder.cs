@@ -20,7 +20,7 @@ namespace Astral.RabbitLink
         public ServiceLinkBuilder() : base(new Dictionary<string, object>
         {
             { nameof(DescriptionFactory), new DefaultDescriptionFactory(false) },
-            { nameof(PayloadManager), new DefaultPayloadManager()}
+            { nameof(PayloadManager), new DefaultLinkPayloadManager()}
         })
         {
             _linkBuilder = 
@@ -78,8 +78,8 @@ namespace Astral.RabbitLink
                 SetParameter(nameof(UseBackgroundThreadsForConnection), value));
 
 
-        public IPayloadManager PayloadManager() => GetParameter(nameof(PayloadManager), (IPayloadManager) null);
-        public IServiceLinkBuilder PayloadManager(IPayloadManager value)
+        public ILinkPayloadManager PayloadManager() => GetParameter(nameof(PayloadManager), (ILinkPayloadManager) null);
+        public IServiceLinkBuilder PayloadManager(ILinkPayloadManager value)
             => new ServiceLinkBuilder(_linkBuilder, SetParameter(nameof(PayloadManager), value));
 
         public IDescriptionFactory DescriptionFactory() =>
@@ -92,8 +92,8 @@ namespace Astral.RabbitLink
             => new ServiceLinkBuilder(_linkBuilder.Serializer(serializer), Store);
 
 
-        public IServiceLinkBuilder LoggerFactory(ILoggerFactory value)
-            => LogFactory(new LogFactoryAdapter(value));
+        /*public IServiceLinkBuilder LoggerFactory(ILoggerFactory value)
+            => LogFactory(new LogFactoryAdapter(value));*/
 
         public ILogFactory LogFactory() => GetParameter(nameof(LogFactory), (ILogFactory) null);
         
@@ -104,7 +104,7 @@ namespace Astral.RabbitLink
 
         public IServiceLink Build()
         {
-            var logFactory = LogFactory() ?? new LogFactoryAdapter(new FakeLoggerFactory());
+            var logFactory = LogFactory() ?? new NullLogFactory();
             _linkBuilder.LoggerFactory(new LoggerFactoryAdapter(logFactory));
             return new ServiceLink(_linkBuilder.Build(), PayloadManager(), DescriptionFactory(), HolderName(),
                 logFactory);
