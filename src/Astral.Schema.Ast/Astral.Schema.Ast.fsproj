@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Green.fs" />
+  </ItemGroup>
+</Project>
