@@ -1,140 +1,167 @@
 namespace Astral.Schema.Ast
 open System
 
-
-
-
-
-type OrdinalValueNode =
-    | U8Value of byte
-    | I8Value of sbyte
-    | U16Value of byte
-    | I16Value of byte
-    | U32Value of byte
-    | I32Value of byte
-    | U64Value of byte
-    | I64Value of byte
-
-type SimpleValueNode =
-    | OrdinalValue of OrdinalValueNode
-    | F32Value of float32
-    | F64Value of float
-    | StringValue of string
-    | UuidValue of Guid
-    | DTValue of DateTime
-    | DTOValue of DateTimeOffset
-    | TSValue of TimeSpan
-and ArrayValueNode =
-    | ArrayValue of ValueNode list
-and MapValueNode =
-    | MapValue of Map<string, ValueNode>     
-and ValueNode =
-    | Simple of SimpleValueNode   
-    | Array of ArrayValueNode
-    | Map of MapValueNode 
-
-type Identifier = Identifier of string
-type NamespaceName = Identifier list 
-type QualifiedIdentifier = NamespaceName * Identifier
-
-type OrdinalTypeNode =
-        | U8 | I8 | U16 | I16 | U32 | I32 | U64 | I64
-        member __.Name =
-            match __ with
-            | U8  -> "u8" | I8  -> "i8"  | U16 -> "u16" | I16 -> "i16" 
-            | U32 -> "u32"| I32 -> "i32" | U64 -> "u64" | I64 -> "i64"
-        member __.Type =
-            match __ with
-            | U8  -> typeof<byte>   | I8  -> typeof<sbyte>  | U16 -> typeof<uint16> | I16 -> typeof<int16> 
-            | U32 -> typeof<uint32> | I32 -> typeof<int32>  | U64 -> typeof<uint64> | I64 -> typeof<int64>
-            
-type SimpleTypeNode =
-    | Ordinal of OrdinalTypeNode
-    | F32 | F64 | String | Uuid | DT | DTO | TS
-    member __.Name =
-      match __ with
-      | Ordinal ord -> ord.Name | F32 -> "f32"      | F64 -> "f64"       | String -> "string"
-      | Uuid        -> "uuid"   | DT  -> "datetime" | DTO -> "datetime2" | TS     -> "timespan"  
-and TypeOrTypeName =
-    | Type of TypeNodeGreen
-    | Name of QualifiedIdentifier 
-and ArrayTypeNodeGreen = Array of TypeOrTypeName
-and MayBeTypeNodeGreen = Maybe of TypeOrTypeName
-and EnumTypeField = Identifier * OrdinalValueNode
-and EnumTypeNodeGreen =  
-    {
-        Name : QualifiedIdentifier option
-        CodeHint : QualifiedIdentifier option
-        Type : Type option
-        BaseType : OrdinalTypeNode
-        IsFlags : bool
-        Values : EnumTypeField list        
-    } 
-and NamedTypeField = Identifier * TypeOrTypeName
-and MapTypeField = NamedTypeField * Option<int>
-and MapTypeNodeGreen =
-    {
-        Name : QualifiedIdentifier option
-        CodeHint : QualifiedIdentifier option
-        Type : Type option
-        IsStruct : bool
-        Fields : MapTypeField list
-    }
-and OneOfTypeNodeGreen =
-    {
-        Name : QualifiedIdentifier option
-        CodeHint : QualifiedIdentifier option
-        Type : Type option
-        Variants : NamedTypeField list
-    }
-and DeclareTypeNodeGreen =
-    | Map of MapTypeNodeGreen
-    | Enum of EnumTypeNodeGreen
-    | OneOf of OneOfTypeNodeGreen
-and TypeNodeGreen = 
-    | Simple of SimpleTypeNode 
-    | Array of ArrayTypeNodeGreen
-    | MayBe of MayBeTypeNodeGreen
-    | Enum of EnumTypeNodeGreen
-    | Map of MapTypeNodeGreen
-    | OneOf of OneOfTypeNodeGreen
+module Green =
+    open Values
     
+    type TypeOrTypeName =
+        | Type of DataType
+        | Name of QualifiedIdentifier 
+    and ArrayType =
+        | Array of TypeOrTypeName
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = __ :> IReplacer
+        interface IGreenNode 
+    and MayBeType = 
+        | Maybe of TypeOrTypeName
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = __ :> IReplacer
+        interface IGreenNode 
+    and EnumField = 
+        | EnumField of Identifier * OrdinalValue
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = __ :> IReplacer
+        interface IGreenNode 
+    and EnumType =  
+        {
+            Name : QualifiedIdentifier
+            CodeHint : QualifiedIdentifier option
+            Type : Type option
+            BaseType : OrdinalType
+            IsFlags : bool
+            Values : EnumField list        
+        } 
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = 
+                let n = __.Values |> Replacer.replaceAll oldNode newNode
+                if n = __.Values then __ :> IReplacer else {__ with Values = n } :> IReplacer
+        interface IGreenNode 
+    and TypeField = 
+        | TypeField of Identifier * TypeOrTypeName
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = __ :> IReplacer
+        interface IGreenNode 
+    and MapTypeField = 
+        | MapTypeFeild of TypeField * Option<int>
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = __ :> IReplacer
+        interface IGreenNode 
+    and MapType =
+        {
+            Name : QualifiedIdentifier
+            CodeHint : QualifiedIdentifier option
+            Type : Type option
+            IsStruct : bool
+            Fields : MapTypeField list
+        }
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = 
+                let n = __.Fields |> Replacer.replaceAll oldNode newNode
+                if n = __.Fields then __ :> IReplacer else {__ with Fields = n } :> IReplacer
+        interface IGreenNode
+        
+    and OneOfType =
+        {
+            Name : QualifiedIdentifier option
+            CodeHint : QualifiedIdentifier option
+            Type : Type option
+            Variants : TypeField list
+        }
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = 
+                let n = __.Variants |> Replacer.replaceAll oldNode newNode
+                if n = __.Variants then __ :> IReplacer else {__ with Variants = n } :> IReplacer
+        interface IGreenNode
+    and DeclareType =
+        | Map of MapType
+        | Enum of EnumType
+        | OneOf of OneOfType
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = 
+                let n = 
+                    match __ with
+                    | Map m -> 
+                        let n1 = Replacer.replaceNode oldNode newNode m
+                        if n1 = m then __ else Map n1
+                    | Enum e ->
+                        let n1 = Replacer.replaceNode oldNode newNode e
+                        if n1 = e then __ else Enum n1
+                    | OneOf o ->
+                        let n1 = Replacer.replaceNode oldNode newNode o
+                        if n1 = o then __ else OneOf n1
+                n :> IReplacer
+        interface IGreenNode
+    and DataType = 
+        | Simple of BasicType 
+        | Array of ArrayType
+        | MayBe of MayBeType
+        | Enum of EnumType
+        | Map of MapType
+        | OneOf of OneOfType
+        interface IReplacer with    
+            member __.ReplaceNode(oldNode, newNode) = 
+                let n = 
+                    match __ with
+                    | Simple s ->
+                        let n1 = Replacer.replaceNode oldNode newNode s
+                        if n1 = s then __ else Simple s    
+                    | Array a ->
+                        let n1 = Replacer.replaceNode oldNode newNode a
+                        if n1 = a then __ else Array a    
+                    | MayBe mb ->
+                        let n1 = Replacer.replaceNode oldNode newNode mb
+                        if n1 = mb then __ else MayBe mb    
+                    | Map m -> 
+                        let n1 = Replacer.replaceNode oldNode newNode m
+                        if n1 = m then __ else Map n1
+                    | Enum e ->
+                        let n1 = Replacer.replaceNode oldNode newNode e
+                        if n1 = e then __ else Enum n1
+                    | OneOf o ->
+                        let n1 = Replacer.replaceNode oldNode newNode o
+                        if n1 = o then __ else OneOf n1
+                n :> IReplacer
+        interface IGreenNode
+        
 
-type ExtensionNode = QualifiedIdentifier * ValueNode
-type ContentType = ContentType of string
+    type Extension = QualifiedIdentifier * DataValue
+    type ContentType = ContentType of string
 
-type EventNode =
-    {
-        Name : Identifier
-        ContentType : ContentType option
-        CodeHint : Identifier option
-        EventType : TypeOrTypeName
-        Extensions : ExtensionNode list
-    }
-and CallNode =
-    {
-        Name : Identifier
-        ContentType : ContentType option
-        CodeHint : Identifier option
-        RequestType : TypeOrTypeName
-        ResponseType : TypeOrTypeName option
-        Extensions : ExtensionNode list
-    }
-and EndpointNode =
-    | Event of EventNode
-    | Call of CallNode
-and ServiceNode =
-    {
-        Name : Identifier
-        ContentType : ContentType option
-        CodeHint : Identifier option
-        Extensions : ExtensionNode list
-        Endpoints : EndpointNode list
-    }
-and NamespaceElement =
-    | Service of ServiceNode
-    | DeclareType of DeclareTypeNodeGreen
+    type Event =
+        {
+            Name : Identifier
+            ContentType : ContentType option
+            CodeHint : Identifier option
+            EventType : TypeOrTypeName
+            Extensions : Extension list
+        }
+    and Call =
+        {
+            Name : Identifier
+            ContentType : ContentType option
+            CodeHint : Identifier option
+            RequestType : TypeOrTypeName
+            ResponseType : TypeOrTypeName option
+            Extensions : Extension list
+        }
+    and Endpoint =
+        | Event of Event
+        | Call of Call
+    and Service =
+        {
+            Name : Identifier
+            ContentType : ContentType option
+            CodeHint : Identifier option
+            Extensions : Extension list
+            Endpoints : Endpoint list
+        }
+    and NamespaceElement =
+        | Service of Service
+        | DeclareType of DeclareType
 
-type Namespace = QualifiedIdentifier * List<NamespaceElement>
+    type Namespace = QualifiedIdentifier * List<NamespaceElement>
 
-type Schema = Namespace list
+    type Schema = Namespace list
+
+    
+        
