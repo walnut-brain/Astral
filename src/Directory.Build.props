@@ -6,7 +6,7 @@
         <PackageProjectUrl>https://github.com/walnut-brain/Astral</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/walnut-brain/Astral/blob/master/LICENSE</PackageLicenseUrl>
         <PackageTags>Astral Framework MicroServices</PackageTags>
-        <VersionPrefix>0.4.0-beta4</VersionPrefix>
+        <VersionPrefix>0.4.0-beta5</VersionPrefix>
         <VersionSuffix>
         </VersionSuffix>
     </PropertyGroup>

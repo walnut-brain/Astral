@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2002
@@ -39,6 +39,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Payloads.Json", "src\Astral.Payloads.Json\Astral.Payloads.Json.csproj", "{9677813A-0C12-4348-9168-8BD11ABE0C86}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Astral.Schema.Ast", "src\Astral.Schema.Ast\Astral.Schema.Ast.fsproj", "{D5065362-3B94-4B02-B83E-46C9B67F6626}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.Core", "src\Astral.Schema.Core\Astral.Schema.Core.csproj", "{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -114,6 +116,18 @@ Global
 		{D5065362-3B94-4B02-B83E-46C9B67F6626}.Release|x64.Build.0 = Release|x64
 		{D5065362-3B94-4B02-B83E-46C9B67F6626}.Release|x86.ActiveCfg = Release|x86
 		{D5065362-3B94-4B02-B83E-46C9B67F6626}.Release|x86.Build.0 = Release|x86
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Debug|x64.ActiveCfg = Debug|x64
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Debug|x64.Build.0 = Debug|x64
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Debug|x86.ActiveCfg = Debug|x86
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Debug|x86.Build.0 = Debug|x86
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Release|x64.ActiveCfg = Release|x64
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Release|x64.Build.0 = Release|x64
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Release|x86.ActiveCfg = Release|x86
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -133,6 +147,7 @@ Global
 		{F0832EF1-EB92-4972-B9B1-38491E30E0BD} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{9677813A-0C12-4348-9168-8BD11ABE0C86} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 		{D5065362-3B94-4B02-B83E-46C9B67F6626} = {AFD8E592-8E24-4442-98E6-E105850659CE}
+		{E002A762-7AC9-4DDF-A8DB-A0F687516B2F} = {AFD8E592-8E24-4442-98E6-E105850659CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD0CEF3-CBA5-4E52-A5C2-8C2D48A7CFCA}

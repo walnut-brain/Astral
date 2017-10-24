@@ -1,8 +1,8 @@
 namespace rec Astral.Schema.Ast
 
-
+(*
 [<AbstractClass>]
-type RedNode<'t when 't :> IGreenNode...>(green : 't) = 
+type RedNode<'t when 't :> IGreenNode>(green : 't) = 
     member __.Green = green
     
     
@@ -23,3 +23,4 @@ type Schema(schema : Green.Schema) =
     interface IRedNode with
         member __.ReplaceNode (oldNode : IRedNode, newNode : IRedNode) =
             RedNode.replace oldNode newNode (__.Green)
+*)
