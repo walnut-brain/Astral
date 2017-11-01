@@ -7,7 +7,7 @@ using Astral.Schema;
 
 namespace Astral.RabbitLink
 {
-    internal abstract class Endpoint<TSchema> : BuilderBase
+    internal abstract class Endpoint<TSchema> : BuilderBase, ILogFactoryProvider
         where TSchema : IEndpointSchema
     {
         public TSchema Schema { get; }
@@ -31,5 +31,8 @@ namespace Astral.RabbitLink
         }
         
         public ContentType ContentType => Schema.ContentType;
+
+        public ILogFactory LogFactory => Link.LogFactory;
+
     }
 }

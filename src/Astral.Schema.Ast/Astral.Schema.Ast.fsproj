@@ -1,11 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Basics.fs" />
-    <Compile Include="Values.fs" />
-    <Compile Include="Green.fs" />
-    <Compile Include="Red.fs" />
+    <Compile Include="Ast.fs" />
+    <Compile Include="Parsing.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Astral.Schema.Core\Astral.Schema.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.0.3" />
   </ItemGroup>
 </Project>
