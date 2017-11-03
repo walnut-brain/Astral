@@ -60,12 +60,11 @@ module rec Ast =
         | ArrayLiteral of Literal list
         | MapLiteral of List<Identifier * Literal> 
 
-    type OpenDirective = | OpenDirective of QualifiedIdentifier
-    type UseDirective = | UseDirective of QualifiedIdentifier 
-    
-    type NamespaceDeclaration = | NamespaceDeclaration of QualifiedIdentifier
+
+    type OpenDirective = | OpenDirective of QualifiedIdentifier 
     
     type TypeSpecification =
+        | UnitType
         | TypeName of QualifiedIdentifier
         | BasicType of BasicType
         | ArrayType of TypeSpecification
@@ -97,15 +96,15 @@ module rec Ast =
         ServiceDeclaration of List<EndpointDeclaration> * List<QualifiedIdentifier * Literal>
     
     type NamespaceElement =
-        | OpenDirective of OpenDirective
+        | Open of  OpenDirective
         | ServiceDeclaration of Identifier * ServiceDeclaration
         | NamedTypeDeclaration of Identifier * TypeSpecification
     
     
     type CodeUnitElement =
-        | OpenDirective of OpenDirective
-        | UseDirective of UseDirective
-        | Namespace of NamespaceDeclaration * List<NamespaceElement>
+        | NamespaceDeclaration of QualifiedIdentifier
+        | Open of OpenDirective
+        | UseDirective of QualifiedIdentifier
         
     type CodeUnit = CodeUnit of CodeUnitElement list
         

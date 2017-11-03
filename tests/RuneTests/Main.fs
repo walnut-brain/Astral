@@ -11,13 +11,18 @@ let runParser p str =
 
 [<EntryPoint>]
 let main argv =
-    runParser pLiteral   """[   54.0, 
-                                "hellow", 
-                                true, 
-                                none, 
-                                { 
-                                    v = [2.2, 7.5], 
-                                    b = no 
-                                }]"""
-    //runParser pBasicLiteral "54"
+    runParser (spaces >>. pEventParser) """
+        event Formal : [] oneof 
+            {  
+                Ok; 
+                frm : u64; 
+                ffr : ?enum 
+                        { 
+                            one = 1; 
+                            two = 2u64 
+                        } 
+            } 
+        exchange="123" routingKey=12345;""" 
+    //runParser pEventParser """call Formal: [] oneof { frm : u64; ffr : ?enum { one = 1; two = 2u64 } } exchange="123" routingKey=12345;"""
+    //runParser pEventParser """call oneof { Ok ; Formal: [] oneof { frm : u64; ffr : ?enum { one = 1; two = 2u64 } } exchange="123" routingKey=12345;""" 
     Tests.runTestsInAssembly defaultConfig argv

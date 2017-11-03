@@ -31,6 +31,33 @@ let tests =
     checkFail "identifier bad" pidentifier "5Abcd"
     checkSuccess "qualified identifier" pQualifiedIdentifier "Fgh.Abcd" (Complex (Simple (createIdentifier "Fgh"), (createIdentifier "Abcd")))
     checkFail "qualified identifier" pQualifiedIdentifier "Fgh.,Abcd"
+    checkSuccess "basic literal" pBasicLiteral "54" (OrdinalLiteral (I32Literal 54))
+    checkSuccess "basic literal" pBasicLiteral "54u8" (OrdinalLiteral (U8Literal 54uy))
+    checkSuccess "basic literal" pBasicLiteral "54i64" (OrdinalLiteral (I64Literal 54L))
+    checkSuccess "basic literal" pBasicLiteral "54.f32" (F32Literal 54.f)
+    checkSuccess "basic literal" pBasicLiteral "54.0" (F64Literal 54.0)
+    checkSuccess "basic literal" pBasicLiteral "54.1f64" (F64Literal 54.1)
+    checkSuccess "basic literal" pBasicLiteral "54." (F64Literal 54.0)
+    checkSuccess "literal" pLiteral 
+      """[   54.0, 
+                                      "hell\"ow", 
+                                      true, 
+                                      none, 
+                                      resample,
+                                      { 
+                                          v = [2u32, 7.5], 
+                                          b = no 
+                                      }]""" 
+      (ArrayLiteral
+                                         [BasicLiteral (F64Literal 54.0); BasicLiteral (StringLiteral "hell\"ow");
+                                          BasicLiteral (BoolLiteral true); NoneLiteral;
+                                          IdentifierLiteral (Simple (createIdentifier "resample"));
+                                          MapLiteral
+                                            [(createIdentifier "v",
+                                              ArrayLiteral
+                                                [BasicLiteral (OrdinalLiteral (U32Literal 2u));
+                                                 BasicLiteral (F64Literal 7.5)]);
+                                             (createIdentifier "b", BasicLiteral (BoolLiteral true))]])
     (*testCase "identifier parsed" <| fun _ ->
       let subject = true
       Expect.isTrue subject "I compute, therefore I am."
