@@ -52,9 +52,9 @@ module rec Ast =
             | DTLiteral of DateTime
             | DTOLiteral of DateTimeOffset
             | TSLiteral of TimeSpan
+            | NoneLiteral
 
     type Literal =
-        | NoneLiteral
         | IdentifierLiteral of QualifiedIdentifier
         | BasicLiteral of BasicLiteral 
         | ArrayLiteral of Literal list
@@ -69,7 +69,7 @@ module rec Ast =
         | BasicType of BasicType
         | ArrayType of TypeSpecification
         | MayBeType of TypeSpecification
-        | EnumType of bool * List<Identifier * OrdinalLiteral>
+        | EnumType of bool * OrdinalType * List<Identifier * OrdinalLiteral>
         | MapType of List<Identifier * TypeSpecification>
         | OneOfType of List<Identifier * TypeSpecification>
     
@@ -82,7 +82,7 @@ module rec Ast =
     
     type CallDeclaration =
         {
-            Parameters : List<Identifier * TypeSpecification>
+            Parameters : List<Option<Identifier> * TypeSpecification>
             Result : TypeSpecification
             Extensions : List<QualifiedIdentifier * Literal>
         }
@@ -102,7 +102,7 @@ module rec Ast =
     
     
     type CodeUnitElement =
-        | NamespaceDeclaration of QualifiedIdentifier
+        | NamespaceDeclaration of QualifiedIdentifier * NamespaceElement list
         | Open of OpenDirective
         | UseDirective of QualifiedIdentifier
         

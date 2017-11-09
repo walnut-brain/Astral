@@ -4,43 +4,55 @@ module Parsing =
     open System
     open FParsec
     open Ast
+    
     let private (<!>) (p: Parser<_,_>) label : Parser<_,_> =
         fun stream ->
             printfn "%A: Entering %s" stream.Position label
             let reply = p stream
             printfn "%A: Leaving %s (%A)" stream.Position label reply.Status
             reply
-    let pQualifiedIdentifier<'t> : Parser<QualifiedIdentifier, 't> =
+    
+    let pid = pidentifier 
+    let pdot<'t> : Parser<_, 't> = pchar '.' 
+    let pcolon<'t> : Parser<_, 't> = pchar ':'
+    let peq<'t> : Parser<_, 't> = pchar '='  
+    let pcomma<'t> : Parser<_, 't> = pchar ','
+    let psemicolon<'t> : Parser<_, 't> = pchar ';'    
+    
+    let pqid<'t> : Parser<QualifiedIdentifier, 't> =
         let rec toQId lst =
             match lst with
             | [] -> invalidOp "Empty string mistake"
             | [p] -> QualifiedIdentifier.Simple p
             | h :: t -> QualifiedIdentifier.Complex (toQId t, h)   
-        sepBy1 pidentifier (pchar '.') |>> (List.rev >> toQId) 
+        sepBy1 pid pdot |>> (List.rev >> toQId) 
+        
+        
+        
     let pOrdinalType<'t> : Parser<OrdinalType, 't> =
         choice 
             [
-                pstring "u8" |>> (fun _ -> OrdinalType.U8)
-                pstring "i8" |>> (fun _ -> OrdinalType.I8)
-                pstring "u16" |>> (fun _ -> OrdinalType.U16)
-                pstring "i16" |>> (fun _ -> OrdinalType.I16)
-                pstring "u32" |>> (fun _ -> OrdinalType.U32)
-                pstring "i32" |>> (fun _ -> OrdinalType.I32)
-                pstring "u64" |>> (fun _ -> OrdinalType.U64)
-                pstring "i64" |>> (fun _ -> OrdinalType.I64)
+                pstring "u8" >>% OrdinalType.U8
+                pstring "i8" >>% OrdinalType.I8
+                pstring "u16" >>% OrdinalType.U16
+                pstring "i16" >>% OrdinalType.I16
+                pstring "u32" >>% OrdinalType.U32
+                pstring "i32" >>% OrdinalType.I32
+                pstring "u64" >>% OrdinalType.U64
+                pstring "i64" >>% OrdinalType.I64
             ]
     let pBasicType<'t> : Parser<BasicType, 't> =
         choice
             [
                 pOrdinalType |>> (fun p -> BasicType.Ordinal p)
-                pstring "f32" |>> (fun _ -> F32)
-                pstring "f64" |>> (fun _ -> F64)
-                pstring "string" |>> (fun _ -> String)
-                pstring "uuid" |>> (fun _ -> Uuid)
-                pstring "datetime" |>> (fun _ -> DT)
-                pstring "utcdatetime" |>> (fun _ -> DTO)
-                pstring "timespan" |>> (fun _ -> TS)
-                pstring "bool" |>> (fun _ -> Bool)
+                pstring "f32" >>% F32
+                pstring "f64" >>% F64
+                pstring "string" >>% String
+                pstring "uuid" >>% Uuid
+                pstring "datetime" >>% DT
+                pstring "utcdatetime" >>% DTO
+                pstring "timespan" >>% TS
+                pstring "bool" >>% Bool
             ]
             
     let replyError<'s, 'a, 'b>   (cvt: 'a -> Result<'b, string>) (p : Parser<'a, 's>) : Parser<'b, 's> =
@@ -74,8 +86,8 @@ module Parsing =
             | I64 -> try_ (fun () -> int64 nl.String |> I64Literal)
         choice
             [
-                attempt (numberLiteral fmt "ordinal" .>>. pOrdinalType |> replyError cvtPrefix .>> notFollowedBy (pstring "."))     
-                attempt (numberLiteral fmt "ordinal" |> replyError (fun p -> try_ (fun () -> int32 p.String |> I32Literal)) .>> notFollowedBy (pstring "."))          
+                attempt (numberLiteral fmt "ordinal" .>>. pOrdinalType |> replyError cvtPrefix)      
+                attempt (numberLiteral fmt "ordinal" |> replyError (fun p -> try_ (fun () -> int32 p.String |> I32Literal)) .>> notFollowedBy pdot)          
             ] 
           
     let pFloatLiteral<'t> : Parser<BasicLiteral, 't> =
@@ -118,42 +130,45 @@ module Parsing =
                 (stringsSepBy normalCharSnippet escapedCharSnippet)
 
     let pBoolLiteral<'t> : Parser<_, 't> =
-        choice 
+        attempt (choice 
             [
-                pstringCI "true" |>> (fun _ -> BoolLiteral true)
-                pstringCI "false" |>> (fun _ -> BoolLiteral false)
-                pstringCI "yes" |>> (fun _ -> BoolLiteral true)
-                pstringCI "no" |>> (fun _ -> BoolLiteral true)
-            ]
+                pstringCI "true" >>% BoolLiteral true
+                pstringCI "false" >>% BoolLiteral false
+                pstringCI "yes" >>% BoolLiteral true
+                pstringCI "no" >>% BoolLiteral true
+            ])
+            
+    let pNoneLiteral<'t> : Parser<_, 't> =
+           attempt (pstring "none" >>% NoneLiteral)
+            
     let pBasicLiteral<'t> : Parser<BasicLiteral, 't> =
         choice 
             [
                 pStringLiteral |>> StringLiteral
                 pOrdinalLiteral |>> OrdinalLiteral
-                pFloatLiteral 
+                pFloatLiteral
+                pNoneLiteral 
                 pBoolLiteral
             ]     
-    let pNoneLiteral<'t> : Parser<_, 't> =
-        pstring "none" |>> (fun _ -> NoneLiteral)      
+          
+    
+    let inBracers os cs p =
+        between (pchar os .>> spaces) (pchar cs) (p .>> spaces)  
         
     let pLiteral<'t> : Parser<_, 't> =
         let (literal, literalRef) = createParserForwardedToRef<Literal, 't>()
-        let arrayLiteral1 = 
-            between (pstring "[") (pstring "]")
-                (spaces >>. sepBy (literal .>> spaces) (pstring "," >>. spaces))
-        let arrayLiteral = arrayLiteral1 |>> ArrayLiteral
+        let arrayLiteral =
+            inBracers '[' ']' ((sepBy (spaces >>. literal .>> spaces) pcomma)) |>> ArrayLiteral 
         let field =
-                 pidentifier .>>. (spaces >>. pstring "=" >>. spaces >>. literal) 
-        let mapLiteral1 =
-            between (pstring "{") (pstring "}")
-                (spaces >>. sepBy (field .>> spaces) (pstring "," >>. spaces))
-        let mapLiteral = mapLiteral1 |>> MapLiteral
+                 pid .>> spaces .>> peq .>> spaces .>>. literal .>> spaces 
+        let mapLiteral =
+            inBracers '{' '}' (sepBy (spaces >>. field .>> spaces) pcomma) |>> MapLiteral
+        
         literalRef := 
             choice
                 [
-                    pNoneLiteral 
                     pBasicLiteral |>> BasicLiteral
-                    pQualifiedIdentifier |>> IdentifierLiteral
+                    pqid |>> IdentifierLiteral
                     arrayLiteral
                     mapLiteral
                 ]
@@ -161,7 +176,7 @@ module Parsing =
         
         
     let pMayBeType<'t> tParser : Parser<TypeSpecification, 't>  =
-        pstring "?" >>. tParser .>> notFollowedBy (pstring "?") |>> MayBeType 
+        pchar '?' >>. tParser .>> notFollowedBy (pchar '?') |>> MayBeType 
     
     let pArrayType<'t> tParser : Parser<TypeSpecification, 't> =
         pstring "[]" >>. spaces >>. tParser   |>> ArrayType
@@ -170,17 +185,27 @@ module Parsing =
         let field =
             pidentifier .>>. (spaces >>. pstring "=" >>. spaces >>. pOrdinalLiteral) 
             
-        pstring "enum" .>> spaces1 >>. (opt  (pstring "flags" .>> spaces1)) .>>. between (pstring "{") (pstring "}") (spaces >>.(sepBy1 field (pstring ";" .>> spaces)) .>> spaces)  
+        let pEnumOpt =
+            pstring "(" .>> spaces >>. choice 
+                [
+                    attempt (pBoolLiteral .>> spaces .>> pstring ")" |>> (fun b -> match b with | BoolLiteral b1 ->  (b1, I32) | _ -> (false, I32)))
+                    attempt (pBoolLiteral .>> spaces .>> pstring "," .>> spaces .>>. pOrdinalType .>> spaces .>> pstring ")" |>> (fun (b, t) -> match b with | BoolLiteral b1 ->  (b1, t) | _ -> (false, t)))
+                    attempt (pOrdinalType .>> spaces .>> pstring "," .>> spaces .>>. pBoolLiteral .>> spaces .>> pstring ")" |>> (fun (t, b) -> match b with | BoolLiteral b1 ->  (b1, t) | _ -> (false, t)))
+                    attempt (pOrdinalType .>> spaces .>> pstring ")" |>> (fun t -> (false, t)))
+                ]    
+         
+            
+        pstring "enum" .>> spaces  >>. (opt  pEnumOpt) .>> spaces .>>.  inBracers '{' '}' (spaces >>.(sepEndBy1 field (psemicolon .>> spaces)) .>> spaces)  
             |>> (fun (f, filds) ->
                     match f with
-                    | Some _ -> EnumType(true, filds)
-                    | None -> EnumType(false, filds))
+                    | Some (b, t) -> EnumType(b, t, filds)
+                    | None -> EnumType(false, I32, filds))
     
     let pOneOfType<'t> tParser : Parser<TypeSpecification, 't> =
-       let field = (pidentifier .>>. (spaces >>. pstring ":" >>. spaces >>. tParser)) <!> "fld"
-       let start = (pstring "oneOf" <|> pstring "oneof") <!> "st"
-       let unitEl = ((pidentifier .>> notFollowedBy (spaces .>> pstring ":")) |>> (fun p -> p, UnitType)) <!> "unit"  
-       let fld = ((attempt unitEl) <|> (attempt field)) <!> "pair"
+       let field = (pidentifier .>>. (spaces >>. pstring ":" >>. spaces >>. tParser)) 
+       let start = (pstring "oneOf" <|> pstring "oneof") 
+       let unitEl = ((pidentifier .>> notFollowedBy (spaces .>> pstring ":")) |>> (fun p -> p, UnitType)) 
+       let fld = ((attempt unitEl) <|> (attempt field)) 
        let inner = spaces >>. (sepBy fld (pstring ";" .>> spaces)) .>> spaces
                    
        start .>> spaces1 >>. between (pstring "{") (pstring "}") inner |>> OneOfType
@@ -188,21 +213,23 @@ module Parsing =
     let pMapType<'t> tParser : Parser<TypeSpecification, 't> =
            let field =
                        pidentifier .>>. (spaces >>. pstring ":" >>. spaces >>. tParser) 
-           pstring "map" .>> spaces1 >>. between (pstring "{") (pstring "}") (spaces >>.(sepBy1 field (pstring ";" .>> spaces)) .>> spaces) 
-               |>> OneOfType       
+           pstring "map" .>> spaces1 >>. between (pstring "{") (pstring "}") (spaces >>.(sepEndBy1 field (pstring ";" .>> spaces)) .>> spaces) 
+               |>> MapType       
             
     let pTypeSpecification<'t> : Parser<_, 't> =
         let full, fullOther = createParserForwardedToRef<TypeSpecification, 't>()
         let op =
             choice 
                 [
-                    pOneOfType full   |> attempt <!> "OneOf"
-                    pMapType full  |> attempt <!> "Map"
-                    pEnumType   |> attempt <!> "Enum"
-                    pMayBeType full |> attempt <!> "MayBe"
-                    pArrayType full <!> "Array"
-                    pBasicType |>> BasicType |> attempt <!> "Basic"
-                    (pQualifiedIdentifier |>> TypeName|> attempt) <!> "Qualified" 
+                    
+                    pOneOfType full   |> attempt
+                    pMapType full  |> attempt
+                    pEnumType   |> attempt
+                    pMayBeType full |> attempt
+                    pArrayType full
+                    pstring "unit" >>% TypeSpecification.UnitType 
+                    pBasicType |>> BasicType |> attempt 
+                    (pqid |>> TypeName|> attempt)  
                     
                     
                     
@@ -211,21 +238,65 @@ module Parsing =
         full   
         
     let pOpenDirective<'t> : Parser<_, 't> =
-        pstring "open" .>> spaces1 >>. pQualifiedIdentifier |>> OpenDirective
+        pstring "open" .>> spaces1 >>. pqid .>> spaces .>> psemicolon |>> OpenDirective
         
     let pUseDerective<'t> : Parser<_, 't> =
-        pstring "use" .>> spaces1 >>. pQualifiedIdentifier |>> UseDirective
+        pstring "use" .>> spaces1 >>. pqid .>> spaces .>> psemicolon |>> UseDirective
         
     let pExtensionParser<'t> : Parser<QualifiedIdentifier * Literal, 't> =
-        pQualifiedIdentifier .>> spaces .>> pstring "=" .>> spaces .>>. pLiteral
+        pqid .>> spaces .>> peq .>> spaces .>>. pLiteral
         
     let pExtensionsParser<'t> : Parser<_, 't> =
         sepBy1 pExtensionParser (spaces1)
         
     let pEventHeaderParser<'t> : Parser<_, 't> =
-        pstring "event" .>> spaces1 >>. pidentifier .>> spaces .>> pstring ":" .>> spaces .>>. pTypeSpecification
+        pstring "event" .>> spaces1 >>. pidentifier .>> spaces .>> pcolon .>> spaces .>>. pTypeSpecification
         
     let pEventParser<'t> : Parser<_, 't> =
         pEventHeaderParser .>> spaces1 .>>. pExtensionsParser .>> spaces .>> pstring ";" 
-            |>> (fun ((i, t), ex) -> EventDeclaration (i, { EventType = t; Extensions = ex }))     
+            |>> (fun ((i, t), ex) -> EventDeclaration (i, { EventType = t; Extensions = ex }))   
+            
+    let pTypeParser<'t> : Parser<_, 't> =
+        pstring "type" .>> spaces1 >>. pidentifier .>>spaces .>> peq .>> spaces .>>. pTypeSpecification 
+            |>> (fun (i, t) -> NamedTypeDeclaration (i, t))  
      
+     
+    let pArgumentListParser<'t> : Parser<_, 't> =
+        let simpleArg = inBracers '(' ')'  pTypeSpecification |>> (fun p -> [None, p])
+        let idName : Parser<_, 't> = pidentifier |>> Some .>> spaces .>> pcolon
+        let tSpec : Parser<_, 't> = spaces >>.pTypeSpecification .>> spaces
+        let pairSpec = idName .>>. tSpec  
+        let pairList = sepBy1 pairSpec pcomma 
+          
+        let argList = inBracers '(' ')' pairList
+        choice
+            [
+                attempt simpleArg
+                attempt argList
+            ]
+            
+    let pCallParser<'t> : Parser<_, 't> =
+        pstring "call" .>> spaces1 >>. pTypeSpecification .>> spaces1 .>>. pidentifier .>> spaces .>>. pArgumentListParser 
+            .>> spaces1 .>>. pExtensionsParser .>> spaces .>> psemicolon
+            |>> fun g -> let (((rt, i), args), ex) = g in  CallDeclaration (i, { Parameters = args; Result = rt; Extensions = ex })
+            
+    let pServiceDeclaration<'t> : Parser<_, 't> =
+        let pep = (choice [pCallParser; pEventParser]) .>> spaces1
+        let pepl = many pep  
+        pstring "service" >>. spaces >>. pidentifier .>> spaces1 .>>. (opt pExtensionsParser |>> (Option.defaultValue [])) .>> spaces
+            .>>. (inBracers '{' '}' pepl) 
+            |>> fun ((i, ext), ep) ->  NamespaceElement.ServiceDeclaration (i, ServiceDeclaration.ServiceDeclaration (ep, ext))
+            
+    let pNamespace<'t> : Parser<_, 't> =
+        pstring "namespace" .>> spaces1 >>. pqid .>> spaces .>>. 
+            inBracers '{' '}' (many (choice [pTypeParser; pServiceDeclaration; pOpenDirective |>> NamespaceElement.Open ] .>> spaces))
+            |>> fun  (i, el) -> NamespaceDeclaration (i, el)
+            
+    let pCodeUnit<'t> : Parser<_, 't> =
+            many (choice
+                [
+                    pUseDerective .>> spaces
+                    pOpenDirective .>> spaces |>> Open  
+                    pNamespace .>> spaces
+                ]) .>> spaces .>> eof |>> CodeUnit 
+            

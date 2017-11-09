@@ -29,8 +29,8 @@ let tests =
   testList "parsers" [
     checkSuccess "identifier parsed" pidentifier "Abcd" (createIdentifier "Abcd")
     checkFail "identifier bad" pidentifier "5Abcd"
-    checkSuccess "qualified identifier" pQualifiedIdentifier "Fgh.Abcd" (Complex (Simple (createIdentifier "Fgh"), (createIdentifier "Abcd")))
-    checkFail "qualified identifier" pQualifiedIdentifier "Fgh.,Abcd"
+    checkSuccess "qualified identifier" pqid "Fgh.Abcd" (Complex (Simple (createIdentifier "Fgh"), (createIdentifier "Abcd")))
+    checkFail "qualified identifier" pqid "Fgh.,Abcd"
     checkSuccess "basic literal" pBasicLiteral "54" (OrdinalLiteral (I32Literal 54))
     checkSuccess "basic literal" pBasicLiteral "54u8" (OrdinalLiteral (U8Literal 54uy))
     checkSuccess "basic literal" pBasicLiteral "54i64" (OrdinalLiteral (I64Literal 54L))
@@ -50,7 +50,7 @@ let tests =
                                       }]""" 
       (ArrayLiteral
                                          [BasicLiteral (F64Literal 54.0); BasicLiteral (StringLiteral "hell\"ow");
-                                          BasicLiteral (BoolLiteral true); NoneLiteral;
+                                          BasicLiteral (BoolLiteral true); BasicLiteral NoneLiteral;
                                           IdentifierLiteral (Simple (createIdentifier "resample"));
                                           MapLiteral
                                             [(createIdentifier "v",
