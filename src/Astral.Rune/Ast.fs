@@ -1,8 +1,10 @@
-module Rune.Ast
+module Astral.Rune.Ast
 
 open System
 open System.Text.RegularExpressions
 open System.Runtime.InteropServices
+open System.Collections.Generic
+
 
 let private identifierRegEx = Regex("[_a-zA-Z][_a-zA-Z0-9]*")
 
@@ -21,7 +23,42 @@ type Identifier =
     
 type QualifiedIdentifier =
     | Simple of Identifier
-    | Complex of QualifiedIdentifier * Identifier
+    | Complex of Identifier * QualifiedIdentifier
+    static member TryCreate (ns: string) =
+        let rec fromList lst =
+            match lst with
+            | [] -> Error("empty name")
+            | [id] -> Simple id |> Ok
+            | id :: tail -> fromList tail |> Result.map (fun p -> Complex(id, p))
+        let folder state el =     
+            match state with
+            | Ok p ->
+                match el with
+                | Ok e -> Ok(e :: p)
+                | Error s -> Error s
+            | Error s ->
+                match el with
+                | Error s1 -> Error (s1 + Environment.NewLine + s)
+                | _ -> state
+                    
+        let splitted = 
+            ns.Split(':') 
+                |> Array.toList 
+                |> List.map Identifier.TryCreate
+                |> List.rev
+                |> List.fold folder (Ok []) 
+        match splitted with
+        | Error s -> Error s
+        | Ok sp -> fromList sp 
+    static member TryMake (str, [<Out>] id : QualifiedIdentifier byref) =
+        match QualifiedIdentifier.TryCreate(str) with
+        | Ok s -> id <- s; true
+        | _ -> id <- Unchecked.defaultof<QualifiedIdentifier>; false
+    static member Create s =
+        match QualifiedIdentifier.TryCreate s with
+        | Ok s -> s
+        | Error e -> raise (ArgumentException e)
+        
     
     
 type OrdinalLiteral =
@@ -54,6 +91,7 @@ type Literal =
 
 type OrdinalType =
     | U8 | I8 | U16 | I16 | U32 | I32 | U64 | I64
+    
 
 type BasicType =
     | Ordinal of OrdinalType
@@ -103,7 +141,7 @@ type TypeDescription =
     | MapType of ComplexTypeDescription
     | OneOfType of ComplexTypeDescription
 
-type Extensions = Map<QualifiedIdentifier, Literal>
+type Parameters = Parameters of Map<QualifiedIdentifier, Literal>
 
 type EventDescription =
     {
@@ -124,14 +162,27 @@ type EndpointDescription =
     | Event of EventDescription
     | Call of CallDescription
 
-type ServiceDescription = Map<Identifier, EndpointDescription * Extensions> * Extensions
+type ServiceDescription = Map<Identifier, EndpointDescription * Parameters> * Parameters
 
 type SemanticVersion = Version of string
 
 type SchemaDeclaration =
     {
         Namespace : QualifiedIdentifier
+        Extensions : Set<QualifiedIdentifier>
         Version : SemanticVersion
         Types : Map<Identifier, TypeDescription>
         Services : Map<Identifier, ServiceDescription>        
     }
+    
+    
+    
+
+
+        
+      
+    
+    
+
+    
+      
