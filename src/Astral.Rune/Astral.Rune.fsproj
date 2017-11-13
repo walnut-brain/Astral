@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Ast.fs" />
+    <Compile Include="Reflection.fs" />
     <Compile Include="Markup.fs" />
     <Compile Include="Validation.fs" />
     <Compile Include="Dom.fs" />

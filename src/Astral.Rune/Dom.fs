@@ -9,6 +9,7 @@ type Schema(declaration) =
                 Version = version
                 Types = Map.empty
                 Services = Map.empty
+                Extensions = Set.empty
             })
     member __.Namespace = declaration.Namespace
     member __.Version = declaration.Version

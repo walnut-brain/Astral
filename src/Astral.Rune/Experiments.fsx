@@ -3,6 +3,7 @@ open System.Reflection
 open FSharp.Control
 
 
+
 [<AutoOpen>]
 module ``Sample:Test`` =
     type TaskState =
@@ -19,13 +20,15 @@ module ``Sample:Test`` =
     }
     
     type ISampleService =
-        //[<CLIEvent>]
-        abstract TaskChanged : IEvent<TaskChanged>
+        [<CLIEvent>]
+        abstract TaskChanged : IEvent<EventHandler<TaskChanged>, TaskChanged>
         abstract ChangeTaskState : ChangeTask -> unit
+        abstract Calculate : int -> int -> string -> string
+        abstract Request : unit -> TaskState
 
 type EndpointInfo = 
     | Event of string * Type * MemberInfo
-    | Call of string * Type * Type list * MemberInfo 
+    | Call of string * Type * (string * Type) list * MemberInfo 
     | Unknown of MemberInfo 
 
 let typeIsGeneric (t1: Type) (t2 : Type) =
@@ -48,6 +51,11 @@ let isFSharpEvent (ev: EventInfo) =
         Event(ev.Name, ev.EventHandlerType.GenericTypeArguments.[0], ev :> MemberInfo) |> Some
     else None
 
+let isEventHandlerEvent (ev: EventInfo) =
+    if typeIsGeneric ev.EventHandlerType typedefof<EventHandler<_>> then
+        Event(ev.Name, ev.EventHandlerType.GenericTypeArguments.[0], ev :> MemberInfo) |> Some
+    else None
+
 let findEndpoints (typ : Type) =
     let detectEndpoint (mi : MemberInfo) =
         match mi with
@@ -57,9 +65,9 @@ let findEndpoints (typ : Type) =
             | None -> [Unknown mi]    
         | :? MethodInfo as mi ->
             if mi.IsSpecialName  || mi.Name.StartsWith("add_") || mi.Name.StartsWith("remove_") then []
-            else [Call(mi.Name, mi.ReturnType, mi.GetParameters() |> Seq.map (fun t -> t.ParameterType) |> Seq.toList, mi)]
+            else [Call(mi.Name, mi.ReturnType, mi.GetParameters() |> Seq.map (fun t -> t.Name, t.ParameterType) |> Seq.toList, mi)]
         | :? EventInfo as ei ->
-            match isFSharpEvent ei with
+            match isFSharpEvent ei |> Option.orElseWith (fun () -> isEventHandlerEvent ei) with
             | Some e -> [e]
             | _ -> 
                 [Unknown mi]
