@@ -72,16 +72,16 @@ type OrdinalLiteral =
     | I64Literal of int64
             
 type BasicLiteral =
-        | OrdinalLiteral of OrdinalLiteral
-        | F32Literal of float32
-        | F64Literal of float
-        | StringLiteral of string
-        | UuidLiteral of Guid
-        | BoolLiteral of bool
-        | DTLiteral of DateTime
-        | DTOLiteral of DateTimeOffset
-        | TSLiteral of TimeSpan
-        | NoneLiteral
+    | OrdinalLiteral of OrdinalLiteral
+    | F32Literal of float32
+    | F64Literal of float
+    | StringLiteral of string
+    | UuidLiteral of Guid
+    | BoolLiteral of bool
+    | DTLiteral of DateTime
+    | DTOLiteral of DateTimeOffset
+    | TSLiteral of TimeSpan
+    | NoneLiteral
 
 type Literal =
     | IdentifierLiteral of QualifiedIdentifier
@@ -130,18 +130,32 @@ type TypeReference =
     | ArrayType of TypeReference
     | MayBeType of TypeReference
     | NamedType of Identifier
+    | TupleType of TypeReference list
+
+
+type Modifiers = Map<QualifiedIdentifier, Literal>
+
+type FieldedTypeDescription =
+    | Indexed of Map<NameAndIndex, TypeReference * Modifiers>
+    | Named of Map<Identifier, TypeReference * Modifiers>
+
+type EnumTypeDescription =
+    {
+        IsFlag : bool
+        Based : OrdinalType
+        Values : Map<Identifier, OrdinalLiteral>
+    }
 
 type ComplexTypeDescription =
-    | Indexed of Map<NameAndIndex, TypeReference>
-    | Named of Map<Identifier, TypeReference>
-
+    | EnumType of EnumTypeDescription
+    | MapType of FieldedTypeDescription
+    | OneOfType of FieldedTypeDescription
 
 type TypeDescription =
-    | EnumType of IsFlag : bool * Based : OrdinalType * Values : Map<Identifier, OrdinalLiteral>
-    | MapType of ComplexTypeDescription
-    | OneOfType of ComplexTypeDescription
-
-type Parameters = Parameters of Map<QualifiedIdentifier, Literal>
+    {
+        Body: ComplexTypeDescription
+        Modifiers : Modifiers
+    }
 
 type EventDescription =
     {
@@ -162,7 +176,7 @@ type EndpointDescription =
     | Event of EventDescription
     | Call of CallDescription
 
-type ServiceDescription = Map<Identifier, EndpointDescription * Parameters> * Parameters
+type ServiceDescription = Map<Identifier, EndpointDescription * Modifiers> * Modifiers
 
 type SemanticVersion = Version of string
 
