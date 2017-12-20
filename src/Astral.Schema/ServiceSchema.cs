@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Reflection;
 using System.Text;
+using Astral.Liaison;
 using Astral.Markup;
 using Astral.Markup.RabbitMq;
 using Astral.Schema.Data;
@@ -215,6 +216,7 @@ namespace Astral.Schema
             var events = new List<EventSchemaGreen>();
             var calls = new List<CallSchemaGreen>();
             var types = new List<(Type[], Action<int[]>)>();
+            types.Add((new [] {typeof(RpcFail), typeof(RpcOk)}, p => { })); 
 
             foreach (var property in serviceType.GetProperties())
             {

@@ -18,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchemaTests", "tests\Schema
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.Markup", "src\Astral.Markup\Astral.Markup.csproj", "{18B33233-D7D3-440E-97FB-360E0C413546}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral", "src\Astral\Astral.csproj", "{9E02617C-4A5E-444E-9A54-0929CF3A8B96}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Services", "src\Astral.Services\Astral.Services.csproj", "{9E02617C-4A5E-444E-9A54-0929CF3A8B96}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleServices", "samples\SampleServices\SampleServices.csproj", "{EE8E0BD7-D576-4D5F-AA57-8C2ACC11E572}"
 EndProject
@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.RabbitLink", "src\As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "samples\SampleApp\SampleApp.csproj", "{2A9EB2D5-75AA-4F45-BB91-C39210935551}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral.Core", "src\Astral.Core\Astral.Core.csproj", "{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astral", "src\Astral\Astral.csproj", "{815AEA3C-DBEB-4EC9-8FA0-C6DE892DACED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Astral.Schema.Json", "src\Astral.Schema.Json\Astral.Schema.Json.csproj", "{A8F2A192-EE51-4E44-8371-26C5241714BA}"
 EndProject

@@ -68,7 +68,10 @@ namespace SampleApp
                         return Acknowledge.Ack;
                     });
                 link.Service<IFirstService>().Call(p => p.Call)
-                    .Process((p, c) => Task.FromResult(p + 5));
+                    .Process((p, c) =>
+                    {
+                        throw new InvalidOperationException("123456");
+                    });
                 Thread.Sleep(1000);
                 
                 
@@ -86,7 +89,13 @@ namespace SampleApp
                     .Build().PublishAsync(new LinkPublishMessage<EventContract>(new EventContract {Name = "empty", Lines = new List<EventContract.Line>()}));
                 link.Service<IFirstService>().Call(p => p.Call)
                     .ResponseQueueExpires(TimeSpan.FromSeconds(5))
-                    .Call(10, CancellationToken.None).ContinueWith(p => Console.WriteLine(p.Result));
+                    .Call(10, CancellationToken.None).ContinueWith(p =>
+                    {
+                        if (p.IsCompletedSuccessfully)
+                            Console.WriteLine(p.Result);
+                        else
+                            Console.WriteLine($"!!!!!Exception!!!!!! \n {p.Exception}");
+                    });
                 Console.ReadKey();
             }
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Astral.Liaison;
 
 namespace Astral.Schema.Green
 {
@@ -39,7 +40,9 @@ namespace Astral.Schema.Green
                 new WellKnownTypeSchemaGreen("uuid", typeof(Guid)),      
                 new WellKnownTypeSchemaGreen("datetime", typeof(DateTime)),
                 new WellKnownTypeSchemaGreen("datetime2", typeof(DateTimeOffset)),
-                new WellKnownTypeSchemaGreen("timespan", typeof(TimeSpan))
+                new WellKnownTypeSchemaGreen("timespan", typeof(TimeSpan)),
+                new WellKnownTypeSchemaGreen("fail", typeof(RpcFail)),
+                new WellKnownTypeSchemaGreen("ok", typeof(RpcOk)) 
             };
             
             ByCode = ImmutableDictionary.CreateRange(lst.Select(p => new KeyValuePair<string, WellKnownTypeSchemaGreen>(p.SchemaName, p)));

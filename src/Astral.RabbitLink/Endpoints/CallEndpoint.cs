@@ -71,9 +71,10 @@ namespace Astral.RabbitLink
                     try
                     {
                         var data = (TArg) Link.PayloadManager.Deserialize<TArg>(msg, Schema.Service.Types);
-                        var tsk = processor(data, msg.Cancellation);
+                        
                         try
                         {
+                            var tsk = processor(data, msg.Cancellation);    
                             var props = new LinkMessageProperties
                             {
                                 CorrelationId = msg.Properties.CorrelationId
@@ -92,7 +93,7 @@ namespace Astral.RabbitLink
                         catch (Exception ex)
                         {
 
-                            if (tsk.IsCanceled)
+                            if (ex.IsCancellation())
                                 return LinkConsumerAckStrategy.Requeue;
                             var props = new LinkMessageProperties
                             {
@@ -265,9 +266,10 @@ namespace Astral.RabbitLink
                     try
                     {
                         var data = (TArg) Link.PayloadManager.Deserialize<TArg>(msg, Schema.Service.Types);
-                        var tsk = processor(data, msg.Cancellation);
+                        
                         try
                         {
+                            var tsk = processor(data, msg.Cancellation);
                             var props = new LinkMessageProperties
                             {
                                 CorrelationId = msg.Properties.CorrelationId
@@ -285,7 +287,7 @@ namespace Astral.RabbitLink
                         }
                         catch (Exception ex)
                         {
-                            if (tsk.IsCanceled)
+                            if (ex.IsCancellation())
                                 return LinkConsumerAckStrategy.Requeue;
                             var props = new LinkMessageProperties
                             {

@@ -8,6 +8,7 @@
     <ProjectReference Include="..\..\src\Astral.Schema.CSharpGenerator\Astral.Schema.CSharpGenerator.csproj" />
     <ProjectReference Include="..\..\src\Astral.Schema.Json\Astral.Schema.Json.csproj" />
     <ProjectReference Include="..\..\src\Astral.Schema.Yaml\Astral.Schema.Yaml.csproj" />
+    <ProjectReference Include="..\..\src\Astral.Services\Astral.Services.csproj" />
     <ProjectReference Include="..\SampleServices\SampleServices.csproj" />
   </ItemGroup>
   <ItemGroup>

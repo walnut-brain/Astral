@@ -5,9 +5,7 @@ using System.Linq.Expressions;
 using System.Net.Mime;
 using System.Reflection;
 using System.Threading.Tasks;
-using Astral.Data;
 using Astral.Logging;
-using Astral.Schema;
 
 namespace Astral
 {
@@ -26,11 +24,7 @@ namespace Astral
             return propInfo;
         }
 
-        public static void RegisterAfterSuccessCommit(this IAfterCommit afterCommit, Action action)
-            => afterCommit.RegisterAfterCommit(p =>
-            {
-                if (p) action();
-            });
+        
 
         
         

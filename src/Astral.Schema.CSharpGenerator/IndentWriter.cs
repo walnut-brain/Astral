@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Reactive.Disposables;
 using System.Text;
+using System.Threading;
 
 namespace Astral.Schema.CSharpGenerator
 {
@@ -19,7 +19,7 @@ namespace Astral.Schema.CSharpGenerator
         public IDisposable Indent()
         {
             _indent++;
-            return Disposable.Create(() => _indent--);
+            return new Disposable(() => _indent--);
         }
 
         public void WriteLine(string str = "")
@@ -32,6 +32,30 @@ namespace Astral.Schema.CSharpGenerator
         public override string ToString()
         {
             return _builder.ToString();
+        }
+
+        private class Disposable : IDisposable
+        {
+            private Action _action;
+            private int _disposed;
+
+            public Disposable(Action action)
+            {
+                _action = action;
+            }
+
+            public void Dispose()
+            {
+                if(Interlocked.CompareExchange(ref _disposed, 1, 0) == 1)
+                    return;
+                _action();
+                _action = null;
+            }
+
+            ~Disposable()
+            {
+                Dispose();
+            }
         }
     }
 }

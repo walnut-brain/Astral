@@ -13,7 +13,6 @@
     <PackageReference Include="RabbitLink" Version="0.5.8" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Astral.Core\Astral.Core.csproj" />
     <ProjectReference Include="..\Astral.Payloads.Json\Astral.Payloads.Json.csproj" />
     <ProjectReference Include="..\Astral.Payloads\Astral.Payloads.csproj" />
     <ProjectReference Include="..\Astral.Schema\Astral.Schema.csproj" />

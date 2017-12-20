@@ -48,7 +48,7 @@ namespace Astral.Payloads
                 {
                     textSerializer = GetTextSerializer(ctText);
                 }
-                catch (ArgumentOutOfRangeException aoorEx)
+                catch (ArgumentOutOfRangeException)
                 {
                     throw new ArgumentOutOfRangeException($"No raw or text serializers for content type {contentType} registered");
                 }

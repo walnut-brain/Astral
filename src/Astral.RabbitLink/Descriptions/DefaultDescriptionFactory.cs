@@ -6,7 +6,6 @@ using Astral.Liaison;
 using Astral.Markup;
 using Astral.Markup.RabbitMq;
 using Astral.Schema;
-using RabbitLink.Topology;
 
 namespace Astral.RabbitLink.Descriptions
 {
